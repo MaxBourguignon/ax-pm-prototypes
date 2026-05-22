@@ -1,0 +1,184 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* =====================================================================
+   Arenametrix — Design Tokens
+   ===================================================================== */
+
+:root {
+  /* ---------- Neutrals --------------------------------------------- */
+  --ax-white:         #FFFFFF;
+  --ax-neutral-100:   #F9FBFB;
+  --ax-neutral-200:   #E2DDDD;
+  --ax-neutral-300:   #CED4DA;
+  --ax-neutral-400:   #ABBED1;
+  --ax-neutral-500:   #9A9EA5;
+  --ax-neutral-600:   #8993A0;
+  --ax-neutral-700:   #717171;
+  --ax-neutral-800:   #1F2937;
+  --ax-neutral-900:   #212529;
+  --ax-black:         #000000;
+
+  /* ---------- Primary (Blue) --------------------------------------- */
+  --ax-blue-100:      #EFF4FF;
+  --ax-blue-200:      #C6E2FF;
+  --ax-blue-300:      #96C2FE;
+  --ax-blue-500:      #017BFE;
+  --ax-blue-600:      #0D69D4;
+  --ax-blue-700:      #0058B4;
+  --ax-blue-ios:      #007AFF;
+
+  /* ---------- Secondary (Teal) ------------------------------------- */
+  --ax-green-100:     #DEF9F4;
+  --ax-green-200:     #B4EBE2;
+  --ax-green-300:     #7ECFC2;
+  --ax-green-400:     #52B0A1;
+  --ax-green-500:     #34B0A1;
+  --ax-green-brand:   #2CB1A2;
+
+  /* ---------- Accent ----------------------------------------------- */
+  --ax-orange:        #FE9D55;
+  --ax-coral:         #EE5A4F;
+  --ax-indigo-brand:  #4E6FC7;
+  --ax-indigo-grad:   #5585B8;
+
+  /* ---------- Semantic --------------------------------------------- */
+  --ax-success:       #16A34A;
+  --ax-danger:        #DC2626;
+  --ax-danger-bg:     #FFEBE8;
+  --ax-info:          var(--ax-blue-500);
+  --ax-warning:       var(--ax-orange);
+
+  /* ---------- Brand gradient --------------------------------------- */
+  --ax-brand-gradient:   linear-gradient(180deg, #2CB1A2 0%, #5585B8 100%);
+  --ax-brand-gradient-h: linear-gradient(90deg,  #5585B8 0%, #2CB1A2 100%);
+
+  /* ---------- Semantic surfaces ------------------------------------ */
+  --ax-bg:            var(--ax-white);
+  --ax-bg-canvas:     #F7F2F0;
+  --ax-bg-muted:      var(--ax-neutral-100);
+  --ax-surface-card:  var(--ax-white);
+  --ax-surface-hover: var(--ax-blue-100);
+  --ax-border:        var(--ax-neutral-200);
+  --ax-border-strong: var(--ax-neutral-300);
+  --ax-divider:       #D4D4D4;
+
+  --ax-fg:            var(--ax-neutral-800);
+  --ax-fg-strong:     var(--ax-neutral-900);
+  --ax-fg-muted:      var(--ax-neutral-500);
+  --ax-fg-on-primary: var(--ax-white);
+  --ax-fg-link:       var(--ax-blue-500);
+
+  /* ---------- Typography ------------------------------------------- */
+  --ax-font-sans: "Inter", sans-serif;
+
+  --ax-h1: 700 48px/64px var(--ax-font-sans);
+  --ax-h2: 600 28px/36px var(--ax-font-sans);
+  --ax-h3: 600 20px/28px var(--ax-font-sans);
+  --ax-h4: 600 16px/22px var(--ax-font-sans);
+  --ax-h5: 600 14px/18px var(--ax-font-sans);
+
+  --ax-body-lead: 400 28px/40px var(--ax-font-sans);
+  --ax-body-1:    400 16px/22px var(--ax-font-sans);
+  --ax-body-2:    400 14px/18px var(--ax-font-sans);
+  --ax-body-3:    400 12px/16px var(--ax-font-sans);
+
+  --ax-label-lg:  500 16px/24px var(--ax-font-sans);
+  --ax-label-md:  500 14px/20px var(--ax-font-sans);
+  --ax-label-sm:  500 12px/16px var(--ax-font-sans);
+
+  /* ---------- Spacing ---------------------------------------------- */
+  --ax-space-1:  4px;
+  --ax-space-2:  8px;
+  --ax-space-3:  12px;
+  --ax-space-4:  16px;
+  --ax-space-5:  20px;
+  --ax-space-6:  24px;
+  --ax-space-7:  28px;
+  --ax-space-8:  32px;
+  --ax-space-10: 40px;
+  --ax-space-12: 48px;
+  --ax-space-16: 64px;
+
+  /* ---------- Radii ------------------------------------------------ */
+  --ax-radius-button:  4px;
+  --ax-radius-field:   4px;
+  --ax-radius-tag:     10px;
+  --ax-radius-card:    8px;
+  --ax-radius-card-lg: 10px;
+  --ax-radius-pill:    100px;
+
+  /* ---------- Elevation -------------------------------------------- */
+  --ax-shadow-sm:    0 1px 2px 0 rgba(0,0,0,0.06);
+  --ax-shadow-md:    0 2px 4px 0 rgba(0,0,0,0.25);
+  --ax-shadow-lg:    0 8px 24px 0 rgba(31,41,55,0.12);
+  --ax-shadow-modal: 0 16px 48px -8px rgba(0,0,0,0.30);
+
+  /* ---------- Borders ---------------------------------------------- */
+  --ax-border-thin:       1px solid var(--ax-border);
+  --ax-border-strong-1:   1px solid var(--ax-border-strong);
+  --ax-border-focus:      1px solid var(--ax-blue-500);
+
+  /* ---------- Motion ----------------------------------------------- */
+  --ax-ease:     cubic-bezier(0.4, 0, 0.2, 1);
+  --ax-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ax-dur-fast: 120ms;
+  --ax-dur-base: 180ms;
+  --ax-dur-slow: 240ms;
+}
+
+/* ===================== Base reset ================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: var(--ax-font-sans);
+  font-size: 14px;
+  color: var(--ax-fg);
+  background: var(--ax-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+h1 { font: var(--ax-h1); color: var(--ax-fg-strong); letter-spacing: -0.01em; margin: 0; }
+h2 { font: var(--ax-h2); color: var(--ax-fg-strong); margin: 0; }
+h3 { font: var(--ax-h3); color: var(--ax-fg-strong); margin: 0; }
+h4 { font: var(--ax-h4); color: var(--ax-fg-strong); margin: 0; }
+h5 { font: var(--ax-h5); color: var(--ax-fg-strong); margin: 0; }
+p  { font: var(--ax-body-1); color: var(--ax-fg); margin: 0; }
+small { font: var(--ax-body-3); color: var(--ax-fg-muted); }
+
+a {
+  color: var(--ax-fg-link);
+  text-decoration: none;
+  transition: color var(--ax-dur-fast) var(--ax-ease);
+}
+a:hover { color: var(--ax-blue-600); }
+
+button { font-family: var(--ax-font-sans); }
+
+::selection { background: var(--ax-blue-200); color: var(--ax-fg-strong); }
+
+/* ===================== Keyframe animations ========================= */
+
+@keyframes axShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes axFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes axSlideLeft {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
