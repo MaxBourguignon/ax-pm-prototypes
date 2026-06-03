@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 import LogoAx from "../../assets/Logo Arenametrix détouré blanc HD.png";
-import DS from "../../utils/designSystem";
+import {DS} from "../../utils/designSystem";
 import Ico from "../../utils/icons";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -47,11 +47,12 @@ const NAV_TABS_L1 = [
     label: "Contacts",
     icon: <Ico.Users s={16} c="rgba(255,255,255,0.80)" />,
     subitems: [
-      { id: "overview",    label: "Overview page", link: "/overview"   },
+      { id: "overview",    label: "Overview page",  link: "/overview"   },
       { id: "contacts",    label: "Contacts",       link: "/contacts"   },
       { id: "structures",  label: "Structures",     link: "/structures" },
-      { id: "lists",       label: "Lists",           link: "/lists"      },
-      { id: "consents",    label: "Consents",        link: "/consents"   },
+      { id: "lists",       label: "Lists",          link: "/lists"      },
+      { id: "consents",    label: "Consents",       link: "/consents"   },
+      { id: "arenaform",   label: "Arenaform",      link: "/arenaform"  }
     ],
   },
   {

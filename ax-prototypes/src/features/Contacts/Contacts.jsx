@@ -3,8 +3,12 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import contactsData from "../../../contacts.json";
 import AddFilterModal from "./AddFilterModal";
-import DS from "../../utils/designSystem";
-import Ico from "../../utils/icons";
+import {DS} from "../../utils/designSystem";
+import Ico from '../../utils/icons';
+import { Btn }        from '../../components/Btn';
+import IconBtn from "../../components/Iconbtn";
+import { Toggle }     from '../../components/Controls';
+import { StatusBadge } from '../../components/Tag';
 import DATA_OBJECTS from "../../utils/dataObject";
 import ListActionModal from "./ListActionModal";
 
@@ -340,49 +344,6 @@ const usePortalDropdown = () => {
 // 9. PRIMITIVES
 // ─────────────────────────────────────────────────────────────────────────────
 
-const Btn = ({ label, onClick, variant = "primary", size = "md", iconLeft, iconRight, disabled = false, style: extra = {} }) => {
-  const [hovered, setHovered] = useState(false);
-  const h  = hovered && !disabled;
-  const sm = size === "sm";
-  const base = {
-    display: "inline-flex", alignItems: "center", gap: 8,
-    padding: "0 24px", height: sm ? 32 : 40, borderRadius: 6,
-    fontFamily: DS.ff, fontSize: sm ? 12 : 14, fontWeight: 400,
-    lineHeight: sm ? "16px" : "20px", cursor: hovered ? "pointer" : null,
-    opacity: disabled ? 0.4 : 1, transition: "all .15s",
-    whiteSpace: "nowrap", border: "1px solid transparent",
-  };
-  const variants = {
-    primary:   { background: h ? DS.blue300 : DS.blue500,    border: `1px solid ${h ? DS.blue300 : DS.blue500}`,  color: DS.white   },
-    secondary: { background: h ? DS.blue100 : DS.white,   border: `1px solid ${h ? DS.blue300 : DS.blue500}`,  color: h ? DS.blue500 : DS.neutral900 },
-    tertiary:  { background: h ? DS.blue100 : "transparent", border: "1px solid transparent",                     color: h ? DS.blue500 : DS.neutral900 },
-  };
-  return (
-    <button onClick={onClick} disabled={disabled}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ ...base, ...variants[variant], ...extra }}>
-      {iconLeft}{label}{iconRight}
-    </button>
-  );
-};
-
-const IconBtn = ({ icon, onClick, variant = "primary", size = "md", disabled = false, title, style: extra = {} }) => {
-  const [hovered, setHovered] = useState(false);
-  const h   = hovered && !disabled;
-  const dim = size === "sm" ? 28 : 40;
-  const variants = {
-    primary:   { background: h ? DS.blue300 : DS.blue500,    border: `1px solid ${h ? DS.blue300 : DS.blue500}` },
-    secondary: { background: h ? DS.blue100 : DS.white,   border: `1px solid ${h ? DS.blue300 : DS.blue500}` },
-    tertiary:  { background: h ? DS.blue100 : "transparent", border: "none" },
-  };
-  return (
-    <button onClick={onClick} disabled={disabled} title={title}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ width: dim, height: dim, borderRadius: 6, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.4 : 1, transition: "all .15s", ...variants[variant], ...extra }}>
-      <span style={{ display: "flex" }}>{icon}</span>
-    </button>
-  );
-};
 
 const PagBtn = ({ children, onClick, disabled, active }) => {
   const [hovered, setHovered] = useState(false);
@@ -758,7 +719,7 @@ const AnchorRow = ({ objId, filter, onPatch, onRemove }) => {
         </>
       )}
 
-      <IconBtn variant="tertiary" size="sm" icon={<Ico.Cross s={16} c={DS.neutral500} />} onClick={onRemove} />
+      <IconBtn type="Tertiary" size="sm" icon={<Ico.Cross s={16} c={DS.neutral500} />} onClick={onRemove} />
     </div>
   );
 };
@@ -806,7 +767,7 @@ const FilterRow = ({ filter, onPatch, onRemove, anchorLevel, channelScope }) => 
         : <ValInput field={field} value={filter.val} op={filter.op} onChange={(val) => onPatch({ val })} />
       }
 
-      <IconBtn variant="tertiary" size="sm" icon={<Ico.Cross s={16} c={DS.neutral500} />} onClick={onRemove} />
+      <IconBtn type="Tertiary" size="sm" icon={<Ico.Cross s={16} c={DS.neutral500} />} onClick={onRemove} />
     </div>
   );
 };
@@ -903,7 +864,7 @@ const FilterBlock = ({ block, idx, topLogic, onTopLogicChange, onPatchBlock, onR
             GROUP {idx + 1}
           </span>
           <div style={{ marginLeft: "auto" }}>
-            <IconBtn size="sm" variant="tertiary" icon={<Ico.Cross s={16} c={DS.neutral500} />} onClick={onRemoveBlock} />
+            <IconBtn size="sm" type="Tertiary" icon={<Ico.Cross s={16} c={DS.neutral500} />} onClick={onRemoveBlock} />
           </div>
         </div>
 
@@ -913,7 +874,7 @@ const FilterBlock = ({ block, idx, topLogic, onTopLogicChange, onPatchBlock, onR
             <p style={{ margin: "0 0 10px", fontSize: 12, color: DS.neutral500, fontFamily: DS.ff }}>
               No filters yet — choose an object and use case to get started.
             </p>
-            <Btn size="sm" variant="secondary" label="Add a filter" iconLeft={<Ico.Plus s={12} c={DS.blue500} />} onClick={() => onOpenFilterModal(block.id)} />
+            <Btn size="sm" type="Secondary" label="Add a filter" iconLeft={<Ico.Plus s={12} c={DS.blue500} />} onClick={() => onOpenFilterModal(block.id)} />
           </div>
         )}
 
@@ -983,7 +944,7 @@ const FilterBlock = ({ block, idx, topLogic, onTopLogicChange, onPatchBlock, onR
             })}
 
             <div style={{ marginTop: 10, paddingTop: 8, borderTop: `1px dashed ${DS.neutral200}` }}>
-              <Btn size="sm" variant="tertiary" label="Add a filter" iconLeft={<Ico.Plus s={11} c={DS.blue500} />} onClick={() => onOpenFilterModal(block.id)} />
+              <Btn size="sm" type="Tertiary" iconLeft={<Ico.Plus s={11} c={DS.blue500} />} onClick={() => onOpenFilterModal(block.id)}>Add a filter</Btn>
             </div>
           </div>
         )}
@@ -991,7 +952,7 @@ const FilterBlock = ({ block, idx, topLogic, onTopLogicChange, onPatchBlock, onR
 
       {isLastBlock && (
         <div style={{ marginTop: 10, paddingLeft: 2 }}>
-          <Btn size="sm" variant="tertiary" label="Add a group of filters" iconLeft={<Ico.Plus s={11} c={DS.blue500} />} onClick={onAddBlock} />
+          <Btn size="sm" type="Tertiary" iconLeft={<Ico.Plus s={11} c={DS.blue500} />} onClick={onAddBlock}>Add a group of filters</Btn>
         </div>
       )}
     </div>
@@ -1068,7 +1029,7 @@ const ContactsTable = ({ data, selected, onToggle, onToggleAll, onContactClick, 
                 ))}
                 <td style={{ padding: "0 12px", height: 40, borderBottom: `0.5px solid ${DS.neutral200}`, textAlign: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <IconBtn variant="secondary" size="sm" icon={<Ico.Eye s={14} c={DS.blue500} />} onClick={() => onContactClick(contact)} title="View profile" />
+                    <IconBtn type="Secondary" size="sm" icon={<Ico.Eye s={14} c={DS.blue500} />} onClick={() => onContactClick(contact)} title="View profile" />
                   </div>
                 </td>
               </tr>
@@ -1131,6 +1092,7 @@ const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
 
   const items = [
     { icon: <Ico.Download     s={16} />, label: "Export contacts"            },
+    { icon: <Ico.Merge        s={16} />, label: "Merge contact records"      },
     { icon: <Ico.UserPlus     s={16} />, label: "Add to a list"              },
     { icon: <Ico.UserPlus     s={16} />, label: "Add to a consent"           },
     { icon: <Ico.UserMinus    s={16} />, label: "Remove from a list"         },
@@ -1141,7 +1103,7 @@ const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      <Btn onClick={() => { if (!disabled) setOpen(o => !o); }} disabled={disabled} variant="secondary" iconLeft={<Ico.Dots />} label="Options" />
+      <Btn onClick={() => { if (!disabled) setOpen(o => !o); }} disabled={disabled} type="Secondary" iconLeft={<Ico.Dots />}>Options</Btn>
       {open && (
         <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 9999, background: DS.white, border: `1px solid ${DS.blue500}`, borderRadius: 4, padding: 5, display: "flex", flexDirection: "column", minWidth: 240 }}>
           {items.map((item, i) => (
@@ -1197,7 +1159,7 @@ const CreateContactSidebar = ({ open, onClose }) => {
       <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 480, background: DS.white, zIndex: 1001, display: "flex", flexDirection: "column", boxShadow: "-4px 0 24px rgba(15,23,42,.15)" }}>
         <div style={{ background: DS.brandGradientH, padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
           <span style={{ fontSize: 16, fontWeight: 600, color: DS.white, fontFamily: DS.ff }}>Create a contact</span>
-          <IconBtn variant="tertiary" size="sm" icon={<Ico.Cross s={16} c={DS.white} />} onClick={onClose} style={{ borderColor: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.15)" }} />
+          <IconBtn type="Tertiary" size="sm" icon={<Ico.Cross s={16} c={DS.white} />} onClick={onClose} style={{ borderColor: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.15)" }} />
         </div>
         <div style={{ padding: "16px 24px", display: "flex", flexDirection: "column", flex: 1, overflowY: "auto" }}>
           <SH label="Information"  sKey="infos"        />
@@ -1208,8 +1170,8 @@ const CreateContactSidebar = ({ open, onClose }) => {
           <SH label="Consents"    sKey="consentements" />
         </div>
         <div style={{ padding: "16px 24px", display: "flex", flexShrink: 0, alignItems: "center", justifyContent: "center", gap: 12, borderTop: `1px solid ${DS.neutral200}` }}>
-          <Btn variant="tertiary" label="Cancel" onClick={() => { setForm(INITIAL); onClose(); }} />
-          <Btn variant="primary"  label="Save"   onClick={onClose} />
+          <Btn type="Tertiary" onClick={() => { setForm(INITIAL); onClose(); }}>Cancel</Btn>
+          <Btn type="Primary" onClick={onClose}>Save</Btn>
         </div>
       </div>
     </>
@@ -1321,8 +1283,8 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <Btn variant="primary" iconLeft={<Ico.Filter s={16} c={DS.white} />} label="Start segmentation" disabled={builderOpen} onClick={startSegmentation} />
-          <Btn variant="secondary" iconLeft={<Ico.Plus c={DS.blue500} />} label="Add a contact" onClick={() => setShowCreateSidebar(true)} />
+          <Btn type="Primary" iconLeft={<Ico.Filter s={16} c={DS.white} />} disabled={builderOpen} onClick={startSegmentation}>Start segmentation</Btn>
+          <Btn type="Secondary" iconLeft={<Ico.Plus c={DS.blue500} />} onClick={() => setShowCreateSidebar(true)}>Add a contact</Btn>
         </div>
       </div>
 
@@ -1346,10 +1308,10 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
               ))}
             </div>
             <div style={{ display: "flex", alignItems: "center", padding: "8px 32px", borderTop: `0.5px solid ${DS.neutral200}`, background: DS.neutral100, gap: 8, borderRadius: "0 0 8px 8px" }}>
-              <Btn variant="primary" iconLeft={<Ico.List c={DS.white} />} label="Create a list" />
+              <Btn type="Primary" iconLeft={<Ico.List c={DS.white} />}>Create a list</Btn>
               <div style={{ flex: 1 }} />
-              <Btn variant="tertiary"  label="Cancel" disabled={!isDirty} onClick={handleCancel} />
-              <Btn variant="secondary" label="Search" disabled={!isDirty} onClick={handleApply} />
+              <Btn type="Tertiary"  disabled={!isDirty} onClick={handleCancel}>Cancel</Btn>
+              <Btn type="Secondary" disabled={!isDirty} onClick={handleApply}>Save</Btn>
             </div>
           </div>
         )}
@@ -1371,7 +1333,7 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
         {/* Table toolbar */}
         <div style={{ margin: "12px 24px 0" }}>
           <div style={{ padding: "10px 0", display: "flex", alignItems: "center", borderBottom: `1px solid ${DS.neutral200}`, justifyContent: "space-between" }}>
-            <Btn variant="secondary" iconLeft={<Ico.Settings />} label="Configure columns" />
+            <Btn type="Secondary" iconLeft={<Ico.Settings />}>Configure columns</Btn>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <OptionsMenu disabled={selected.size === 0} selected={selected} />
               <SearchField value={search} onChange={(v) => { setSearch(v); setPage(1); }} />

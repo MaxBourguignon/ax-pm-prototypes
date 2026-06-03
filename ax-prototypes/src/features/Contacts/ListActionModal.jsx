@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import DS from "../../utils/designSystem";
+import {DS} from "../../utils/designSystem";
 import Ico from "../../utils/icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,7 +52,7 @@ const Btn = ({ label, onClick, variant = "primary", iconLeft, iconRight, disable
   };
   const variants = {
     primary:   { background: h ? DS.blue300  : DS.blue500,    border: `1px solid ${h ? DS.blue300  : DS.blue500}`,  color: DS.neutral0   },
-    secondary: { background: h ? DS.blue100  : DS.neutral0,   border: `1px solid ${h ? DS.blue300  : DS.blue500}`,  color: DS.neutral900 },
+    secondary: { background: h ? DS.blue100  : DS.white,   border: `1px solid ${h ? DS.blue300  : DS.blue500}`,  color: DS.neutral900 },
     tertiary:  { background: h ? DS.blue100  : "transparent", border: "1px solid transparent",                      color: DS.neutral900 },
   };
   return (

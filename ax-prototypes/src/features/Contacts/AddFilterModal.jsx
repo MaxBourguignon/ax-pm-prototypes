@@ -1,20 +1,20 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
-import DS from "../../utils/designSystem";
+import {DS} from "../../utils/designSystem";
 import Ico from "../../utils/icons";
 import USE_CASES from "../../utils/useCases";
 
 // ─── DATA OBJECTS ─────────────────────────────────────────────────────────────
 const DATA_OBJECTS = [
     { id: "contact",       label: "Contacts",         description: "Filter contacts by their profile attributes",                          color: DS.blue500,    bg: DS.blue100    },
-    { id: "consumptions",  label: "Purchase summary",  description: "Filter by number of purchases or total spending, across all channels", color: DS.neutral600, bg: DS.neutral100 },
-    { id: "ticket",        label: "Ticketing",         description: "Filter by tickets, representations or purchases — event, type or date",color: DS.indigoBrand,  bg: DS.blue100  },
-    { id: "order",         label: "E-commerce",        description: "Filter by individual products — item, category, or order status",      color: DS.green500,    bg: DS.green100    },
-    { id: "subscription",  label: "Subscriptions",     description: "Filter contacts who have or had a subscription",                       color: DS.orange,  bg: "#FFF1E0"  },
-    { id: "campaign",      label: "Campaigns",         description: "Filter contacts who received or interacted with a campaign",           color: DS.indigoGrad,   bg: DS.blue200   },
-    { id: "consent",       label: "Consents",          description: "Filter contacts by consent status",                                    color: DS.coral,    bg: DS.dangerBg    },
-    { id: "accessControl", label: "Access control",    description: "Filter contacts by event attendance",                                  color: DS.greenBrand,  bg: DS.green200  },
+    { id: "consumptions",  label: "Purchase summary",  description: "Filter by number of purchases or total spending, across all channels", color: DS.neutral500, bg: DS.neutral200 },
+    { id: "ticket",        label: "Ticketing",         description: "Filter by tickets, representations or purchases — event, type or date",color: DS.purple600,  bg: DS.purple100  },
+    { id: "order",         label: "E-commerce",        description: "Filter by individual products — item, category, or order status",      color: DS.teal500,    bg: DS.teal100    },
+    { id: "subscription",  label: "Subscriptions",     description: "Filter contacts who have or had a subscription",                       color: DS.orange500,  bg: DS.orange100  },
+    { id: "campaign",      label: "Campaigns",         description: "Filter contacts who received or interacted with a campaign",           color: DS.amber600,   bg: DS.amber100   },
+    { id: "consent",       label: "Consents",          description: "Filter contacts by consent status",                                    color: DS.rose600,    bg: DS.rose100    },
+    { id: "accessControl", label: "Access control",    description: "Filter contacts by event attendance",                                  color: DS.indigo800,  bg: DS.indigo100  },
 ];
 
 const OBJECT_GROUPS = [

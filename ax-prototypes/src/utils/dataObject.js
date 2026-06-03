@@ -1,4 +1,4 @@
-import DS from "./designSystem"
+import {DS} from "./designSystem"
 
 // ─── CHANNEL SCOPES ───────────────────────────────────────────────────────────
 // Used by the consumptions anchor to scope metrics to a single channel.

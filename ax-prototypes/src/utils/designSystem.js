@@ -1,7 +1,5 @@
-const _ff = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-
-const DS = {
-  // ---------- Neutrals ------------------------------------------
+export const DS = {
+  // ── Raw palette ───────────────────────────────────────────────────────────────
   white:        "#FFFFFF",
   neutral100:   "#F9FBFB",
   neutral200:   "#E2DDDD",
@@ -14,7 +12,6 @@ const DS = {
   neutral900:   "#212529",
   black:        "#000000",
 
-  // ---------- Primary (Blue) ------------------------------------
   blue100:      "#EFF4FF",
   blue200:      "#C6E2FF",
   blue300:      "#96C2FE",
@@ -23,7 +20,6 @@ const DS = {
   blue700:      "#0058B4",
   blueIos:      "#007AFF",
 
-  // ---------- Secondary (Teal / Brand-mark green) ---------------
   green100:     "#DEF9F4",
   green200:     "#B4EBE2",
   green300:     "#7ECFC2",
@@ -31,97 +27,101 @@ const DS = {
   green500:     "#34B0A1",
   greenBrand:   "#2CB1A2",
 
-  // ---------- Accent (from logo) --------------------------------
   orange:       "#FE9D55",
   coral:        "#EE5A4F",
   indigoBrand:  "#4E6FC7",
   indigoGrad:   "#5585B8",
 
-  // ---------- Semantic ------------------------------------------
-  success:      "#16A34A",
-  danger:       "#DC2626",
-  dangerBg:     "#FFEBE8",
-  info:         "#017BFE",
-  warning:      "#FE9D55",
+  purple100:    "#F3E8FF",
+  purple600:    "#9333EA",
+  teal100:      "#CCFBF1",
+  teal500:      "#14B8A6",
+  orange100:    "#FFEDD5",
+  orange500:    "#F97316",
+  amber100:     "#FEF3C7",
+  amber600:     "#D97706",
+  rose100:      "#FFE4E6",
+  rose600:      "#E11D48",
+  indigo100:    "#E0E7FF",
+  indigo800:    "#3730A3",
+  navy:         "#180636",
 
-  // ---------- Brand Gradients -----------------------------------
-  brandGradient:  "linear-gradient(180deg, #2CB1A2 0%, #5585B8 100%)",
-  brandGradientH: "linear-gradient(90deg, #5585B8 0%, #2CB1A2 100%)",
+  // ── Semantic tokens ───────────────────────────────────────────────────────────
+  ff: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
 
-  // ---------- Semantic Surfaces ---------------------------------
-  bg:           "#FFFFFF",
-  bgCanvas:     "#F7F2F0",
-  bgMuted:      "#F9FBFB",
-  surfaceCard:  "#FFFFFF",
-  surfaceHover: "#EFF4FF",
-  border:       "#E2DDDD",
-  borderStrong: "#CED4DA",
-  divider:      "#D4D4D4",
+  bgPage:    "#F9FBFB",
+  bgCard:    "#FFFFFF",
+  bgSurface: "#F9FBFB",
+  bgIcons:   "#EFF4FF",
 
-  fg:           "#1F2937",
-  fgStrong:     "#212529",
-  fgMuted:      "#9A9EA5",
-  fgOnPrimary:  "#FFFFFF",
-  fgLink:       "#017BFE",
+  borderDefault: "#E2DDDD",
+  borderFocus:   "#017BFE",
+  borderError:   "#EF4444",
 
-  // ---------- Typography ----------------------------------------
-  ff: _ff,
+  textDefault:     "#1F2937",
+  textSecondary:   "#9A9EA5",
+  textInverse:     "#FFFFFF",
+  textPlaceholder: "#ABBED1",
+  textDisabled:    "#9A9EA5",
 
-  h1: `700 48px/64px ${_ff}`,
-  h2: `600 28px/36px ${_ff}`,
-  h3: `600 20px/28px ${_ff}`,
-  h4: `600 16px/22px ${_ff}`,
-  h5: `600 14px/18px ${_ff}`,
+  actionPrimary:            "#017BFE",
+  actionPrimaryHover:       "#0058B4",
+  actionSecondaryBorder:    "#017BFE",
+  actionSecondaryHover:     "#EFF4FF",
+  actionSecondaryTextHover: "#017BFE",
+  actionTertiaryHover:      "#F9FBFB",
+  actionTertiaryTextHover:  "#1F2937",
+  actionDisabledBg:         "#E2DDDD",
+  actionDisabledText:       "#9A9EA5",
 
-  bodyLead: `400 28px/40px ${_ff}`,
-  body1:    `400 16px/22px ${_ff}`,
-  body2:    `400 14px/18px ${_ff}`,
-  body3:    `400 12px/16px ${_ff}`,
+  navTabBarActive:  "#007AFF",
+  navTabTextActive: "#017BFE",
+  navText:          "#717171",
+  navActiveTab:     "#017BFE",
+  navGradientFrom:  "#017BFE",
+  navGradientTo:    "#4E6FC7",
 
-  labelLg:  `500 16px/24px ${_ff}`,
-  labelMd:  `500 14px/20px ${_ff}`,
-  labelSm:  `500 12px/16px ${_ff}`,
+  feedbackSuccess:   "#22C55E",
+  feedbackError:     "#EF4444",
+  feedbackWarning:   "#F59E0B",
+  feedbackInfo:      "#017BFE",
+  feedbackSuccessBg: "#DEF9F4",
+  feedbackErrorBg:   "#FFE4E6",
+  feedbackWarningBg: "#FEF3C7",
+  feedbackInfoBg:    "#EFF4FF",
+  feedbackErrorText: "#B91C1C",
 
-  // ---------- Spacing -------------------------------------------
-  space1:  "4px",
-  space2:  "8px",
-  space3:  "12px",
-  space4:  "16px",
-  space5:  "20px",
-  space6:  "24px",
-  space7:  "28px",
-  space8:  "32px",
-  space10: "40px",
-  space12: "48px",
-  space16: "64px",
+  purple:      "#9333EA",
+  purpleLight: "#F3E8FF",
+  neutralLGrey:"#CED4DA",
 
-  // ---------- Radii ---------------------------------------------
-  radiusButton: "4px",
-  radiusField:  "4px",
-  radiusTag:    "10px",
+  success:         "#22C55E",
+  brandGradientH:  "linear-gradient(135deg, #017BFE 0%, #4E6FC7 100%)",
+
+  // ── Spacing ───────────────────────────────────────────────────────────────────
+  space1: "4px",
+  space2: "8px",
+  space3: "12px",
+  space4: "16px",
+
+  // ── Border radius ─────────────────────────────────────────────────────────────
   radiusCard:   "8px",
-  radiusCardLg: "10px",
-  radiusPill:   "100px",
+  radiusButton: "6px",
 
-  // ---------- Elevation -----------------------------------------
-  shadowSm:    "0 1px 2px 0 rgba(0,0,0,0.06)",
-  shadowMd:    "0 2px 4px 0 rgba(0,0,0,0.25)",
-  shadowLg:    "0 8px 24px 0 rgba(31,41,55,0.12)",
-  shadowModal: "0 16px 48px -8px rgba(0,0,0,0.30)",
-
-  // ---------- Borders -------------------------------------------
-  borderThin:        "1px solid #E2DDDD",
-  borderStrongSolid: "1px solid #CED4DA",
-  borderFocus:       "1px solid #017BFE",
-
-  // ---------- Motion --------------------------------------------
-  ease:    "cubic-bezier(0.4, 0, 0.2, 1)",
-  easeOut: "cubic-bezier(0, 0, 0.2, 1)",
+  // ── Animation ─────────────────────────────────────────────────────────────────
   durFast: "120ms",
-  durBase: "180ms",
-  durSlow: "240ms",
-
-  navy: "#180636",
+  durBase: "200ms",
+  ease:    "ease",
 };
 
-export default DS;
+export const TY = {
+  h3: { fontSize: 20, fontWeight: 600, lineHeight: "28px" },
+  h4: { fontSize: 16, fontWeight: 600, lineHeight: "22px" },
+  h5: { fontSize: 14, fontWeight: 600, lineHeight: "18px" },
+  b1: { fontSize: 16, fontWeight: 400, lineHeight: "22px" },
+  b2: { fontSize: 14, fontWeight: 400, lineHeight: "18px" },
+  b3: { fontSize: 12, fontWeight: 400, lineHeight: "16px" },
+  weightSemiBold: 600,
+  weightMedium:   500,
+};
+

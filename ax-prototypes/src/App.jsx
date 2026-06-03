@@ -8,6 +8,7 @@ import ContactRecord from './features/Contacts/ContactRecord'
 import AppLayoutSidebar from './layout/Layout/AppLayout_bis'
 import ConsentsPage from './features/Consents/ConsentsPage'
 import PerformancesPage from './features/Performances/PerformancePage'
+import ArenaForm from './features/Arenaform/Arenaform'
 
 function App() {
 
@@ -24,6 +25,7 @@ function App() {
                     <Route path="/contacts/:id" element={<ContactRecord selectedContact = {selectedContact} />} />
                     <Route path="/consents" element={<ConsentsPage />} />
                     <Route path="/performances" element={<PerformancesPage />} />
+                    <Route path="/arenaform" element={<ArenaForm />} />
                 </Route>
             </Routes>
         </BrowserRouter>

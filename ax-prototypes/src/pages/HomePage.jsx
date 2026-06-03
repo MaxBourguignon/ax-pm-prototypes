@@ -5,6 +5,7 @@ const MODULES = [
   { icon: "🚀", label: "Contacts page V3", desc: "New contact page with brand new segmentation engine to welcome Fanalists clients", bg: "#EFF6FF", link: "/contacts" },
   { icon: "✨", label: "Consents page V3", desc: "New consent page with consents management", bg: "#EFF6FF", link: "/consents" },
   { icon: "🏆", label: "Performances page V3", desc: "New performances page with performances management", bg: "#EFF6FF", link: "/performances" },
+  { icon: "⚗️", label: "ArenaForm", desc: "Exhaustive form builder the foster engagement and acquisition", bg: "#EFF6FF", link: "/arenaform" },
 ];
 
 

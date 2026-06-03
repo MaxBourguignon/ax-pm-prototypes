@@ -1,5 +1,5 @@
 import { useState } from "react";
-import DS from "../../utils/designSystem";
+import {DS} from "../../utils/designSystem";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 

@@ -3,7 +3,7 @@ import { NavLink, useParams } from "react-router";
 import contactsData from '../../../contacts.json';
 import MiniCards from "./MiniCards";
 
-import DS from "../../utils/designSystem";
+import {DS} from "../../utils/designSystem";
 import Ico from "../../utils/icons";
 
 const formatDate = (dateStr) => {
