@@ -49,7 +49,7 @@ export const DS = {
   // ── Semantic tokens ───────────────────────────────────────────────────────────
   ff: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
 
-  bgPage:    "#F9FBFB",
+  bgPage:    "#F8F9FB",
   bgCard:    "#FFFFFF",
   bgSurface: "#F9FBFB",
   bgIcons:   "#EFF4FF",

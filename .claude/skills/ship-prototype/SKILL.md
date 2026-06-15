@@ -6,9 +6,10 @@ description: Final integration + launch step for Arenametrix prototypes. Runs AF
 # Skill: ship-prototype
 
 You take a **page-only feature file** that `design-prototypes` built and make it
-**actually runnable in the app**: route it, add it to the sidebar, build it, launch
-it locally, and debug until it works. You do not design or restyle the page — that
-is `design-prototypes`' job. You do not recreate the nav/sidebar/shell — they exist.
+**actually runnable in the app**: route it, add it to the sidebar, add a launch card
+to the Home page, build it, launch it locally, and debug until it works. You do not
+design or restyle the page — that is `design-prototypes`' job. You do not recreate the
+nav/sidebar/shell — they exist.
 
 App = Vite + React 19 in **`ax-prototypes/`** (the dir with `package.json` + `src/`).
 Dev server: `npm run dev` (Vite, default `http://localhost:5173`).
@@ -60,6 +61,23 @@ Ask the user (do not guess):
   existing `Ico.*` for its icon (match the icon prop style already used:
   `<Ico.X s={16} c="rgba(255,255,255,0.80)" />`).
 - Keep the link exactly equal to the route slug.
+- A subitem with `disabled: true` renders greyed with an "Unable" tag and is
+  non-clickable. A freshly-wired page has a real route, so add its subitem **without**
+  the `disabled` flag (omit it = enabled). Only set `disabled: true` for IA entries
+  whose page isn't built yet.
+
+### 3b. Add the Home page launch card
+The Home page lives at `src/pages/HomePage.jsx` and renders a `MODULES` array — each
+entry is one launch card `{ icon, label, desc, bg, link }`.
+
+- Append one entry to `MODULES` for the new page:
+  `{ icon: "<emoji>", label: "<Feature label>", desc: "<one-line summary>", bg: "#EFF6FF", link: "/<slug>" }`
+- Keep `link` exactly equal to the route slug (same value used for the route and the
+  sidebar entry).
+- Pick a relevant emoji for `icon` (match the existing playful style: 🚀 ✨ 🏆 ⚗️ 📋).
+  Reuse the `bg: "#EFF6FF"` the other cards use.
+- Do NOT restyle `ModuleCard` or the grid — only add the data entry.
+- If a card with the same `link` already exists, do not duplicate it.
 
 ### 4. Install + build
 - If `node_modules` is missing or deps changed: `npm install` in the app dir.
@@ -97,6 +115,7 @@ would change intended design, flag it instead.
   Feature file   src/features/<Folder>/<File>.jsx
   Route          /<slug>            (src/App.jsx)
   Sidebar        <Section> › <Label>  (SideBar.jsx)
+  Home card      <Label>             (HomePage.jsx)
   Build          lint ✓   build ✓
   Dev server     http://localhost:<port>/<slug>   (running)
   Fixes applied  [list, or none]
@@ -110,6 +129,8 @@ would change intended design, flag it instead.
 1. Never redesign or restyle the page — only integrate, wire, and fix build/runtime errors.
 2. Never recreate or edit the nav bar / sidebar shell beyond adding the one nav entry.
 3. Always ASK which sidebar section to use (or whether to create a new one).
+3b. Always add a Home page launch card (`MODULES` in `src/pages/HomePage.jsx`),
+    keeping its `link` equal to the route slug — never duplicate an existing card.
 4. Never overwrite an existing route — flag slug collisions and ask.
 5. Keep the route slug, the sidebar `link`, and the imported component consistent.
 6. Do not declare done until `npm run lint` and `npm run build` pass and the dev

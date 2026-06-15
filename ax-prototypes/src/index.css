@@ -53,7 +53,7 @@
   --ax-brand-gradient-h: linear-gradient(90deg,  #5585B8 0%, #2CB1A2 100%);
 
   /* ---------- Semantic surfaces ------------------------------------ */
-  --ax-bg:            var(--ax-white);
+  --ax-bg:            #F8F9FB;
   --ax-bg-canvas:     #F7F2F0;
   --ax-bg-muted:      var(--ax-neutral-100);
   --ax-surface-card:  var(--ax-white);

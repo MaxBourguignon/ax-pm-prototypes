@@ -5,6 +5,7 @@ import { Btn }        from '../../components/Btn';
 import IconBtn from "../../components/Iconbtn";
 import { Toggle }     from '../../components/Controls';
 import { StatusBadge } from '../../components/Tag';
+import PageHeader from '../../components/PageHeader';
 
 
 // Typography — confirmed from Figma
@@ -71,26 +72,6 @@ function CardStats({ title, value, subvalue, icon: IcoC, iconColor, trend, trend
           <span style={{ ...TY.b3, color: trend === "up" ? DS.feedbackSuccess : DS.feedbackError, fontFamily:DS.ff }}>{trendVal}</span>
         </div>
       )}
-    </div>
-  );
-}
-
-// PageHeader — from Figma 360:1403
-function PageHeader({ title, subtitle, icon: IcoC, actions }) {
-  return (
-    <div style={{ background:DS.bgCard, borderBottom:`1px solid ${DS.borderDefault}`, padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-        {IcoC && (
-          <div style={{ background:DS.bgIcons, borderRadius:6, width:40, height:40, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <IcoC s={20} c={DS.actionPrimary}/>
-          </div>
-        )}
-        <div>
-          <div style={{ ...TY.h3, color:DS.textDefault, fontFamily:DS.ff, lineHeight:"28px" }}>{title}</div>
-          {subtitle && <div style={{ ...TY.b2, color:DS.neutral500, fontFamily:DS.ff }}>{subtitle}</div>}
-        </div>
-      </div>
-      {actions && <div style={{ display:"flex", gap:16, alignItems:"center" }}>{actions}</div>}
     </div>
   );
 }
@@ -166,7 +147,7 @@ function FormsOverview({ onOpen, onCreate }) {
 
   return (
     <div style={{ background:DS.bgPage, minHeight:"100vh" }}>
-      <PageHeader title="ArenaForm" subtitle={`${FORMS.length} forms`} icon={Ico.Form}
+      <PageHeader title="ArenaForm" description="Build and manage your data-collection forms" icon={<Ico.Form s={20} c={DS.actionPrimary}/>}
         actions={<><Btn type="Primary" iconLeft={<Ico.Plus s={16} c={DS.textInverse}/>} onClick={onCreate}>Create new form</Btn></>}/>
 
       {/* KPI strip — 4 cards */}
@@ -348,8 +329,8 @@ function FormEditor({ form, isNew, onBack }) {
       </div>
       <PageHeader
         title={form ? form.name : "New Form"}
-        subtitle={form ? `${form.type==="popup"?"Pop-up":"Standard"} · Last updated ${form.updated}` : "Creating new form"}
-        icon={Ico.Form}
+        description={form ? `${form.type==="popup"?"Pop-up":"Standard"} · Last updated ${form.updated}` : "Creating new form"}
+        icon={<Ico.Form s={20} c={DS.actionPrimary}/>}
         actions={<><Btn type="Secondary" onClick={()=>{}}>Save draft</Btn><Btn type="Primary" onClick={()=>{}}>Publish</Btn></>}
       />
       <TabBar tabs={EDITOR_TABS} active={tab} onChange={t => { if (!isNew || EDITOR_TABS.findIndex(x=>x.id===t) <= step) setTab(t); }}

@@ -32,6 +32,42 @@ const IconLogo = () => (
   <img src={LogoAx} style={{ width: 18, height: 18 }} alt="Arenametrix" />
 );
 
+const IconHome = () => (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+    <path d="M2.5 7L8 2.5L13.5 7V13a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V7Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    <path d="M6.5 14V9.5h3V14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+function HomeButton() {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <Link
+      to="/home"
+      title="Back to home"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        marginLeft: "auto",
+        width: 30,
+        height: 30,
+        borderRadius: DS.radiusButton,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        color: hovered ? DS.white : NAV_TEXT_SECONDARY,
+        background: hovered ? NAV_ITEM_HOVER : "transparent",
+        border: `1px solid ${NAV_BORDER}`,
+        textDecoration: "none",
+        transition: `background ${DS.durFast} ${DS.ease}, color ${DS.durFast} ${DS.ease}`,
+      }}
+    >
+      <IconHome />
+    </Link>
+  );
+}
+
 // ── Sidebar-specific overlays ─────────────────────────────────────────────────
 const NAV_ITEM_ACTIVE    = "rgba(255,255,255,0.15)";
 const NAV_ITEM_HOVER     = "rgba(255,255,255,0.07)";
@@ -46,12 +82,14 @@ const NAV_TABS_L1 = [
     id: "contacts",
     label: "Contacts",
     icon: <Ico.Users s={16} c="rgba(255,255,255,0.80)" />,
+    // Set `disabled: true` on any item whose page isn't built yet — it renders
+    // greyed with an "Unable" tag and is non-clickable. Omit the flag to enable it.
     subitems: [
-      { id: "overview",    label: "Overview page",  link: "/overview"   },
+      { id: "overview",    label: "Overview page",  link: "/overview",   disabled: true },
       { id: "contacts",    label: "Contacts",       link: "/contacts"   },
-      { id: "structures",  label: "Structures",     link: "/structures" },
-      { id: "lists",       label: "Lists",          link: "/lists"      },
-      { id: "consents",    label: "Consents",       link: "/consents"   },
+      { id: "structures",  label: "Structures",     link: "/structures", disabled: true },
+      { id: "lists-v3",    label: "Lists V3",       link: "/lists-v3"   },
+      { id: "consents-v3", label: "Consents V3",    link: "/consents-v3"},
       { id: "arenaform",   label: "Arenaform",      link: "/arenaform"  }
     ],
   },
@@ -60,7 +98,7 @@ const NAV_TABS_L1 = [
     label: "Campaigns",
     icon: <Ico.Campaigns s={16} c="rgba(255,255,255,0.80)" />,
     subitems: [
-      { id: "performances",    label: "Performances",        link: "/performances"   },
+      { id: "performances-v3", label: "Performances V3",     link: "/performances-v3"},
     ],
   },
   {
@@ -88,8 +126,46 @@ const NAV_TABS_L1 = [
 
 // ── SubItem ───────────────────────────────────────────────────────────────────
 
-function SubItem({ label, isActive, onClick, link }) {
+function SubItem({ label, isActive, onClick, link, disabled }) {
   const [hovered, setHovered] = useState(false);
+  if (disabled) {
+    return (
+      <div
+        title="Page not available"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: `${DS.space1} ${DS.space2}`,
+          borderRadius: 6,
+          fontSize: 14,
+          fontWeight: 400,
+          lineHeight: "18px",
+          color: NAV_TEXT_MUTED,
+          width: "100%",
+          textAlign: "left",
+          fontFamily: DS.ff,
+          cursor: "not-allowed",
+          opacity: 0.6,
+        }}
+      >
+        <span>{label}</span>
+        <span style={{
+          fontSize: 9,
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+          color: NAV_TEXT_MUTED,
+          background: "rgba(255,255,255,0.06)",
+          border: `1px solid ${NAV_BORDER}`,
+          borderRadius: 4,
+          padding: "1px 5px",
+        }}>
+          Unable
+        </span>
+      </div>
+    );
+  }
   return (
     <Link
       to={link}
@@ -195,6 +271,7 @@ function NavItem({ item, isOpen, onToggle, activeL2, onL2Click }) {
                 key={subtab.id}
                 label={subtab.label}
                 link={subtab.link}
+                disabled={subtab.disabled}
                 isActive={activeL2 === `${item.id}-${subtab.id}`}
                 onClick={() => onL2Click(`${item.id}-${subtab.id}`)}
               />
@@ -324,6 +401,7 @@ function Sidebar() {
         }}>
           Arenametrix
         </span>
+        <HomeButton />
       </div>
 
       {/* Search */}
@@ -344,7 +422,7 @@ function Sidebar() {
           </span>
           <input
             type="text"
-            placeholder="Rechercher..."
+            placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onFocus={() => setSearchFocused(true)}

@@ -9,6 +9,7 @@ import { Btn }        from '../../components/Btn';
 import IconBtn from "../../components/Iconbtn";
 import { Toggle }     from '../../components/Controls';
 import { StatusBadge } from '../../components/Tag';
+import PageHeader from '../../components/PageHeader';
 import DATA_OBJECTS from "../../utils/dataObject";
 import ListActionModal from "./ListActionModal";
 
@@ -1272,21 +1273,15 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
     <div style={{ fontFamily: DS.ff, backgroundColor: "#F0F2F5", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
 
       {/* Page header */}
-      <div style={{ backgroundColor: DS.white, borderBottom: `1px solid ${DS.neutral200}`, padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: DS.blue100, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Ico.User s={18} c={DS.blue500} />
-          </div>
-          <div>
-            <h1 style={{ margin: 0, fontSize: 16, fontWeight: 600, lineHeight: "22px", color: DS.neutral900, fontFamily: DS.ff }}>Contacts</h1>
-            <p style={{ margin: 0, fontSize: 12, fontWeight: 400, lineHeight: "16px", color: DS.neutral500, fontFamily: DS.ff }}>{CONTACTS.length} contacts total</p>
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <PageHeader
+        icon={<Ico.User s={20} c={DS.actionPrimary} />}
+        title="Contacts"
+        description="Browse, segment and manage every contact in your CRM"
+        actions={<>
           <Btn type="Primary" iconLeft={<Ico.Filter s={16} c={DS.white} />} disabled={builderOpen} onClick={startSegmentation}>Start segmentation</Btn>
           <Btn type="Secondary" iconLeft={<Ico.Plus c={DS.blue500} />} onClick={() => setShowCreateSidebar(true)}>Add a contact</Btn>
-        </div>
-      </div>
+        </>}
+      />
 
       <div style={{ display: "flex", flexDirection: "column", width: "calc(100% - 160px)", margin: "0 auto" }}>
 

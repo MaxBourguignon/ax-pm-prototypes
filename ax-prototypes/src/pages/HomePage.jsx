@@ -3,9 +3,10 @@ import { NavLink } from "react-router";
 
 const MODULES = [
   { icon: "🚀", label: "Contacts page V3", desc: "New contact page with brand new segmentation engine to welcome Fanalists clients", bg: "#EFF6FF", link: "/contacts" },
-  { icon: "✨", label: "Consents page V3", desc: "New consent page with consents management", bg: "#EFF6FF", link: "/consents" },
-  { icon: "🏆", label: "Performances page V3", desc: "New performances page with performances management", bg: "#EFF6FF", link: "/performances" },
+  { icon: "✨", label: "Consents page V3", desc: "New consent page with consents management", bg: "#EFF6FF", link: "/consents-v3" },
+  { icon: "🏆", label: "Performances page V3", desc: "New performances page with performances management", bg: "#EFF6FF", link: "/performances-v3" },
   { icon: "⚗️", label: "ArenaForm", desc: "Exhaustive form builder the foster engagement and acquisition", bg: "#EFF6FF", link: "/arenaform" },
+  { icon: "📋", label: "Lists page V3", desc: "New contact lists page to segment and manage your CRM audiences", bg: "#EFF6FF", link: "/lists-v3" },
 ];
 
 
@@ -13,8 +14,8 @@ function ModuleCard({ icon, label, desc, bg, link }) {
   const [hovered, setHovered] = useState(false);
 
   return (
-    <a
-      href="#"
+    <NavLink
+      to={link}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -52,21 +53,18 @@ function ModuleCard({ icon, label, desc, bg, link }) {
       </span>
 
       {/* arrow */}
-      <NavLink to={link}>
-        <span style={{
-          onClf: "flex-end",
-          width: 26, height: 26, borderRadius: "50%",
-          background: hovered ? "#007AFF" : "#F9FAFB",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 13, color: hovered ? "#fff" : "#4E6FC7",
-          transition: "background 0.15s, color 0.15s",
-        }}
-        >
-          →
-        </span>
-      </NavLink>
+      <span style={{
+        alignSelf: "flex-end",
+        width: 26, height: 26, borderRadius: "50%",
+        background: hovered ? "#007AFF" : "#F9FAFB",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 13, color: hovered ? "#fff" : "#4E6FC7",
+        transition: "background 0.15s, color 0.15s",
+      }}>
+        →
+      </span>
 
-    </a>
+    </NavLink>
   );
 }
 

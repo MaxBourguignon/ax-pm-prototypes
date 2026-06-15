@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Performance V3 — Feature Spec</title>
+<style>
+  @page { size: A4; margin: 22mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1a1a2e; line-height: 1.55; font-size: 11pt; margin: 0; padding: 0 8px;
+  }
+  h1 { font-size: 24pt; margin: 0 0 4px; color: #0f1f4b; letter-spacing: -0.5px; }
+  h2 { font-size: 15pt; margin: 26px 0 8px; color: #0f1f4b; padding-bottom: 4px; border-bottom: 2px solid #e3e7f0; page-break-after: avoid; }
+  h3 { font-size: 12pt; margin: 16px 0 6px; color: #2a3a6b; page-break-after: avoid; }
+  p { margin: 6px 0; }
+  .meta { background: #f5f7fc; border: 1px solid #e3e7f0; border-radius: 8px; padding: 12px 16px; margin: 12px 0 4px; font-size: 10pt; }
+  .meta div { margin: 2px 0; }
+  .note { background: #fff8e6; border-left: 4px solid #e0a800; border-radius: 4px; padding: 10px 14px; margin: 12px 0; font-size: 9.5pt; color: #5a4a00; }
+  .struggle { background: #fdeef0; border-left: 4px solid #c0394b; border-radius: 4px; padding: 8px 14px; margin: 10px 0; font-size: 10pt; }
+  hr { border: none; border-top: 1px solid #e3e7f0; margin: 18px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 9.5pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #dde2ee; padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: #eef1f8; font-weight: 600; color: #2a3a6b; width: 22%; }
+  td:first-child { background: #fafbfe; }
+  ol, ul { margin: 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+  code { background: #eef1f8; padding: 1px 5px; border-radius: 3px; font-size: 9pt; }
+  .checklist { list-style: none; padding-left: 4px; }
+  .checklist li::before { content: "\2713  "; color: #2a8a4a; font-weight: 700; }
+  .story-table th { width: 24%; }
+</style>
+</head>
+<body>
+
+<h1>Performance V3 — Feature Spec</h1>
+<div class="meta">
+  <div><strong>Product area:</strong> CRM Marketing</div>
+  <div><strong>PM:</strong> M. Bourguignon</div>
+  <div><strong>Fidelity:</strong> Near-production</div>
+  <div><strong>Platform:</strong> Web (Arenametrix app)</div>
+  <div><strong>Date:</strong> 2026-06-10</div>
+</div>
+
+<div class="note">
+  <strong>⚠ Agent notes:</strong> The following were inferred during the interview and should be validated before build — the struggle magnitude; the cross-cutting guidelines (multi-channel low-complexity, uneven tracking fidelity, no-reload, partial-failure tolerance); the explicit non-goals; every story's happy path and edge states; the emotional driver behind the core job; and four derived mock-data entities (daily sales series, revenue/conversions time-series, channel composition aggregate, conversion rules config). All four jobs-to-be-done are currently tagged <strong>assumed</strong> (0 of 4 observed) — treat real marketing managers' first reactions as the validation gate.
+</div>
+
+<hr>
+
+<h2>1. Context</h2>
+<p>Performance V3 gives marketing managers (the core ICP) a rich page to analyze campaign performance across channels — Email, SMS, WhatsApp, Wallet — covering engagement stats (opens, clicks…) and, critically, ROI: the impact on sales after a campaign is sent. Today they have only the V2 page, which is too bare: it surfaces a single revenue-conversion KPI with little transparency on how it's computed and lacks the deeper KPIs and analysis managers need. Their workaround is exporting to spreadsheets or relying on ESP-native stats and flying blind on true cross-channel ROI. We're building it now because users need stronger ROI features to understand — and justify — the value proposition of the CRM.</p>
+<div class="struggle"><strong>Struggle magnitude:</strong> Weekly to several times/week · high — managers fly blind on ROI and can't defend CRM spend at budget reviews.</div>
+
+<hr>
+
+<h2>2. Goals</h2>
+<ol>
+  <li>From any campaign, the manager sees its conversion into revenue (attributed revenue, €) — per campaign and overall.</li>
+  <li>The manager can configure how a conversion is calculated — choosing the trigger and the time range — within a bounded set of options (not free-form), so the page stays scalable. (Admin-only.)</li>
+  <li>The manager can view detailed engagement stats (opens, clicks, …) per campaign and per channel to understand performance and adapt strategy.</li>
+  <li>The page provides a complete per-campaign detail view (in-page drawer).</li>
+</ol>
+<h3>Not in scope</h3>
+<ul>
+  <li>Per-recipient / individual-contact conversion list (this is an aggregated page).</li>
+  <li>Actioning from the page beyond logging — no editing/duplicating/sending of existing campaigns (read &amp; analysis only in V3).</li>
+  <li>Fully free-form attribution config — only bounded trigger/range options.</li>
+</ul>
+
+<hr>
+
+<h2>3. User stories</h2>
+
+<h3>Story 1</h3>
+<table class="story-table">
+  <tr><th>As a…</th><td>marketing manager</td></tr>
+  <tr><th>I want to…</th><td>see revenue + engagement across all my campaigns under a transparent conversion rule</td></tr>
+  <tr><th>So that…</th><td>I can judge my overall strategy</td></tr>
+  <tr><th>Acceptance criteria</th><td>Headline KPI strip: revenue (€ overall, + period delta), conversion %, open %, click % (degrade per channel availability); Engagement stats split by channel sub-tabs (Email/SMS/WhatsApp/Wallet), each showing only supported metrics + quality label + delta + trend; Conversions shown as one unified attributed-revenue total decomposed by channel (composition donut/stacked); Conversion rule (trigger + range) configurable within bounded options (admin-only; disabled for clients); Changing the rule/filters updates figures with no page reload (rule recompute may be async with a recomputing… state); Separate Tab 2 visual: campaigns marked on the general sales-trend curve</td></tr>
+  <tr><th>Empty state</th><td>No campaigns in this period — prompt to adjust filters or Log a campaign; KPIs render as €0 / —</td></tr>
+  <tr><th>Error state</th><td>Data fetch failed → retry; partial channels still render</td></tr>
+  <tr><th>Loading state</th><td>Skeleton KPI strip + charts</td></tr>
+</table>
+
+<h3>Story 2</h3>
+<table class="story-table">
+  <tr><th>As a…</th><td>marketing manager</td></tr>
+  <tr><th>I want to…</th><td>open one campaign's detail to see its stats and conversions</td></tr>
+  <tr><th>So that…</th><td>I understand why it performed</td></tr>
+  <tr><th>Acceptance criteria</th><td>Drawer shows dedicated KPIs: recipients, opens/clicks (or n/a per channel), conversion %, attributed revenue; Shows campaign info: subject, segment, send time, and the conversion rule applied; Close via ✕ or click-outside; page behind is dimmed</td></tr>
+  <tr><th>Empty state</th><td>No conversions yet → show engagement stats, revenue €0 with a note</td></tr>
+  <tr><th>Error state</th><td>Detail load failed → retry</td></tr>
+  <tr><th>Loading state</th><td>Skeleton drawer</td></tr>
+</table>
+
+<h3>Story 3</h3>
+<table class="story-table">
+  <tr><th>As a…</th><td>marketing manager</td></tr>
+  <tr><th>I want to…</th><td>log a manual/offline campaign</td></tr>
+  <tr><th>So that…</th><td>it's analyzed alongside online ones</td></tr>
+  <tr><th>Acceptance criteria</th><td>Modal captures name, channel/type, date sent, reach/recipients, optional cost; Bounded fields only (no free-form attribution); On save it appears in the chronological banner list and rolls into aggregates; Engagement metrics render as n/a (offline) and are excluded from rate averages, manual revenue counts toward the total; Manual campaigns can later be edited/deleted (delete confirmed), online campaigns allow only limited field edits (description + a few)</td></tr>
+  <tr><th>Empty state</th><td>n/a (form)</td></tr>
+  <tr><th>Error state</th><td>Save failed → keep form data, show retry</td></tr>
+  <tr><th>Loading state</th><td>Saving spinner on submit</td></tr>
+</table>
+
+<hr>
+
+<h2>4. Screens</h2>
+<table>
+  <tr><th style="width:18%">Screen</th><th style="width:14%">Linked stories</th><th style="width:68%">Notes</th></tr>
+  <tr><td>Performance (Tab 1)</td><td>1, 2, 3</td><td>Scrollable analytics page with sub-tabs and a side drawer: title row (Create campaign primary CTA · Options ▾ Import/Synchronise · Conversion rules dialog, admin-only) · controls (search + période, global across tabs) · headline KPI strip · engagement stats by channel sub-tabs · unified conversions with channel composition · paginated chronological campaign banner list, each with a ⋮ menu · detail drawer</td></tr>
+  <tr><td>Sales impact (Tab 2)</td><td>1</td><td>General sales-trend curve with campaign send markers (correlation, not attribution); hover a marker → campaign name/channel/revenue; compact campaign list for the selected période. Kept deliberately separate from attributed revenue.</td></tr>
+  <tr><td>Log campaign (modal)</td><td>3</td><td>Form: name, channel, date sent, reach, optional cost; bounded fields; Cancel / Save; on save appears in list + aggregates</td></tr>
+  <tr><td>Conversion rules (dialog, admin)</td><td>1</td><td>Per channel: trigger (Purchase/Visit…) + range (3/5/7 days) + small action set; disabled for clients, editable by admins; save triggers async recompute with a recomputing… state</td></tr>
+</table>
+
+<h3>Wireframe references</h3>
+<p>None specified (ASCII wireframes captured in the interview; Klaviyo and Brevo reporting screens used as visual inspiration).</p>
+
+<h3>Mock data</h3>
+<table>
+  <tr><th style="width:16%">Entity</th><th style="width:40%">Key fields</th><th style="width:16%">Volume</th><th style="width:28%">Notes</th></tr>
+  <tr><td>Campaign</td><td>id, name, channel (Email/SMS/WhatsApp/Wallet/manual), date_sent, recipients, opens(count+rate), clicks(count+rate), conversions(count+rate), attributed_revenue(€), conversion_rule_applied, is_manual, editable_fields, subject, segment, send_time, cost(manual only)</td><td>20 (10 Email · 4 SMS · 2 WhatsApp · 1 Wallet · 3 Manual)</td><td>Edge: very long name; zero-revenue; high-reach ~27 700 + tiny ~37; negative open-rate delta; SMS/Wallet "not tracked" metrics; manual campaign with revenue but no engagement</td></tr>
+  <tr><td>Daily sales series</td><td>date, total_sales(€)</td><td>~90 days</td><td>Spike near a send + a flat/declining stretch so correlation reads honestly</td></tr>
+  <tr><td>Revenue/conversions time-series</td><td>bucket, revenue(€), conversions, split by channel</td><td>weekly buckets</td><td>One bucket with zero sends → gap in the bars</td></tr>
+  <tr><td>Channel composition aggregate</td><td>channel, revenue(€), share(%)</td><td>4 channels</td><td>Wallet share ~0% → near-empty slice</td></tr>
+  <tr><td>Conversion rules</td><td>channel, trigger (Purchase/Visit…), range (3/5/7 days), action_set</td><td>4 channel rows</td><td>One channel on a non-purchase trigger (Visit)</td></tr>
+</table>
+
+<hr>
+
+<h2>5. Constraints</h2>
+<table>
+  <tr><th>Stack / framework</th><td>Arenametrix design system</td></tr>
+  <tr><th>Accessibility</th><td>WCAG AA</td></tr>
+  <tr><th>Data &amp; GDPR</th><td>None specified</td></tr>
+  <tr><th>Other</th><td>Good and scalable performance; conversion-rule recompute may be asynchronous</td></tr>
+</table>
+
+<h3>Open questions</h3>
+<table>
+  <tr><th style="width:62%">Question</th><th style="width:23%">Owner</th><th style="width:15%">Status</th></tr>
+  <tr><td>Are the four jobs-to-be-done real? All tagged "assumed" (0/4 observed) — validate with marketing managers, starting with the core job (transparent attributed revenue)</td><td>M. Bourguignon</td><td>Open</td></tr>
+  <tr><td>How will we know Job 3 (log offline campaign) is actually used? Success signal is soft ("completeness of channel mix")</td><td>M. Bourguignon</td><td>Open</td></tr>
+  <tr><td>Kill criteria on record: if attribution is too unreliable/sparse to show trustworthy ROI, or we can't surface enough metrics for managers to understand their activity — don't ship over V2</td><td>M. Bourguignon</td><td>Open</td></tr>
+</table>
+
+<hr>
+
+<h2>6. Pre-send checklist</h2>
+<ul class="checklist">
+  <li>Context is one clear paragraph — who, what, why</li>
+  <li>At least 1 goal uses outcome language</li>
+  <li>At least 1 non-goal is stated explicitly</li>
+  <li>Every story has acceptance criteria or an explicit note that they are missing</li>
+  <li>All 3 edge states are specified for every story</li>
+  <li>Every screen is listed with a description or wireframe reference</li>
+  <li>At least 1 mock data entity is defined</li>
+  <li>All open questions have an owner</li>
+</ul>
+
+</body>
+</html>

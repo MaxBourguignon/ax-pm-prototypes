@@ -33,10 +33,37 @@ features — NOT standalone HTML files. The app is **Vite + React 19** (the dir 
    import { Field, SearchField, TextArea } from '../../components/Field';
    import { Checkbox, Radio, Toggle } from '../../components/Controls';
    import { Tag, StatusBadge, Avatar, IconBadge } from '../../components/Tag';
+   import Modal from '../../components/Modal';                 // right drawer / center dialog
+   import StatePreview from '../../components/StatePreview';   // prototype state switcher
+   import KpiCard from '../../components/Kpi';                 // headline metric card
+   import Skeleton from '../../components/Skeleton';           // loading shimmer bar
+   import Banner from '../../components/Banner';               // full-width list row
+   import Select from '../../components/Select';               // single-choice dropdown
+   import Pagination from '../../components/Pagination';        // prev/next pager
+   import Card from '../../components/Card';                    // plain surface container
+   import Chip from '../../components/Chip';                    // toggle filter pill
+   import Toast from '../../components/Toast';                  // transient confirmation
+   import ActionMenu from '../../components/ActionMenu';        // ⋯ overflow row actions
+   import { EmptyState, ErrorState, ConfirmDialog } from '../../components/Feedback';
    ```
    Adjust `../../` to the real depth of your file. **Declaring a local `DS`, `TY`,
    or `Ico` object in a feature file is a hard failure** — that is the exact drift
    this pipeline exists to prevent.
+
+   **Prototype state management — always use `StatePreview`.** Every prototype that
+   has demo states (ready / loading / empty / error) — or other prototype-only
+   toggles like role — must drive them through the shared
+   `components/StatePreview.jsx`, rendered once at the top of the page. It is a
+   single slight floating CTA pinned bottom-right that opens a small window of
+   options, so state controls never clutter the page. Do NOT hand-roll a per-feature
+   demo/state bar (no top "PROTOTYPE" strip, no inline state buttons) — that is the
+   exact drift this component prevents. Usage:
+   ```js
+   const [state, setState] = React.useState('ready');
+   <StatePreview groups={[{ label: 'State', value: state, onChange: setState,
+     options: ['ready', 'loading', 'empty', 'error'] }]} />
+   // multiple groups (e.g. role + state) — pass more entries in `groups`.
+   ```
 
 4. **Build the PAGE ONLY — never the app shell.** The nav bar, sidebar, header and
    layout already exist (`layout/Header/NavBar.jsx`, `layout/Header/SideBar.jsx`,

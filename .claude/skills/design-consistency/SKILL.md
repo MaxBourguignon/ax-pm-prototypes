@@ -47,6 +47,18 @@ The Vite + React app lives in **`ax-prototypes/`** (the dir containing
 | Inputs | `components/Field.jsx` (`Field`, `SearchField`, `TextArea`) | `import { Field, SearchField, TextArea } from '../../components/Field'` |
 | Selection controls | `components/Controls.jsx` (`Checkbox`, `Radio`, `Toggle`) | `import { Checkbox, Radio, Toggle } from '../../components/Controls'` |
 | Tags & badges | `components/Tag.jsx` (`Tag`, `StatusBadge`, `Avatar`, `IconBadge`) | `import { Tag, StatusBadge, Avatar, IconBadge } from '../../components/Tag'` |
+| Modal / drawer | `components/Modal.jsx` (`Modal` — `variant="panel"` right drawer / `"center"` dialog) | `import Modal from '../../components/Modal'` |
+| Prototype state switcher | `components/StatePreview.jsx` (`StatePreview`) — floating ready/loading/empty/error (+ role) control | `import StatePreview from '../../components/StatePreview'` |
+| KPI card | `components/Kpi.jsx` (`KpiCard`) — headline metric card (title/value/sub/icon/accent/loading) | `import KpiCard from '../../components/Kpi'` |
+| Loading skeleton | `components/Skeleton.jsx` (`Skeleton`) — shimmer bar (w/h/r or width/height/radius) | `import Skeleton from '../../components/Skeleton'` |
+| Banner row | `components/Banner.jsx` (`Banner`) — full-width list row (icon/title/badge/description/columns/trailing/actions) | `import Banner from '../../components/Banner'` |
+| Select dropdown | `components/Select.jsx` (`Select`) — single-choice dropdown (options `[{value,label}]`) | `import Select from '../../components/Select'` |
+| Pagination | `components/Pagination.jsx` (`Pagination`) — prev/next pager (page/pages/setPage) | `import Pagination from '../../components/Pagination'` |
+| Card surface | `components/Card.jsx` (`Card`) — white rounded container | `import Card from '../../components/Card'` |
+| Filter chip | `components/Chip.jsx` (`Chip`) — toggle filter pill (≠ removable `Tag`) | `import Chip from '../../components/Chip'` |
+| Toast | `components/Toast.jsx` (`Toast`) — transient bottom-centre confirmation | `import Toast from '../../components/Toast'` |
+| Row actions menu | `components/ActionMenu.jsx` (`ActionMenu`) — single ⋯ that opens a dropdown of row actions (`items[{label,icon,onClick,danger,hidden}]`) | `import ActionMenu from '../../components/ActionMenu'` |
+| Empty / error / confirm | `components/Feedback.jsx` (`EmptyState`, `ErrorState`, `ConfirmDialog`) | `import { EmptyState, ErrorState, ConfirmDialog } from '../../components/Feedback'` |
 | Layout shell | `layout/Layout/AppLayout.jsx`, `AppLayout_bis.jsx` | wired in `App.jsx` |
 | Nav / sidebar | `layout/Header/NavBar.jsx`, `SideBar.jsx` | — |
 | Existing features | `features/<Name>/*.jsx` | reference for patterns |

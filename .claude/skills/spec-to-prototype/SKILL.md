@@ -128,9 +128,11 @@ name. It:
 1. Wires the `<Route>` in `src/App.jsx` (flagging slug collisions).
 2. Adds the sidebar entry — **asks the PM which section** (Contacts / Campaigns /
    Sales / B2B management / SSO, or a new one).
-3. Runs `npm install` (if needed) + `npm run lint` + `npm run build`, and **debugs**
+3. Adds a launch card to the Home page (`MODULES` in `src/pages/HomePage.jsx`),
+   linked to the route slug.
+4. Runs `npm install` (if needed) + `npm run lint` + `npm run build`, and **debugs**
    any errors until both pass.
-4. Launches `npm run dev` in the background and reports the local URL
+5. Launches `npm run dev` in the background and reports the local URL
    (`http://localhost:<port>/<slug>`).
 
 You re-take control when ship-prototype reports: route + sidebar wired, lint/build
@@ -170,6 +172,7 @@ by comparing the prototype artifacts against the spec:
   INTEGRATION (ship-prototype)
   [ ] Route added in src/App.jsx — no slug collision
   [ ] Sidebar entry added in the PM-chosen section
+  [ ] Home page launch card added (MODULES in HomePage.jsx), linked to the slug
   [ ] npm run lint and npm run build both pass
   [ ] Dev server runs and the page renders at the deep link
 

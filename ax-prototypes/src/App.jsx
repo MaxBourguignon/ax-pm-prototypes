@@ -7,7 +7,10 @@ import ContactsPage from './pages/ContactsPage'
 import ContactRecord from './features/Contacts/ContactRecord'
 import AppLayoutSidebar from './layout/Layout/AppLayout_bis'
 import ConsentsPage from './features/Consents/ConsentsPage'
+import ConsentsV3 from './features/Consents/ConsentsV3'
 import PerformancesPage from './features/Performances/PerformancePage'
+import PerformanceV3 from './features/Performances/PerformanceV3'
+import ListsV3 from './features/Lists/ListsV3'
 import ArenaForm from './features/Arenaform/Arenaform'
 
 function App() {
@@ -23,8 +26,11 @@ function App() {
                     <Route path="/home" element={<Home />} />
                     <Route path="/contacts" element={<ContactsPage selectedContact = {selectedContact} setSelectedContact = {setSelectedContact} />} />
                     <Route path="/contacts/:id" element={<ContactRecord selectedContact = {selectedContact} />} />
-                    <Route path="/consents" element={<ConsentsPage />} />
-                    <Route path="/performances" element={<PerformancesPage />} />
+                    {/* <Route path="/consents" element={<ConsentsPage />} /> */}
+                    <Route path="/consents-v3" element={<ConsentsV3 />} />
+                    {/* <Route path="/performances" element={<PerformancesPage />} /> */}
+                    <Route path="/performances-v3" element={<PerformanceV3 />} />
+                    <Route path="/lists-v3" element={<ListsV3 />} />
                     <Route path="/arenaform" element={<ArenaForm />} />
                 </Route>
             </Routes>

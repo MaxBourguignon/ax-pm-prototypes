@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Consents V3 — Feature Spec</title>
+<style>
+  @page { size: A4; margin: 22mm 18mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1c2433; line-height: 1.55; font-size: 11pt; margin: 0;
+  }
+  h1 { font-size: 24pt; margin: 0 0 4px; letter-spacing: -0.5px; }
+  h2 { font-size: 14pt; margin: 26px 0 8px; padding-bottom: 5px; border-bottom: 2px solid #e6e9f0; }
+  h3 { font-size: 11.5pt; margin: 16px 0 6px; color: #344054; }
+  .meta { color: #5a6478; font-size: 10pt; margin: 10px 0 0; }
+  .meta strong { color: #1c2433; }
+  .agent-note {
+    background: #fff8e6; border-left: 3px solid #f0b429; padding: 10px 14px;
+    margin: 16px 0; font-size: 9.5pt; color: #5c4a12; border-radius: 0 4px 4px 0;
+  }
+  hr { border: none; border-top: 1px solid #e6e9f0; margin: 22px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 4px; font-size: 9.5pt; }
+  th, td { border: 1px solid #e0e4ee; padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: #f5f7fb; font-weight: 600; color: #344054; }
+  td.field { width: 24%; font-weight: 600; color: #475467; background: #fafbfd; }
+  ol, ul { margin: 6px 0 6px; padding-left: 22px; }
+  li { margin: 3px 0; }
+  .story { margin: 14px 0; page-break-inside: avoid; }
+  .checklist { list-style: none; padding-left: 4px; }
+  .checklist li::before { content: "☑ "; color: #1f9d55; font-weight: 700; }
+  code { background: #f0f2f7; padding: 1px 5px; border-radius: 3px; font-size: 9pt; }
+  table, .story { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<h1>Consents V3 — Feature Spec</h1>
+<p class="meta">
+  <strong>Product area:</strong> CRM Marketing &nbsp;·&nbsp;
+  <strong>PM:</strong> M. Bourguignon &nbsp;·&nbsp;
+  <strong>Fidelity:</strong> Near-production<br>
+  <strong>Platform:</strong> Web (Arenametrix CRM) &nbsp;·&nbsp;
+  <strong>Date:</strong> 2026-06-08
+</p>
+
+<div class="agent-note">
+  ⚠ <strong>Agent notes:</strong> The following were inferred and folded into the spec —
+  happy paths for both stories; empty/error/loading states; the no-reload / export /
+  partial-failure guidelines; the "no consent-definition editing" non-goal; and three
+  derived mock-data entities (evolution series, channel breakdown, activity log). The
+  "Ask AI" CTA is a placeholder only — no behaviour is defined beyond a clickable button.
+</div>
+
+<hr>
+
+<h2>1. Context</h2>
+<p>Arenametrix users need to manage consents — lists of contacts who have opted in for a
+specific purpose (newsletters, SMS promotions), a marketing channel, or a behaviour
+(analytics) — to stay GDPR-compliant. The primary user is the marketing manager who creates
+and relies on these consents to segment campaigns; the DPO/compliance officer sits in the
+background as an audit reader. Today they're stuck on a bare-bones V2 page (Optin Management)
+that only shows a flat list with technical identifiers: no way to see how a consent evolves
+over time, no logs, no history. V3 turns that static list into a living, auditable view of
+consent over time.</p>
+
+<hr>
+
+<h2>2. Goals</h2>
+<ol>
+  <li>Compare the evolution over time of multiple consents side by side.</li>
+  <li>From any consent, open a detail view exposing its KPIs, evolution chart, and activity log.</li>
+  <li>At the overview level, understand the breakdown of consents per channel.</li>
+  <li>Surface KPIs on consent evolution (overall headline strip + per-consent).</li>
+</ol>
+
+<h3>Not in scope</h3>
+<ul>
+  <li>Launching or executing campaigns / re-opt-in actions from the page — V3 is read/analyse only (at most: create segment or deep-link out).</li>
+  <li>Individual contact activity detail — that lives in the contact record; this page stays at the aggregated level.</li>
+  <li>Hard delete of consents (deactivate only).</li>
+</ul>
+
+<hr>
+
+<h2>3. User stories</h2>
+
+<div class="story">
+<p><strong>Story 1</strong></p>
+<table>
+  <tr><td class="field">As a…</td><td>marketing manager</td></tr>
+  <tr><td class="field">I want to…</td><td>view and compare consents' evolution on a graph</td></tr>
+  <tr><td class="field">So that…</td><td>I spot which are growing or eroding</td></tr>
+  <tr><td class="field">Acceptance criteria</td><td>Can select multiple consents (max 6) and see their evolution overlaid on one graph; Can change the date range (3m/6m/12m/since 01/01) and the graph updates in place (no reload); Can see consents broken down per channel at the overview level</td></tr>
+  <tr><td class="field">Empty state</td><td>No consents yet. Create your first consent. (chart zero-state: "Select a consent to see its evolution")</td></tr>
+  <tr><td class="field">Error state</td><td>Couldn't load consents. Retry.</td></tr>
+  <tr><td class="field">Loading state</td><td>Skeleton of KPI strip + charts + list</td></tr>
+</table>
+</div>
+
+<div class="story">
+<p><strong>Story 2</strong></p>
+<table>
+  <tr><td class="field">As a…</td><td>marketing manager</td></tr>
+  <tr><td class="field">I want to…</td><td>open a consent record and see its KPIs, evolution, and activity log</td></tr>
+  <tr><td class="field">So that…</td><td>I have an auditable history</td></tr>
+  <tr><td class="field">Acceptance criteria</td><td>Detail drawer shows per-consent KPIs (net trend, opt-in/out rates, contacts); Activity log lists created / updated / deactivated events with timestamps; Can export this consent's report (CSV/PDF)</td></tr>
+  <tr><td class="field">Empty state</td><td>No activity recorded yet.</td></tr>
+  <tr><td class="field">Error state</td><td>Couldn't load this consent. Retry.</td></tr>
+  <tr><td class="field">Loading state</td><td>Skeleton of the drawer detail view</td></tr>
+</table>
+</div>
+
+<div class="story">
+<p><strong>Story 3</strong></p>
+<table>
+  <tr><td class="field">As a…</td><td>user</td></tr>
+  <tr><td class="field">I want to…</td><td>a CTA on the overall page to ask AI questions about consents</td></tr>
+  <tr><td class="field">So that…</td><td>I have a future entry point for AI insights</td></tr>
+  <tr><td class="field">Acceptance criteria</td><td>Button is present and clickable on the overview — no further behaviour prototyped for now</td></tr>
+  <tr><td class="field">Empty state</td><td>n/a</td></tr>
+  <tr><td class="field">Error state</td><td>n/a</td></tr>
+  <tr><td class="field">Loading state</td><td>n/a</td></tr>
+</table>
+</div>
+
+<hr>
+
+<h2>4. Screens</h2>
+<table>
+  <tr><th>Screen</th><th>Linked stories</th><th>Notes</th></tr>
+  <tr>
+    <td>Consents Overview</td><td>1, 3</td>
+    <td>Single scrollable page. Header (title + live consent count; CTAs: options overflow, Export, Ask AI placeholder, Create a consent). KPI strip (active opt-ins + new vs reference date, active consents, opt-in rate; updates with date range). Evolution chart (lighter multi-line; removable consent chips + Add capped at 6 with tooltip; time toggle 3m/6m/12m/since 01/01; updates in place; zero-chips in-chart empty state). Channel-breakdown chart (compact stacked bar / donut beside evolution; share of opt-ins per channel). Consents list (banner rows kept from V2 — name + opt-in-type tag, channel, created date, contacts + trend %, inline sparkline, overflow menu; search + filters; identifier columns removed; deactivated consents show a status tag and stay in list). Row click opens the Detail drawer.</td>
+  </tr>
+  <tr>
+    <td>Detail drawer</td><td>2</td>
+    <td>Right-side overlay; overview stays visible, dimmed. Header (consent name + opt-in-type tag + channel; close button). Per-consent KPIs (net opt-in trend, opt-in &amp; opt-out rates, contacts). Single-consent evolution chart (lighter). Activity log (system-generated created/updated/deactivated/reactivated events with timestamps + author where available). Export this consent (CSV/PDF). Closes via close button AND clicking the dimmed overview.</td>
+  </tr>
+  <tr>
+    <td>Create drawer</td><td>—</td>
+    <td>Same right-side drawer in create mode. Form to add a consent (name, purpose, channel, opt-in type). Clicking outside with unsaved input asks "Discard this consent?" before closing.</td>
+  </tr>
+</table>
+
+<h3>Mock data</h3>
+<table>
+  <tr><th>Entity</th><th>Key fields</th><th>Volume</th><th>Notes</th></tr>
+  <tr>
+    <td>Consent</td>
+    <td>id, name, opt-in type (single/double), channel (Email/SMS/WhatsApp/Push), purpose, status (active/deactivated), created date, contacts (count), net trend (%), opt-in rate (%), opt-out rate (%)</td>
+    <td>7 (spread across different channels)</td>
+    <td>1 very long name (banner truncation); 1 deactivated (status tag, dropped from active KPIs); 1 negative trend (SMS −8%, eroding line); 1 near-zero/flat contacts (flat line); 1 recently created (sparse history)</td>
+  </tr>
+  <tr>
+    <td>Consent evolution series</td>
+    <td>consentId, month, volume (count)</td>
+    <td>~12 monthly points per consent</td>
+    <td>One clearly declining series + one flat series (tests "spot eroding consent" + flat-line render)</td>
+  </tr>
+  <tr>
+    <td>Channel breakdown</td>
+    <td>channel, opt-in volume (count), share (%)</td>
+    <td>per channel (Email, SMS, WhatsApp, Push)</td>
+    <td>One channel with near-zero share (tests stacked/donut tiny slice)</td>
+  </tr>
+  <tr>
+    <td>Activity log entry</td>
+    <td>consentId, event (created/updated/deactivated/reactivated), timestamp, author (where available)</td>
+    <td>3–6 per consent</td>
+    <td>A deactivated→reactivated sequence (tests the deactivation decision)</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>5. Constraints</h2>
+<table>
+  <tr><td class="field">Stack / framework</td><td>Arenametrix design system</td></tr>
+  <tr><td class="field">Accessibility</td><td>WCAG AA</td></tr>
+  <tr><td class="field">Data &amp; GDPR</td><td>Consents exist to evidence GDPR opt-in; export (CSV/PDF) provides audit proof</td></tr>
+  <tr><td class="field">Other</td><td>Good and scalable performance; no page reload on filter/date-range change</td></tr>
+</table>
+
+<h3>Open questions</h3>
+<table>
+  <tr><th>Question</th><th>Owner</th><th>Status</th></tr>
+  <tr><td>"Ask AI" CTA — what does it actually do beyond being a clickable button?</td><td>M. Bourguignon</td><td>Deferred — placeholder only for V3</td></tr>
+  <tr><td>Create-consent form — exact field set and validation rules</td><td>M. Bourguignon</td><td>Open</td></tr>
+  <tr><td>Export format — CSV, PDF, or both, and what each contains</td><td>M. Bourguignon</td><td>Open</td></tr>
+</table>
+
+<hr>
+
+<h2>6. Pre-send checklist</h2>
+<ul class="checklist">
+  <li>Context is one clear paragraph — who, what, why</li>
+  <li>At least 1 goal uses outcome language</li>
+  <li>At least 1 non-goal is stated explicitly</li>
+  <li>Every story has acceptance criteria or an explicit note that they are missing</li>
+  <li>All 3 edge states are specified for every story</li>
+  <li>Every screen is listed with a description or wireframe reference</li>
+  <li>At least 1 mock data entity is defined</li>
+  <li>All open questions have an owner</li>
+</ul>
+
+</body>
+</html>
