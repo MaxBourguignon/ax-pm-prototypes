@@ -15,6 +15,8 @@
  *   footer    node | null             rendered in a bordered footer band
  *   variant   "panel" | "center"      default "panel"
  *   width     number                  override (panel default 440, center default 665)
+ *   headerContent node | null          rendered inside the gradient header, below the title row (e.g. tabs)
+ *   headerActions node | null          rendered in the title row, just before the close button (e.g. icon buttons)
  *
  * Usage:
  *   <Modal open={open} onClose={close} title="Créer une liste" footer={<Btn>…</Btn>}>
@@ -31,40 +33,45 @@ const KEYFRAMES = `
 @keyframes axModalPop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 `;
 
-function HeaderModal({ title, onClose }) {
+function HeaderModal({ title, onClose, headerContent, headerActions }) {
   const [hov, setHov] = React.useState(false);
   return (
     <div style={{
       flexShrink: 0,
-      background: `linear-gradient(90deg, ${DS.indigoGrad} 0%, ${DS.greenBrand} 100%)`,
-      padding: 20,
+      background: `${DS.gradientBlueV}`,
+      padding: headerContent ? '20px 20px 0' : 20,
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 12,
+      flexDirection: 'column',
+      gap: 14,
     }}>
-      <span style={{ ...TY.h3, fontWeight: 700, color: DS.textInverse, fontFamily: DS.ff, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {title}
-      </span>
-      <button
-        type="button"
-        aria-label="Fermer"
-        onClick={onClose}
-        onMouseEnter={() => setHov(true)}
-        onMouseLeave={() => setHov(false)}
-        style={{
-          width: 28, height: 28, flexShrink: 0, borderRadius: 6, border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: hov ? 'rgba(255,255,255,0.18)' : 'transparent', transition: 'background .15s',
-        }}
-      >
-        <Ico.Cross s={20} c={DS.textInverse} />
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <span style={{ ...TY.h3, fontWeight: 700, color: DS.textInverse, fontFamily: DS.ff, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {title}
+        </span>
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+          {headerActions}
+          <button
+            type="button"
+            aria-label="Fermer"
+            onClick={onClose}
+            onMouseEnter={() => setHov(true)}
+            onMouseLeave={() => setHov(false)}
+            style={{
+              width: 28, height: 28, flexShrink: 0, borderRadius: 6, border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: hov ? 'rgba(255,255,255,0.18)' : 'transparent', transition: 'background .15s',
+            }}
+          >
+            <Ico.Cross s={20} c={DS.textInverse} />
+          </button>
+        </div>
+      </div>
+      {headerContent}
     </div>
   );
 }
 
-export function Modal({ open, onClose, title, children, footer, variant = 'panel', width }) {
+export function Modal({ open, onClose, title, children, footer, variant = 'panel', width, headerContent, headerActions }) {
   if (!open) return null;
   const isCenter = variant === 'center';
   const w = width || (isCenter ? 665 : 440);
@@ -86,7 +93,7 @@ export function Modal({ open, onClose, title, children, footer, variant = 'panel
     <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: isCenter ? 'flex' : 'block', alignItems: 'center', justifyContent: 'center' }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(31,41,55,0.45)', animation: 'axModalFade .15s ease' }} />
       <div style={surface}>
-        <HeaderModal title={title} onClose={onClose} />
+        <HeaderModal title={title} onClose={onClose} headerContent={headerContent} headerActions={headerActions} />
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>{children}</div>
         {footer && (
           <div style={{ flexShrink: 0, borderTop: `1px solid ${DS.borderDefault}`, padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 8 }}>

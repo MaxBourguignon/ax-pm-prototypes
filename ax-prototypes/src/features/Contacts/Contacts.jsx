@@ -10,8 +10,17 @@ import IconBtn from "../../components/Iconbtn";
 import { Toggle }     from '../../components/Controls';
 import { StatusBadge } from '../../components/Tag';
 import PageHeader from '../../components/PageHeader';
+import { SearchField } from '../../components/Field';
+import Pagination from '../../components/Pagination';
+import { SortHeader } from '../../components/SortHeader';
 import DATA_OBJECTS from "../../utils/dataObject";
 import ListActionModal from "./ListActionModal";
+import CreateListModal from "./CreateListModal";
+import DeleteContactsModal from "./DeleteContactsModal";
+import ConsentActionModal from "./ConsentActionModal";
+import ColumnCustomizer from "./ColumnCustomizer";
+import ViewsBar from "./ViewsBar";
+import ViewModal from "./ViewModal";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. CHANNEL SCOPES & FIELD MAPS
@@ -179,16 +188,33 @@ const makeDefaultAnchorFilter = (objId, uidFn) => {
 // 3. CONTACTS DATA
 // ─────────────────────────────────────────────────────────────────────────────
 
-const CONTACTS = contactsData.map((c) => ({
-  id: c.id,
-  firstName: c.identity.firstName, lastName: c.identity.lastName,
-  email: c.identity.email, age: c.identity.age, gender: c.identity.gender,
-  phone: c.coordinates?.phone, postalCode: c.coordinates?.postalCode, country: c.coordinates?.country,
-  structure: c.structure, loyalty: c.loyalty, lists: c.lists,
-  acquisitionSource: c.source?.acquisitionSource, createdAt: c.source?.createdAt,
-  totalSpending: c.stats?.totalSpending?.amount, lastPurchaseDate: c.stats?.lastPurchase?.date,
-  _fullData: c,
-}));
+// Deterministic short hash from a contact id — used to display anonymized PII.
+const anonHash = (id) => {
+  const s = String(id);
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h.toString(16).padStart(8, "0").slice(0, 8).toUpperCase();
+};
+
+const CONTACTS = contactsData.map((c, i) => {
+  // Contacts linked to purchases are anonymized on deletion rather than removed —
+  // they stay in the base with their PII replaced by a hash. (~1 in 6 here.)
+  const anonymized = i % 6 === 3;
+  const base = {
+    id: c.id,
+    firstName: c.identity.firstName, lastName: c.identity.lastName,
+    email: c.identity.email, age: c.identity.age, gender: c.identity.gender,
+    phone: c.coordinates?.phone, postalCode: c.coordinates?.postalCode, country: c.coordinates?.country,
+    structure: c.structure, loyalty: c.loyalty, lists: c.lists,
+    acquisitionSource: c.source?.acquisitionSource, createdAt: c.source?.createdAt,
+    totalSpending: c.stats?.totalSpending?.amount, lastPurchaseDate: c.stats?.lastPurchase?.date,
+    _fullData: c, anonymized,
+  };
+  if (!anonymized) return base;
+  const h = anonHash(c.id);
+  // PII scrubbed; analytics fields (age, spending, country…) preserved.
+  return { ...base, firstName: "Anonymized", lastName: `#${h}`, email: `${h.toLowerCase()}@anonymized`, phone: "•••• •••• ••", gender: "—" };
+});
 
 const PAGE_SIZE = 10;
 
@@ -345,17 +371,6 @@ const usePortalDropdown = () => {
 // 9. PRIMITIVES
 // ─────────────────────────────────────────────────────────────────────────────
 
-
-const PagBtn = ({ children, onClick, disabled, active }) => {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button onClick={onClick} disabled={disabled}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ width: 30, height: 30, borderRadius: 4, border: `1px solid ${active ? DS.blue500 : DS.neutral200}`, background: active ? DS.blue500 : hovered ? DS.neutral100 : DS.white, color: active ? DS.white : DS.neutral900, fontSize: 12, fontWeight: active ? 600 : 400, fontFamily: DS.ff, cursor: disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: disabled ? 0.4 : 1, transition: "all .15s" }}>
-      {children}
-    </button>
-  );
-};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 10. PORTAL DROPDOWN
@@ -964,71 +979,86 @@ const FilterBlock = ({ block, idx, topLogic, onTopLogicChange, onPatchBlock, onR
 // 18. TABLE
 // ─────────────────────────────────────────────────────────────────────────────
 
-const COLUMNS = [
-  { key: "lastName",   label: "Last name"   },
-  { key: "firstName",  label: "First name"  },
-  { key: "email",      label: "Email"       },
-  { key: "age",        label: "Age",        align: "right" },
-  { key: "structure",  label: "Structure"   },
-  { key: "postalCode", label: "Postal code" },
-  { key: "country",    label: "Country"     },
+// Master column catalogue — the customizer & views reference these by key.
+const ALL_COLUMNS = [
+  { key: "lastName",         label: "Last name"         },
+  { key: "firstName",        label: "First name"        },
+  { key: "email",            label: "Email"             },
+  { key: "age",              label: "Age",              align: "right" },
+  { key: "structure",        label: "Structure"         },
+  { key: "postalCode",       label: "Postal code"       },
+  { key: "country",          label: "Country"           },
+  { key: "phone",            label: "Phone"             },
+  { key: "gender",           label: "Gender"            },
+  { key: "loyalty",          label: "Loyalty"           },
+  { key: "totalSpending",    label: "Total spending",   align: "right" },
+  { key: "acquisitionSource",label: "Acquisition source"},
 ];
 
-const ContactsTable = ({ data, selected, onToggle, onToggleAll, onContactClick, sortKey, sortDir, onSort }) => {
+const DEFAULT_COLUMN_KEYS = ["lastName", "firstName", "email", "age", "structure", "postalCode", "country"];
+
+// A column config is an ordered list of { key, visible } covering every column.
+const DEFAULT_COLUMN_CONFIG = ALL_COLUMNS.map((c) => ({ key: c.key, visible: DEFAULT_COLUMN_KEYS.includes(c.key) }));
+
+// Resolve a config into the ordered, visible column definitions the table renders.
+const resolveColumns = (config) =>
+  (config ?? DEFAULT_COLUMN_CONFIG)
+    .filter((c) => c.visible)
+    .map((c) => ALL_COLUMNS.find((a) => a.key === c.key))
+    .filter(Boolean);
+
+const ContactsTable = ({ data, columns = ALL_COLUMNS, selected, onToggle, onToggleAll, onContactClick, sortKey, sortDir, onSort }) => {
+  const COLUMNS = columns;
   const allSelected  = data.length > 0 && data.every((c) => selected.has(c.id));
   const someSelected = data.some((c) => selected.has(c.id)) && !allSelected;
+  const LINE      = "#EEF0F3";   // cool light hairline
+  const HEAD_BG   = "#FAFBFD";   // subtle header wash
+  const CELL_TEXT = "#374151";   // body cell text
   return (
-    <div style={{ width: "100%", overflowX: "auto", borderLeft: `1px solid ${DS.neutral200}`, borderRight: `1px solid ${DS.neutral200}` }}>
+    <div style={{ width: "100%", overflow: "auto", border: `1px solid ${LINE}`, borderBottom: "none", borderRadius: "10px 10px 0 0" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: DS.ff }}>
         <thead>
-          <tr style={{ background: DS.blue100 }}>
-            <th style={{ width: 44, padding: "0 12px", height: 44, borderBottom: `1px solid ${DS.neutral200}`, textAlign: "center" }}>
+          <tr style={{ background: HEAD_BG }}>
+            <th style={{ width: 52, padding: "0 16px", height: 44, borderBottom: `1px solid ${LINE}`, textAlign: "center" }}>
               <div onClick={onToggleAll}
-                style={{ width: 16, height: 16, borderRadius: 4, margin: "0 auto", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${allSelected || someSelected ? DS.blue500 : DS.neutral500}`, background: allSelected ? DS.blue500 : DS.white }}>
-                {allSelected  && <Ico.Check s={10} c={DS.white} />}
-                {someSelected && <div style={{ width: 8, height: 2, background: DS.blue500, borderRadius: 1 }} />}
+                style={{ width: 18, height: 18, borderRadius: 5, margin: "0 auto", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", border: `1.5px solid ${allSelected || someSelected ? DS.blue500 : "#CBD5E1"}`, background: allSelected ? DS.blue500 : DS.white }}>
+                {allSelected  && <Ico.Check s={11} c={DS.white} />}
+                {someSelected && <div style={{ width: 9, height: 2, background: DS.blue500, borderRadius: 1 }} />}
               </div>
             </th>
             {COLUMNS.map((col) => (
-              <th key={col.key} onClick={() => onSort(col.key)}
-                style={{ padding: "0 8px", height: 44, borderLeft: `1px solid ${DS.neutral200}`, borderBottom: `1px solid ${DS.neutral200}`, cursor: "pointer", userSelect: "none", whiteSpace: "nowrap", textAlign: col.align ?? "left" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, lineHeight: "18px", color: DS.neutral900 }}>{col.label}</span>
-                  <Ico.SortUp />
-                </div>
-              </th>
+              <SortHeader key={col.key} label={col.label} active={sortKey === col.key} dir={sortDir}
+                onClick={() => onSort(col.key)} align={col.align} />
             ))}
-            <th style={{ padding: "0 8px", height: 44, borderLeft: `1px solid ${DS.neutral200}`, borderBottom: `1px solid ${DS.neutral200}`, textAlign: "center" }}>
-              <span style={{ fontSize: 14, fontWeight: 600, lineHeight: "18px", color: DS.neutral900 }}>Profile</span>
-            </th>
+            <th style={{ width: 72, padding: "0 16px", height: 44, borderBottom: `1px solid ${LINE}` }} />
           </tr>
         </thead>
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan={COLUMNS.length + 2} style={{ padding: 32, textAlign: "center", fontSize: 13, color: DS.neutral500, fontFamily: DS.ff }}>
+              <td colSpan={COLUMNS.length + 2} style={{ padding: 40, textAlign: "center", fontSize: 13, color: DS.neutral500, fontFamily: DS.ff }}>
                 No contacts match this segmentation
               </td>
             </tr>
           ) : data.map((contact, i) => {
             const isSel   = selected.has(contact.id);
-            const rowBase = isSel ? DS.blue100 : i % 2 === 0 ? DS.white : DS.neutral100;
+            const rowBase = isSel ? DS.blue100 : i % 2 === 0 ? DS.white : "#FCFCFF";
             return (
-              <tr key={contact.id} style={{ background: rowBase, transition: "background .1s" }}
-                onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = DS.neutral100; }}
+              <tr key={contact.id} style={{ background: rowBase, transition: "background .12s" }}
+                onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = "#F7F9FC"; }}
                 onMouseLeave={e => { e.currentTarget.style.background = rowBase; }}>
-                <td style={{ padding: "0 12px", height: 40, borderBottom: `0.5px solid ${DS.neutral200}`, borderRight: `1px solid ${DS.neutral200}`, textAlign: "center" }}>
+                <td style={{ padding: "0 16px", height: 52, borderBottom: `1px solid ${LINE}`, textAlign: "center" }}>
                   <div onClick={() => onToggle(contact.id)}
-                    style={{ width: 16, height: 16, borderRadius: 4, margin: "0 auto", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${isSel ? DS.blue500 : DS.neutral500}`, background: isSel ? DS.blue500 : DS.white }}>
-                    {isSel && <Ico.Check s={10} c={DS.white} />}
+                    style={{ width: 18, height: 18, borderRadius: 5, margin: "0 auto", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", border: `1.5px solid ${isSel ? DS.blue500 : "#CBD5E1"}`, background: isSel ? DS.blue500 : DS.white }}>
+                    {isSel && <Ico.Check s={11} c={DS.white} />}
                   </div>
                 </td>
-                {COLUMNS.map((col) => (
-                  <td key={col.key} style={{ padding: "0 12px", height: 40, borderRight: `1px solid ${DS.neutral200}`, borderBottom: `0.5px solid ${DS.neutral200}`, fontSize: 12, fontWeight: 400, lineHeight: "16px", textAlign: col.align ?? "left", color: DS.neutral900, whiteSpace: "nowrap" }}>
+                {COLUMNS.map((col, ci) => (
+                  <td key={col.key} style={{ padding: "0 16px", height: 52, borderBottom: `1px solid ${LINE}`, fontSize: 13, fontWeight: ci === 0 ? 700 : 400, lineHeight: "18px", textAlign: col.align ?? "left", color: ci === 0 ? DS.navy : CELL_TEXT, whiteSpace: "nowrap" }}>
                     {contact[col.key] ?? "—"}
                   </td>
                 ))}
-                <td style={{ padding: "0 12px", height: 40, borderBottom: `0.5px solid ${DS.neutral200}`, textAlign: "center" }}>
+                <td style={{ padding: "0 16px", height: 52, borderBottom: `1px solid ${LINE}`, textAlign: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <IconBtn type="Secondary" size="sm" icon={<Ico.Eye s={14} c={DS.blue500} />} onClick={() => onContactClick(contact)} title="View profile" />
                   </div>
@@ -1046,23 +1076,13 @@ const ContactsTable = ({ data, selected, onToggle, onToggleAll, onContactClick, 
 // 19. TOOLBAR
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SearchField = ({ value, onChange }) => {
-  const [focused, setFocused] = useState(false);
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 40, width: 180, borderRadius: 4, background: DS.neutral100, transition: "border-color .15s", border: `1px solid ${focused ? DS.blue500 : DS.neutral200}` }}>
-      <Ico.Search s={14} c={DS.neutral500} />
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder="Quick search…"
-        onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: DS.ff, fontSize: 14, fontWeight: 400, lineHeight: "20px", color: DS.neutral900 }} />
-      {value && <span onClick={() => onChange("")} style={{ cursor: "pointer", fontSize: 12, color: DS.neutral500, lineHeight: 1 }}>✕</span>}
-    </div>
-  );
-};
-
 const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
-  const [open,       setOpen]       = useState(false);
-  const [addOpen,    setAddOpen]    = useState(false);
-  const [removeOpen, setRemoveOpen] = useState(false);
+  const [open,              setOpen]              = useState(false);
+  const [addOpen,           setAddOpen]           = useState(false);
+  const [removeOpen,        setRemoveOpen]        = useState(false);
+  const [consentAddOpen,    setConsentAddOpen]    = useState(false);
+  const [consentRemoveOpen, setConsentRemoveOpen] = useState(false);
+  const [deleteOpen,        setDeleteOpen]        = useState(false);
 
   const STATIC_LISTS = [
     { id: 1,  name: "VIP Subscribers",    count: 1240 },
@@ -1077,10 +1097,22 @@ const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
     { id: 10, name: "Newsletter — April", count: 8300 },
   ];
 
+  const STATIC_CONSENTS = [
+    { id: "nl-public", name: "Newsletter Public",       count: 18420 },
+    { id: "nl-vip",    name: "Newsletter VIP & Loges",  count: 1284  },
+    { id: "activites", name: "Activités partenaires",   count: 6890  },
+    { id: "sms-promo", name: "SMS Promotions",          count: 9210  },
+    { id: "wa-billet", name: "WhatsApp Billetterie",    count: 540   },
+    { id: "analytics", name: "Analytics & tracking",    count: 120   },
+  ];
+
   const handleModal = (item) => {
-    if (item.label === "Add to a list")           { setAddOpen(true);    setOpen(false); }
-    else if (item.label === "Remove from a list") { setRemoveOpen(true); setOpen(false); }
-    else                                          { setOpen(false); }
+    if (item.label === "Add to a list")              { setAddOpen(true);           setOpen(false); }
+    else if (item.label === "Remove from a list")    { setRemoveOpen(true);        setOpen(false); }
+    else if (item.label === "Add to a consent")      { setConsentAddOpen(true);    setOpen(false); }
+    else if (item.label === "Remove from a consent") { setConsentRemoveOpen(true); setOpen(false); }
+    else if (item.label === "Delete contacts")       { setDeleteOpen(true);        setOpen(false); }
+    else                                             { setOpen(false); }
   };
 
   const ref = useRef();
@@ -1120,6 +1152,9 @@ const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
       )}
       <ListActionModal mode="add"    open={addOpen}    lists={STATIC_LISTS} selectedContactIds={[...selected]} onClose={() => setAddOpen(false)}    onConfirm={() => {}} />
       <ListActionModal mode="remove" open={removeOpen} lists={STATIC_LISTS} selectedContactIds={[...selected]} onClose={() => setRemoveOpen(false)} onConfirm={() => {}} />
+      <ConsentActionModal mode="add"    open={consentAddOpen}    consents={STATIC_CONSENTS} selectedContactIds={[...selected]} onClose={() => setConsentAddOpen(false)}    onConfirm={() => {}} />
+      <ConsentActionModal mode="remove" open={consentRemoveOpen} consents={STATIC_CONSENTS} selectedContactIds={[...selected]} onClose={() => setConsentRemoveOpen(false)} onConfirm={() => {}} />
+      <DeleteContactsModal open={deleteOpen} count={selected.size} onClose={() => setDeleteOpen(false)} onConfirm={() => {}} />
     </div>
   );
 };
@@ -1180,7 +1215,68 @@ const CreateContactSidebar = ({ open, onClose }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 21. PAGE
+// 21. VIEWS — a view = a saved { filters + column layout + sort }
+// ─────────────────────────────────────────────────────────────────────────────
+
+const clone  = (x) => JSON.parse(JSON.stringify(x));
+const idless = (k, v) => (k === "id" ? undefined : v);
+const segSig = (seg) => JSON.stringify(seg ?? makeSeg(), idless);
+
+// Serialize a view config for dirty detection (ignore volatile block/filter ids).
+const configSignature = (cfg) =>
+  JSON.stringify({ seg: segSig(cfg.segment), sortKey: cfg.sortKey, sortDir: cfg.sortDir, columns: cfg.columns });
+
+const segHasFilters = (seg) => (seg?.blocks ?? []).some((b) => b.filters?.length);
+
+// Turn a single filter condition into a readable label, e.g. "Age at least 18".
+const opLabel = (objId, fieldId, op) => {
+  const field = getField(objId, fieldId);
+  const list = OPS[field.type] ?? OPS.string;
+  return (list.find((o) => o.v === op) || ANCHOR_OPS.find((o) => o.v === op) || { l: op }).l;
+};
+const describeFilter = (f) => {
+  if (f.isAnchor) {
+    const lbl = OBJECT_ANCHORS[f.objId]?.levels?.[f.anchorLevel]?.[f.anchorPolarity]?.label;
+    if (lbl) return lbl;
+  }
+  const field = getField(f.objId, f.fieldId);
+  const ol = opLabel(f.objId, f.fieldId, f.op);
+  if (noValue(f.op)) return `${field.label} ${ol}`;
+  const val = Array.isArray(f.val) ? f.val.join(", ") : (f.val ?? "");
+  return `${field.label} ${ol}${val !== "" ? ` ${val}` : ""}`.trim();
+};
+const describeSeg = (seg) => (seg?.blocks ?? []).flatMap((b) => (b.filters ?? []).map(describeFilter));
+
+// Human-readable, per-facet diff between the live config and the saved view.
+const diffConfig = (cur, saved) => {
+  const changes = [];
+  if (segSig(cur.segment) !== segSig(saved.segment)) {
+    const curF = describeSeg(cur.segment);
+    const savF = describeSeg(saved.segment);
+    savF.filter((d) => !curF.includes(d)).forEach((d) => changes.push({ facet: "filters", label: d, kind: "remove" }));
+    curF.filter((d) => !savF.includes(d)).forEach((d) => changes.push({ facet: "filters", label: d, kind: "add" }));
+  }
+  if (JSON.stringify(cur.columns) !== JSON.stringify(saved.columns)) {
+    const visNow   = cur.columns.filter((c) => c.visible).map((c) => c.key);
+    const visSaved = saved.columns.filter((c) => c.visible).map((c) => c.key);
+    const label = JSON.stringify(visNow) !== JSON.stringify(visSaved)
+      ? `${visNow.length} column${visNow.length !== 1 ? "s" : ""} shown`
+      : "columns reordered";
+    changes.push({ facet: "columns", label });
+  }
+  if (cur.sortKey !== saved.sortKey || cur.sortDir !== saved.sortDir) changes.push({ facet: "sort", label: "sort changed" });
+  return changes;
+};
+
+const INITIAL_VIEWS = [
+  {
+    id: "all", name: "All contacts", standard: true,
+    config: { segment: makeSeg(), sortKey: "lastName", sortDir: "asc", columns: DEFAULT_COLUMN_CONFIG },
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 22. PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ContactsPage({ selectedContact, setSelectedContact }) {
@@ -1217,11 +1313,61 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
   };
 
   const [search,   setSearch]   = useState("");
+  const [showAnonymized, setShowAnonymized] = useState(true);
   const [sortKey,  setSortKey]  = useState("lastName");
   const [sortDir,  setSortDir]  = useState("asc");
   const [selected, setSelected] = useState(new Set());
   const [page,     setPage]     = useState(1);
   const [showCreateSidebar, setShowCreateSidebar] = useState(false);
+  const [createListOpen, setCreateListOpen] = useState(false);
+
+  // ── Views & columns ────────────────────────────────────────────────────────
+  const [views,        setViews]        = useState(INITIAL_VIEWS);
+  const [activeViewId, setActiveViewId] = useState("all");
+  const [columns,      setColumns]      = useState(() => clone(DEFAULT_COLUMN_CONFIG));
+  const [viewModal,    setViewModal]    = useState(null); // null | { mode: "create" | "rename", id? }
+
+  const currentConfig = { segment: applied ?? makeSeg(), sortKey, sortDir, columns };
+  const activeView    = views.find((v) => v.id === activeViewId);
+  const viewDirty     = activeView ? configSignature(currentConfig) !== configSignature(activeView.config) : false;
+  const viewChanges   = activeView && viewDirty ? diffConfig(currentConfig, activeView.config) : [];
+
+  // Summary of the live configuration (for the view-name hover card).
+  const filterDescs = describeSeg(currentConfig.segment);
+  const nCols       = columns.filter((c) => c.visible).length;
+  const sortLabel   = ALL_COLUMNS.find((c) => c.key === sortKey)?.label ?? sortKey;
+  const viewSetup   = [
+    ...(filterDescs.length
+      ? filterDescs.map((d) => ({ facet: "filters", label: d }))
+      : [{ facet: "filters", label: "No filters", muted: true }]),
+    { facet: "columns", label: `${nCols} column${nCols !== 1 ? "s" : ""} shown` },
+    { facet: "sort",    label: `Sorted by ${sortLabel} (${sortDir === "asc" ? "A→Z" : "Z→A"})` },
+  ];
+
+  const applyView = (id) => {
+    const v = views.find((x) => x.id === id);
+    if (!v) return;
+    const c = v.config;
+    setSegment(clone(c.segment));
+    setApplied(segHasFilters(c.segment) ? clone(c.segment) : null);
+    setSortKey(c.sortKey);
+    setSortDir(c.sortDir);
+    setColumns(clone(c.columns));
+    setActiveViewId(id);
+    setBuilderOpen(segHasFilters(c.segment)); // show the view's filters when it has any
+    setSelected(new Set());
+    setPage(1);
+  };
+
+  const createView = (name) => {
+    const id = "view-" + uid();
+    setViews((vs) => [...vs, { id, name, standard: false, config: clone(currentConfig) }]);
+    setActiveViewId(id);
+  };
+  const saveViewChanges = () => setViews((vs) => vs.map((v) => (v.id === activeViewId ? { ...v, config: clone(currentConfig) } : v)));
+  const revertView      = () => { if (activeView) applyView(activeView.id); };
+  const renameView      = (id, name) => setViews((vs) => vs.map((v) => (v.id === id ? { ...v, name } : v)));
+  const deleteView      = (id) => { setViews((vs) => vs.filter((v) => v.id !== id)); if (activeViewId === id) applyView("all"); };
 
   const handleSort = (key) => {
     if (key === sortKey) setSortDir((d) => d === "asc" ? "desc" : "asc");
@@ -1229,6 +1375,7 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
   };
 
   const filtered = evalSeg(CONTACTS, applied).filter((c) => {
+    if (!showAnonymized && c.anonymized) return false;
     if (!search) return true;
     const q = search.toLowerCase();
     return (c.firstName ?? "").toLowerCase().includes(q)
@@ -1256,13 +1403,14 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
 
   const handleContactClick = (c) => { setSelectedContact(c._fullData ?? c); navigate(`/contacts/${c.id}`); };
 
-  const paginationRange = () => {
-    const total = Math.min(5, totalPages);
-    const start = totalPages <= 5 ? 1 : page <= 3 ? 1 : page >= totalPages - 2 ? totalPages - 4 : page - 2;
-    return Array.from({ length: total }, (_, i) => start + i);
-  };
-
   const startSegmentation = () => {
+    // Editing a view that already has filters → open the builder on those filters
+    // (don't wipe them). Otherwise start a fresh filter block.
+    if (segHasFilters(applied)) {
+      setSegment(clone(applied));
+      setBuilderOpen(true);
+      return;
+    }
     const emptyBlock = makeBlock();
     setBlocks(() => [emptyBlock]);
     setBuilderOpen(true);
@@ -1270,24 +1418,41 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
   };
 
   return (
-    <div style={{ fontFamily: DS.ff, backgroundColor: "#F0F2F5", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div style={{ fontFamily: DS.ff, minHeight: "100%", display: "flex", flexDirection: "column" }}>
 
-      {/* Page header */}
-      <PageHeader
-        icon={<Ico.User s={20} c={DS.actionPrimary} />}
-        title="Contacts"
-        description="Browse, segment and manage every contact in your CRM"
-        actions={<>
-          <Btn type="Primary" iconLeft={<Ico.Filter s={16} c={DS.white} />} disabled={builderOpen} onClick={startSegmentation}>Start segmentation</Btn>
-          <Btn type="Secondary" iconLeft={<Ico.Plus c={DS.blue500} />} onClick={() => setShowCreateSidebar(true)}>Add a contact</Btn>
-        </>}
-      />
+      <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
 
-      <div style={{ display: "flex", flexDirection: "column", width: "calc(100% - 160px)", margin: "0 auto" }}>
+        {/* Page header — transparent, aligned with content */}
+        <PageHeader
+          title="Contacts"
+          description="Browse, segment and manage every contact in your CRM"
+          actions={<>
+            <Btn type="Primary" iconLeft={<Ico.Filter s={16} c={DS.white} />} disabled={builderOpen} onClick={startSegmentation}>{segHasFilters(applied) ? "Edit filters" : "Start segmentation"}</Btn>
+            <Btn type="Secondary" iconLeft={<Ico.Plus c={DS.blue500} />} onClick={() => setShowCreateSidebar(true)}>Add a contact</Btn>
+          </>}
+        />
+
+        {/* Views tab bar */}
+        <div style={{ margin: "8px 32px 0" }}>
+          <ViewsBar
+            views={views}
+            activeViewId={activeViewId}
+            dirty={viewDirty}
+            changes={viewChanges}
+            setup={viewSetup}
+            onSelect={applyView}
+            onCreate={() => setViewModal({ mode: "create" })}
+            onRevert={revertView}
+            onSaveChanges={saveViewChanges}
+            onSaveAsNew={() => setViewModal({ mode: "create" })}
+            onRename={(id) => setViewModal({ mode: "rename", id })}
+            onDelete={deleteView}
+          />
+        </div>
 
         {/* Segment builder */}
         {builderOpen && (
-          <div style={{ margin: "16px 24px 0", backgroundColor: DS.white, border: `1px solid ${DS.neutral200}`, borderRadius: 8, overflow: "visible" }}>
+          <div style={{ margin: "16px 32px 0", backgroundColor: DS.white, border: `1px solid ${DS.neutral200}`, borderRadius: 8, overflow: "visible" }}>
             <div style={{ padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: 0 }}>
               {blocks.map((block, i) => (
                 <FilterBlock
@@ -1303,7 +1468,7 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
               ))}
             </div>
             <div style={{ display: "flex", alignItems: "center", padding: "8px 32px", borderTop: `0.5px solid ${DS.neutral200}`, background: DS.neutral100, gap: 8, borderRadius: "0 0 8px 8px" }}>
-              <Btn type="Primary" iconLeft={<Ico.List c={DS.white} />}>Create a list</Btn>
+              <Btn type="Primary" iconLeft={<Ico.List c={DS.white} />} onClick={() => setCreateListOpen(true)}>Create a list</Btn>
               <div style={{ flex: 1 }} />
               <Btn type="Tertiary"  disabled={!isDirty} onClick={handleCancel}>Cancel</Btn>
               <Btn type="Secondary" disabled={!isDirty} onClick={handleApply}>Save</Btn>
@@ -1313,7 +1478,7 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
 
         {/* Result bar */}
         {(builderOpen || applied) && (
-          <div style={{ margin: "10px 24px 0", padding: "8px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ margin: "10px 32px 0", padding: "8px 16px", display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 14, fontWeight: 400, color: DS.neutral900, fontFamily: DS.ff }}>
               <strong style={{ color: DS.blue500 }}>{sorted.length}</strong> contact{sorted.length !== 1 ? "s" : ""}
             </span>
@@ -1326,36 +1491,54 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
         <AddFilterModal open={filterModalOpen} onClose={() => setFilterModalOpen(false)} onSelect={handleFilterModalSelect} />
 
         {/* Table toolbar */}
-        <div style={{ margin: "12px 24px 0" }}>
-          <div style={{ padding: "10px 0", display: "flex", alignItems: "center", borderBottom: `1px solid ${DS.neutral200}`, justifyContent: "space-between" }}>
-            <Btn type="Secondary" iconLeft={<Ico.Settings />}>Configure columns</Btn>
+        <div style={{ margin: "12px 32px 0" }}>
+          <div style={{ padding: "10px 0", display: "flex", alignItems: "center", borderBottom: `1px solid #EEF0F3`, justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <ColumnCustomizer config={columns} allColumns={ALL_COLUMNS} defaultConfig={DEFAULT_COLUMN_CONFIG} onChange={setColumns} />
+              <Toggle
+                on={showAnonymized}
+                onChange={setShowAnonymized}
+                label={<span style={{ fontSize: 12, color: DS.neutral700, fontFamily: DS.ff, whiteSpace: "nowrap" }}>Show anonymized contacts</span>}
+              />
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <OptionsMenu disabled={selected.size === 0} selected={selected} />
-              <SearchField value={search} onChange={(v) => { setSearch(v); setPage(1); }} />
+              <SearchField value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Quick search…" style={{ width: 220 }} />
             </div>
           </div>
         </div>
 
         {/* Table */}
-        <div style={{ marginInline: 24 }}>
-          <ContactsTable data={pageData} selected={selected} onToggle={toggleOne} onToggleAll={toggleAll} onContactClick={handleContactClick} sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+        <div style={{ marginInline: 32 }}>
+          <ContactsTable data={pageData} columns={resolveColumns(columns)} selected={selected} onToggle={toggleOne} onToggleAll={toggleAll} onContactClick={handleContactClick} sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
         </div>
 
         {/* Pagination */}
-        <div style={{ marginInline: 24, marginBottom: 24, backgroundColor: DS.white, border: `1px solid ${DS.neutral200}`, borderTop: "none", borderRadius: "0 0 10px 10px", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 12, color: DS.neutral500, fontFamily: DS.ff }}>
-            {sorted.length === 0 ? "No results" : `${Math.min((page - 1) * PAGE_SIZE + 1, sorted.length)}–${Math.min(page * PAGE_SIZE, sorted.length)} of ${sorted.length}`}
-          </span>
-          <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-            <PagBtn onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}><Ico.ChevL s={13} c={DS.neutral900} /></PagBtn>
-            {paginationRange().map(p => <PagBtn key={p} onClick={() => setPage(p)} active={p === page}>{p}</PagBtn>)}
-            <PagBtn onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}><Ico.ChevRight s={13} c={DS.neutral900} /></PagBtn>
-          </div>
+        <div style={{ marginInline: 32, marginBottom: 24, backgroundColor: DS.white, border: `1px solid #EEF0F3`, borderTop: "none", borderRadius: "0 0 10px 10px" }}>
+          <Pagination page={page - 1} pages={totalPages} setPage={(p) => setPage(p + 1)} total={sorted.length} pageSize={PAGE_SIZE} />
         </div>
 
       </div>
 
       <CreateContactSidebar open={showCreateSidebar} onClose={() => setShowCreateSidebar(false)} />
+
+      <CreateListModal
+        open={createListOpen}
+        onClose={() => setCreateListOpen(false)}
+        contactCount={sorted.length}
+        segment={applied ?? segment}
+        onCreated={(list) => console.log("Created list (simulated):", list)}
+      />
+
+
+      <ViewModal
+        key={viewModal ? viewModal.mode + (viewModal.id ?? "") : "closed"}
+        open={!!viewModal}
+        mode={viewModal?.mode ?? "create"}
+        initialName={viewModal?.mode === "rename" ? (views.find((v) => v.id === viewModal.id)?.name ?? "") : ""}
+        onClose={() => setViewModal(null)}
+        onSubmit={(name) => { if (viewModal?.mode === "rename") renameView(viewModal.id, name); else createView(name); }}
+      />
     </div>
   );
 }

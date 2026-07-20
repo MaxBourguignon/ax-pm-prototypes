@@ -49,8 +49,8 @@
   --ax-warning:       var(--ax-orange);
 
   /* ---------- Brand gradient --------------------------------------- */
-  --ax-brand-gradient:   linear-gradient(180deg, #2CB1A2 0%, #5585B8 100%);
-  --ax-brand-gradient-h: linear-gradient(90deg,  #5585B8 0%, #2CB1A2 100%);
+  --ax-brand-gradient:   linear-gradient(90deg, #017BFE 0%, #34C9AE 100%);
+  --ax-brand-gradient-h: linear-gradient(180deg, #017BFE 0%, #34C9AE 100%);
 
   /* ---------- Semantic surfaces ------------------------------------ */
   --ax-bg:            #F8F9FB;

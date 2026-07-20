@@ -19,15 +19,22 @@ features — NOT standalone HTML files. The app is **Vite + React 19** (the dir 
    conflicts (e.g. a file that redefines tokens inline, a route collision), resolve
    them before continuing. If it wasn't run, run it now.
 
-2. **Ask the user for the destination** before writing any code — two questions:
-   - "What should the **feature folder** be called?" → `src/features/<Folder>/`
-   - "What should the **component file** be called?" → `<File>.jsx`
-   Do not invent these — ask. Use PascalCase for both unless told otherwise.
+2. **Destination — depends on the lot.** The pipeline is lot-based; the LLM spec is for
+   ONE lot and names what prior lots already built.
+   - **Lot 1 (new feature):** ask the user two questions before writing code:
+     - "What should the **feature folder** be called?" → `src/features/<Folder>/`
+     - "What should the **component file** be called?" → `<File>.jsx`
+     Do not invent these — ask. Use PascalCase for both unless told otherwise.
+   - **Lot ≥ 2:** do NOT create a new folder/file or ask. Build **into the existing
+     feature folder** the manifest identified. **Extend** the prior-lot files — reuse their
+     screens, components, helpers and mock data; add only what this lot introduces. Never
+     recreate or overwrite prior-lot work, and never duplicate a screen a prior lot built.
 
 3. **Import the design system — never redefine it.** From the new feature file:
    ```js
    import { DS, TY } from '../../utils/designSystem';   // colours + typography
    import Ico from '../../utils/icons';                  // icon catalog (default export)
+   import PageHeader from '../../components/PageHeader';  // shared top-of-page banner (EVERY page)
    import { Btn } from '../../components/Btn';
    import { IconBtn } from '../../components/Iconbtn';
    import { Field, SearchField, TextArea } from '../../components/Field';
@@ -137,6 +144,9 @@ Read variable descriptions to understand *when* to apply each token — they are
 | Token objects | **Import** `{ DS, TY }` from `utils/designSystem` and `Ico` from `utils/icons` — NEVER declare them in a feature file (see §0) |
 | Shared components | **Import** `Btn`, `IconBtn`, `Field`, `Checkbox`/`Toggle`, `Tag`/`StatusBadge` etc. from `components/*` per the design-consistency manifest — only build what's BUILD-NEW |
 | Text alignment | Always `textAlign: 'left'` — never centre-align labels, fields, or body text unless Figma explicitly shows it |
+| Copy language | **English only** — all labels, titles, buttons, empty/error copy in English (never French) |
+| Card padding | `Card` has **no default padding** — always pass `style={{ padding: … }}` (e.g. `padding: 16`) |
+| Page header | Use the shared `PageHeader` component on every page — never hand-roll the header banner |
 | No `<form>` tags | Use `onClick` / `onChange` handlers exclusively |
 | Hover effects | `onMouseEnter` / `onMouseLeave` on `e.currentTarget.style` |
 | Dropdowns | Close via `useRef` + `document.addEventListener("mousedown", …)` cleaned up in `useEffect` return |
@@ -391,6 +401,12 @@ The general structure of all main page must follow this one:
 Header with left PageTitle infos and on the right Call-To-actions.
 The NavBar is optional, only when required by the specifications.
 
+**The page header is a shared component — import it, don't rebuild it.** Every page uses
+`PageHeader` from `components/PageHeader.jsx` (icon badge + title + description subtitle +
+right-side CTAs). Its subtitle is always a short **description** of the page — never an item
+count ("Manage your consents", not "42 consents"). The `PageHeaderInfos` block drawn below
+is the spec for that shared component; reuse the component rather than re-implementing it.
+
 ```
 OPTIONAL
 ┌─ Top header (bgCard, borderBottom borderDefault, h:136, p:'24px 40px') ───┐
@@ -516,7 +532,10 @@ https://www.figma.com/design/NUOoC3GC7mB4U1AydRKIoy/AX-DESIGN-SYSTEM--NEW-?node-
 9. **Feedback triads** — bg + border + text together, never a single token (Section 8).
 10. **Implement all states** — hover, focus, disabled, error, empty, loading.
 11. **Page only** — never build/restyle the nav bar, sidebar, or app shell; the
-    feature renders inside the existing layout.
+    feature renders inside the existing layout. Use the shared `PageHeader` for the page banner.
+11b. **Lot ≥ 2** — extend the existing feature folder/files; reuse prior-lot screens,
+    components, and mock data; add only this lot's additions. Never overwrite or duplicate.
+11c. **English copy only**; `Card` needs explicit padding.
 12. **Icons** — follow §11; reuse `Ico.*`, add new icons to `utils/icons.jsx`. Never use
     `<img>`, remote URLs, emoji, or Figma asset URLs for icons.
 13. **Hand off to `ship-prototype`** — it wires the route + sidebar, builds, and launches.
@@ -559,14 +578,14 @@ const Ico = {
 
 ```js
 // In a button — pass s and c explicitly
-<Btn iconLeft={<Ico.Plus s={16} c={DS.textInverse} />} label="Ajouter" type="Primary" />
+<Btn iconLeft={<Ico.Plus s={16} c={DS.textInverse} />} label="Add" type="Primary" />
 
 // In an IconButton — icon inherits container context
 <IconBtn icon={<Ico.Eye s={16} c={DS.blue500} />} type="Secondary" size="Small" />
 
 // Inline in text — use s matching the text size
 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-  <Ico.Mail s={14} c={DS.textSecondary} /> Email envoyé
+  <Ico.Mail s={14} c={DS.textSecondary} /> Email sent
 </span>
 ```
 

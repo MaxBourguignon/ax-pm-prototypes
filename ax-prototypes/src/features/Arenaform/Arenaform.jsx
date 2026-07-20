@@ -82,11 +82,9 @@ function TabBar({ tabs, active, onChange, extra }) {
     <div style={{ background:DS.bgCard, borderBottom:`1px solid ${DS.borderDefault}`, padding:"0 24px", display:"flex", alignItems:"center" }}>
       {tabs.map(t => {
         const isActive = t.id === active;
-        const IcoC = t.icon;
         return (
           <button key={t.id} onClick={() => onChange(t.id)}
-            style={{ height:48, padding:"0 16px", border:"none", borderBottom: isActive ? `4px solid ${DS.navTabBarActive}` : "4px solid transparent", background:"transparent", cursor:"pointer", display:"flex", alignItems:"center", gap:8, ...TY.b2, fontFamily:DS.ff, color: isActive ? DS.navTabTextActive : DS.navText, fontWeight: isActive ? 600 : 400, transition:"color .15s" }}>
-            {IcoC && <IcoC s={14} c={isActive ? DS.navTabTextActive : DS.textSecondary}/>}
+            style={{ height:48, padding:"0 16px", border:"none", borderBottom: isActive ? `4px solid ${DS.navTabBarActive}` : "4px solid transparent", background:"transparent", cursor:"pointer", display:"flex", alignItems:"center", ...TY.b2, fontFamily:DS.ff, color: isActive ? DS.navTabTextActive : DS.navText, fontWeight: isActive ? 600 : 400, transition:"color .15s" }}>
             {t.label}
           </button>
         );
@@ -151,7 +149,7 @@ function FormsOverview({ onOpen, onCreate }) {
         actions={<><Btn type="Primary" iconLeft={<Ico.Plus s={16} c={DS.textInverse}/>} onClick={onCreate}>Create new form</Btn></>}/>
 
       {/* KPI strip — 4 cards */}
-      <div style={{ padding:"24px 24px 0", display:"flex", gap:16 }}>
+      <div style={{ padding:"24px 32px 0", display:"flex", gap:16 }}>
         <CardStats title="Total responses" value="2 527" subvalue="out of 5 012 sent" icon={Ico.Responses} trend="up" trendVal="+324 vs last month"/>
         <CardStats title="Avg. completion" value="40%" subvalue="active forms only" icon={Ico.Donut}/>
         <CardStats title="Active forms" value={active.length} subvalue={`${FORMS.length-active.length} inactive`} icon={Ico.Check} iconColor={DS.feedbackSuccess}/>
@@ -159,7 +157,7 @@ function FormsOverview({ onOpen, onCreate }) {
       </div>
 
       {/* Toolbar — flat on bgPage, no card wrapper */}
-      <div style={{ padding:"16px 24px 12px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+      <div style={{ padding:"16px 32px 12px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
         {/* Status filter — segmented control */}
         <div style={{ display:"flex", gap:2, background:DS.bgSurface, borderRadius:6, padding:2, border:`1px solid ${DS.borderDefault}` }}>
           {["all","active","inactive"].map(s => (
@@ -386,7 +384,7 @@ function BuilderTab({ form }) {
       </div>
 
       {/* Canvas */}
-      <div style={{ flex:1, background:DS.bgPage, overflow:"auto", padding:24, display:"flex", flexDirection:"column", alignItems:"center", gap:16 }}>
+      <div style={{ flex:1, background:DS.bgPage, overflow:"auto", padding:"24px 32px", display:"flex", flexDirection:"column", alignItems:"center", gap:16 }}>
         {unmapped > 0 && showWarn && (
           <div style={{ background:DS.feedbackWarningBg, border:`1px solid ${DS.feedbackWarning}`, borderRadius:10, padding:"10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", maxWidth:540 }}>
             <Ico.Warn s={16} c={DS.feedbackWarning}/>
@@ -487,7 +485,7 @@ function WorkflowTab() {
     action:   {bg:DS.feedbackSuccessBg,border:DS.feedbackSuccess},
   };
   return (
-    <div style={{ background:DS.bgPage, padding:24, height:"calc(100vh - 185px)", overflow:"auto" }}>
+    <div style={{ background:DS.bgPage, padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto" }}>
       <div style={{ background:DS.bgCard, border:`1px solid ${DS.borderDefault}`, borderRadius:10, overflow:"hidden" }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${DS.borderDefault}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div>
@@ -542,7 +540,7 @@ function ConnectTab({ form }) {
   function copy(text, key) { navigator.clipboard.writeText(text).catch(()=>{}); setCopied(key); setTimeout(()=>setCopied(null),2000); }
 
   return (
-    <div style={{ background:DS.bgPage, padding:24, height:"calc(100vh - 185px)", overflow:"auto", display:"flex", gap:16 }}>
+    <div style={{ background:DS.bgPage, padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto", display:"flex", gap:16 }}>
       <div style={{ flex:1, display:"flex", flexDirection:"column", gap:16 }}>
         <div style={{ background:DS.bgCard, border:`1px solid ${DS.borderDefault}`, borderRadius:10, overflow:"hidden" }}>
           <div style={{ padding:"12px 16px", borderBottom:`1px solid ${DS.borderDefault}` }}>
@@ -646,7 +644,7 @@ function ResultsTab({ form }) {
   const maxW = Math.max(...weeklyData.map(d=>d.value));
 
   return (
-    <div style={{ background:DS.bgPage, padding:24, height:"calc(100vh - 185px)", overflow:"auto", display:"flex", flexDirection:"column", gap:16 }}>
+    <div style={{ background:DS.bgPage, padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto", display:"flex", flexDirection:"column", gap:16 }}>
       {/* KPI strip — corrected CardStats from Figma */}
       <div style={{ display:"flex", gap:16 }}>
         <CardStats title="Total responses" value={form.contacts.toLocaleString()} subvalue={`out of ${form.sent.toLocaleString()} sent`} icon={Ico.Responses}/>

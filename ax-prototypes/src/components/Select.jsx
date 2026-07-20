@@ -12,7 +12,7 @@ import React from 'react';
 import { DS, TY } from '../utils/designSystem';
 import Ico from '../utils/icons';
 
-export function Select({ label, value, options = [], onChange, disabled, width, placeholder }) {
+export function Select({ label, value, options = [], onChange, disabled, width, placeholder, header }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
   React.useEffect(() => {
@@ -41,6 +41,12 @@ export function Select({ label, value, options = [], onChange, disabled, width, 
           <div style={{ position: 'absolute', top: 44, left: 0, width: '100%', background: DS.bgCard,
                         border: `1px solid ${DS.borderDefault}`, borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
                         zIndex: 50, overflow: 'hidden', maxHeight: 240, overflowY: 'auto' }}>
+            {header && (
+              <div style={{ padding: '8px 12px', ...TY.b3, color: DS.textSecondary, fontFamily: DS.ff, fontWeight: 600,
+                            textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: `1px solid ${DS.borderDefault}` }}>
+                {header}
+              </div>
+            )}
             {options.map((o) => (
               <div key={o.value} onClick={() => { onChange(o.value); setOpen(false); }}
                    onMouseEnter={(e) => (e.currentTarget.style.background = DS.actionSecondaryHover)}

@@ -15,7 +15,7 @@ export const DS = {
   blue100:      "#EFF4FF",
   blue200:      "#C6E2FF",
   blue300:      "#96C2FE",
-  blue500:      "#017BFE",
+  blue500:      "#2575fc",
   blue600:      "#0D69D4",
   blue700:      "#0058B4",
   blueIos:      "#007AFF",
@@ -46,16 +46,27 @@ export const DS = {
   indigo800:    "#3730A3",
   navy:         "#180636",
 
+  // ── 2026 brand secondary palette ──────────────────────────────────────────────
+  // Straight from the brand guide. The pale mint/yellow read well as solid fills
+  // (donut arcs, swatches); the *Ink variants are darkened for thin lines/text on white.
+  brandViolet:    "#4F32FE",
+  brandYellow:    "#FAEA87",
+  brandMint:      "#6FE8B8",
+  brandMagenta:   "#B93177",
+  brandMintInk:   "#17B08F",
+  brandYellowInk: "#D9A400",
+
   // ── Semantic tokens ───────────────────────────────────────────────────────────
   ff: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  ffn: "'Poppins', 'Century Gothic', 'Avenir Next', 'Segoe UI', Roboto, sans-serif",
 
-  bgPage:    "#F8F9FB",
+  bgPage:    "#F4F9FF",
   bgCard:    "#FFFFFF",
   bgSurface: "#F9FBFB",
   bgIcons:   "#EFF4FF",
 
   borderDefault: "#E2DDDD",
-  borderFocus:   "#017BFE",
+  borderFocus:   "#2575fc",
   borderError:   "#EF4444",
 
   textDefault:     "#1F2937",
@@ -64,27 +75,27 @@ export const DS = {
   textPlaceholder: "#ABBED1",
   textDisabled:    "#9A9EA5",
 
-  actionPrimary:            "#017BFE",
+  actionPrimary:            "#2575fc",
   actionPrimaryHover:       "#0058B4",
-  actionSecondaryBorder:    "#017BFE",
+  actionSecondaryBorder:    "#2575fc",
   actionSecondaryHover:     "#EFF4FF",
-  actionSecondaryTextHover: "#017BFE",
+  actionSecondaryTextHover: "#2575fc",
   actionTertiaryHover:      "#F9FBFB",
   actionTertiaryTextHover:  "#1F2937",
   actionDisabledBg:         "#E2DDDD",
   actionDisabledText:       "#9A9EA5",
 
   navTabBarActive:  "#007AFF",
-  navTabTextActive: "#017BFE",
+  navTabTextActive: "#2575fc",
   navText:          "#717171",
-  navActiveTab:     "#017BFE",
-  navGradientFrom:  "#017BFE",
+  navActiveTab:     "#2575fc",
+  navGradientFrom:  "#2575fc",
   navGradientTo:    "#4E6FC7",
 
   feedbackSuccess:   "#22C55E",
   feedbackError:     "#EF4444",
   feedbackWarning:   "#F59E0B",
-  feedbackInfo:      "#017BFE",
+  feedbackInfo:      "#2575fc",
   feedbackSuccessBg: "#DEF9F4",
   feedbackErrorBg:   "#FFE4E6",
   feedbackWarningBg: "#FEF3C7",
@@ -96,7 +107,8 @@ export const DS = {
   neutralLGrey:"#CED4DA",
 
   success:         "#22C55E",
-  brandGradientH:  "linear-gradient(135deg, #017BFE 0%, #4E6FC7 100%)",
+  gradientBlueH:    "linear-gradient(180deg, #017BFE 0%, #34C9AE 100%)",
+  gradientBlueV:    "linear-gradient(90deg, #017BFE 0%, #34C9AE 100%)",
 
   // ── Spacing ───────────────────────────────────────────────────────────────────
   space1: "4px",
@@ -115,6 +127,8 @@ export const DS = {
 };
 
 export const TY = {
+  h1: { fontSize: 36, fontWeight: 600, lineHeight: "44px" }, // hero numbers / landing titles
+  h2: { fontSize: 28, fontWeight: 600, lineHeight: "36px" }, // page titles, headline metrics
   h3: { fontSize: 20, fontWeight: 600, lineHeight: "28px" },
   h4: { fontSize: 16, fontWeight: 600, lineHeight: "22px" },
   h5: { fontSize: 14, fontWeight: 600, lineHeight: "18px" },

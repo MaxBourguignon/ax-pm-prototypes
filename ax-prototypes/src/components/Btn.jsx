@@ -3,7 +3,7 @@
  * Figma node 196:1229 — https://www.figma.com/design/NUOoC3GC7mB4U1AydRKIoy/AX-DESIGN-SYSTEM--NEW-?node-id=196-1229
  *
  * Props:
- *   type     "Primary" | "Secondary" | "Tertiary" | "TertiaryDanger"   default "Primary"
+ *   type     "Primary" | "Secondary" | "Tertiary" | "TertiaryDanger" | "Danger"   default "Primary"
  *   size     "Medium" | "Small"                                         default "Medium"
  *   iconLeft  <Ico.* /> element — rendered left of the label
  *   iconRight <Ico.* /> element — rendered right of the label
@@ -76,6 +76,18 @@ const VARIANTS = {
       border:      '1px solid transparent',
     },
   },
+  Danger: {
+    default: {
+      background:  DS.feedbackError,
+      color:       DS.textInverse,
+      border:      `1px solid ${DS.feedbackError}`,
+    },
+    hover: {
+      background:  DS.feedbackErrorText,
+      color:       DS.textInverse,
+      border:      `1px solid ${DS.feedbackErrorText}`,
+    },
+  },
 };
 
 const DISABLED = {
@@ -102,7 +114,7 @@ export function Btn({
   const isSmall   = size === 'Small';
   const typography = isSmall ? TY.b3 : TY.b2;
   const iconSize   = isSmall ? 14 : 16;
-  const height     = isSmall ? 32  : 40;
+  const height     = isSmall ? 28  : 36;
   const hasIcon    = !!(iconLeft || iconRight);
 
   const v       = VARIANTS[type] ?? VARIANTS.Primary;
@@ -133,7 +145,7 @@ export function Btn({
         height,
         padding:        '0 24px',
         // Shape
-        borderRadius:   6,
+        borderRadius:   8,
         border:         colours.border,
         // Colour
         background:     colours.background,

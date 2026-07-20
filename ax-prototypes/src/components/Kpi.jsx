@@ -18,9 +18,12 @@ export function KpiCard({ title, label, value, sub, subColor = DS.textSecondary,
                          icon, accent = DS.actionPrimary, loading = false }) {
   const heading = title ?? label;
   return (
-    <div style={{ flex: '1 1 200px', minWidth: 200, minHeight: 110, background: DS.bgCard,
-                  border: `1px solid ${DS.borderDefault}`, borderRadius: 10, padding: 16,
+    <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 200, minHeight: 110,
+                  background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
+                  borderRadius: 10, padding: 16, overflow: 'hidden',
                   display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 6,
+                    background: `${DS.gradientBlueH}` }} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>{heading}</span>
         {icon && (

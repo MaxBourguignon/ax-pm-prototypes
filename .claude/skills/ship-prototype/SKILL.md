@@ -25,6 +25,14 @@ Dev server: `npm run dev` (Vite, default `http://localhost:5173`).
 If the feature file path is unknown, ask once or locate the most recently created
 file under `src/features/`.
 
+**Lot-aware.** The pipeline is lot-based. Lot 1 is the integration pass — it wires the
+route, sidebar entry, and Home card for the first time. For **lot ≥ 2** the feature is
+already integrated: the route, sidebar entry, and Home card usually already exist. In that
+case do NOT duplicate them — detect what's present and only add what's genuinely new (e.g. a
+brand-new sub-page route this lot introduces). Always still run lint + build and relaunch.
+Before wiring anything, grep `src/App.jsx`, `SideBar.jsx`, and `HomePage.jsx` for the slug
+to decide add-vs-skip per item.
+
 ---
 
 ## Procedure
@@ -38,6 +46,8 @@ find . -maxdepth 3 -name package.json -not -path '*/node_modules/*'   # app root
 - Compute the slug (kebab-case of the feature, e.g. `Performance V3` → `/performance-v3`).
 
 ### 2. Wire the route in `src/App.jsx`
+- **Lot ≥ 2:** if the feature's route + import already exist, SKIP this step (the page is
+  already routed). Only add a route if this lot introduces a genuinely new sub-page slug.
 - Add the import near the other feature imports:
   `import <Component> from './features/<Folder>/<File>'`  (drop the `.jsx`).
   Use a named import `{ X }` if the file uses a named export.
@@ -48,6 +58,9 @@ find . -maxdepth 3 -name package.json -not -path '*/node_modules/*'   # app root
   do not overwrite — ask the user for a different slug.
 
 ### 3. Add the sidebar entry — ASK where
+**Lot ≥ 2:** if a sidebar subitem with this slug already exists, SKIP this step — do not
+re-add or re-ask. Only continue below for Lot 1 or a genuinely new sub-page.
+
 The sidebar data lives in `src/layout/Header/SideBar.jsx` as `NAV_TABS_L1` — an array
 of L1 sections, each `{ id, label, icon, subitems: [{ id, label, link }] }`.
 
@@ -67,6 +80,10 @@ Ask the user (do not guess):
   whose page isn't built yet.
 
 ### 3b. Add the Home page launch card
+**Lot ≥ 2:** if a `MODULES` card with this slug already exists, SKIP — never duplicate it.
+Only add a card for Lot 1 (or optionally refresh the existing card's `desc` if the lot
+materially expanded the page — but do not duplicate).
+
 The Home page lives at `src/pages/HomePage.jsx` and renders a `MODULES` array — each
 entry is one launch card `{ icon, label, desc, bg, link }`.
 
@@ -137,3 +154,5 @@ would change intended design, flag it instead.
    server starts without compile errors.
 7. Launch the dev server in the background and report the exact local URL.
 8. If a build fix would alter intended design, stop and flag it rather than changing the look.
+9. Lot-aware: for lot ≥ 2, never duplicate an existing route / sidebar entry / Home card —
+   detect what's already wired and add only what's genuinely new; always still build + relaunch.

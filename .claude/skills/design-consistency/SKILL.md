@@ -29,6 +29,13 @@ One of:
 If no spec is provided, ask once: "What screens/components am I resolving? Paste the
 spec or list the UI elements."
 
+**Lot-aware.** The pipeline is lot-based. The LLM spec is for ONE lot and names what
+prior lots already built ("Already built in prior lots — extend, do not rebuild"). When
+the spec is for **lot ≥ 2**, the feature already has its own code under
+`src/features/<Folder>/` — that prior-lot code is a REUSE source too, not just the shared
+design system. Resolve needed elements against BOTH the shared system and the feature's
+own existing code, and tell the prototyper to extend the existing files.
+
 ---
 
 ## The codebase map (source of truth for reuse)
@@ -54,7 +61,8 @@ The Vite + React app lives in **`ax-prototypes/`** (the dir containing
 | Banner row | `components/Banner.jsx` (`Banner`) — full-width list row (icon/title/badge/description/columns/trailing/actions) | `import Banner from '../../components/Banner'` |
 | Select dropdown | `components/Select.jsx` (`Select`) — single-choice dropdown (options `[{value,label}]`) | `import Select from '../../components/Select'` |
 | Pagination | `components/Pagination.jsx` (`Pagination`) — prev/next pager (page/pages/setPage) | `import Pagination from '../../components/Pagination'` |
-| Card surface | `components/Card.jsx` (`Card`) — white rounded container | `import Card from '../../components/Card'` |
+| Card surface | `components/Card.jsx` (`Card`) — white rounded container, **no default padding** (pass `style={{ padding }}`) | `import Card from '../../components/Card'` |
+| Page header banner | `components/PageHeader.jsx` (`PageHeader`) — the shared top-of-page banner EVERY feature uses (icon badge + title + description subtitle + right-side CTAs). Subtitle is always a description, never an item count | `import PageHeader from '../../components/PageHeader'` |
 | Filter chip | `components/Chip.jsx` (`Chip`) — toggle filter pill (≠ removable `Tag`) | `import Chip from '../../components/Chip'` |
 | Toast | `components/Toast.jsx` (`Toast`) — transient bottom-centre confirmation | `import Toast from '../../components/Toast'` |
 | Row actions menu | `components/ActionMenu.jsx` (`ActionMenu`) — single ⋯ that opens a dropdown of row actions (`items[{label,icon,onClick,danger,hidden}]`) | `import ActionMenu from '../../components/ActionMenu'` |
@@ -88,10 +96,23 @@ grep -rnE "export (default )?function|export const" <app>/src/components
 sed -n '1,80p' <app>/src/App.jsx
 ```
 
+### 1.5 Scan the feature's own prior-lot code (lot ≥ 2 only)
+If this is not the first lot, read what the feature already built:
+```
+ls <app>/src/features/<Folder>/
+grep -rnE "export (default )?function|export const|const [A-Z]" <app>/src/features/<Folder>
+```
+Record the screens, components, helpers and mock data already defined in the feature
+folder. These become REUSE/EXTEND verdicts pointing at the feature's own files — the
+prototyper must extend them, not recreate them. Also confirm the existing file imports the
+shared `DS`/`TY`/`Ico` (if a prior lot drifted into inline tokens, flag it as a conflict to
+fix while extending).
+
 ### 2. Derive the needed-component list from the spec
 For each screen in the spec, list the concrete UI atoms/molecules it requires
-(e.g. KPI card, filter chips, date picker, tabs, area chart, timeline, banner row,
-right side panel/drawer, settings table, status badge, empty/error/loading states).
+(e.g. page header banner, KPI card, filter chips, date picker, tabs, area chart, timeline,
+banner row, right side panel/drawer, settings table, status badge, empty/error/loading
+states). Every page needs the shared `PageHeader` banner — always resolve it to REUSE.
 
 ### 3. Resolve each needed element to ONE verdict
 - **REUSE** — an existing export covers it. Record the exact import path + the
@@ -140,8 +161,13 @@ Return exactly this structure (also render a readable summary to the user):
   · Reuse:  Plus, ChevDown, Eye, Download, Settings, Campaigns, …
   · Build-new (add to utils/icons.jsx): [list | none]
 
+  PRIOR-LOT CODE (lot ≥ 2 — reuse the feature's own existing files)
+  · <Screen/comp from a prior lot> → REUSE/EXTEND  src/features/<Folder>/<File>.jsx
+  · (none — first lot)
+
   COMPONENTS
-  · KPI card        → REUSE   IconBadge + inline (Card pattern)  | or BUILD-NEW
+  · Page header     → REUSE   PageHeader from '<rel>/components/PageHeader'  (every page)
+  · KPI card        → REUSE   KpiCard from '<rel>/components/Kpi'  | or BUILD-NEW
   · Button          → REUSE   { Btn } from '<rel>/components/Btn'  props: type,size,iconLeft,…
   · Field/Input     → REUSE   { Field, TextArea } from '<rel>/components/Field'
   · Checkbox/Toggle → REUSE   { Checkbox, Toggle } from '<rel>/components/Controls'
@@ -165,6 +191,9 @@ Return exactly this structure (also render a readable summary to the user):
   "import_base": "../../",
   "tokens": { "reuse": ["DS","TY"], "import": "…/utils/designSystem", "missing": [] },
   "icons":  { "import": "…/utils/icons", "reuse": [], "build_new": [] },
+  "prior_lot_reuse": [
+    { "need": "string", "verdict": "REUSE|EXTEND", "file": "src/features/<Folder>/<File>.jsx" }
+  ],
   "components": [
     { "need": "string", "verdict": "REUSE|EXTEND|BUILD-NEW", "import": "string|null",
       "api": "string|null", "figma_node": "string|null", "library": "string|null", "file": "string|null" }
@@ -196,3 +225,7 @@ to resolve (e.g. confirm replacing inline tokens with imports).
 5. Never mutate shared components silently — EXTEND defaults to a feature-local wrapper.
 6. Always run the conflict scan and PAUSE on inline-token redefinition or route collisions.
 7. Re-scan the codebase every run — do not trust a cached catalog.
+8. For lot ≥ 2, ALWAYS scan the feature's own prior-lot code and resolve to REUSE/EXTEND
+   against those files — the prototyper extends existing lot work, never rebuilds it.
+9. Every page reuses the shared `PageHeader` banner; `Card` has no default padding (the
+   prototyper must pass explicit padding).

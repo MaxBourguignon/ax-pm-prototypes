@@ -10,7 +10,7 @@ import Modal from '../../components/Modal';
 import StatePreview from '../../components/StatePreview';
 import KpiCard from '../../components/Kpi';
 import Skeleton from '../../components/Skeleton';
-import Banner from '../../components/Banner';
+import BannerTable, { BannerIdentity } from '../../components/BannerTable';
 import PageHeader from '../../components/PageHeader';
 import ActionMenu from '../../components/ActionMenu';
 import { EmptyState, ErrorState, ConfirmDialog } from '../../components/Feedback';
@@ -25,14 +25,16 @@ import { EmptyState, ErrorState, ConfirmDialog } from '../../components/Feedback
    ===================================================================== */
 
 // ── Per-consent line colours (CONSENT_COLORS pattern) ──────────────────
+// 2026 brand secondary palette + two warm accents — a full spectrum so the
+// multi-line chart reads as distinct series (blue appears only once).
 const CONSENT_COLORS = {
-  'nl-public':   DS.blue500,
-  'nl-vip':      DS.purple,
-  'activites':   DS.orange,
-  'sms-promo':   DS.feedbackError,
-  'wa-billet':   DS.teal500,
-  'analytics':   DS.amber600,
-  'sms-partner': DS.neutralLGrey,
+  'nl-public':   DS.brandViolet,   // #4F32FE
+  'nl-vip':      DS.brandMagenta,  // #B93177
+  'activites':   DS.brandMintInk,  // #17B08F
+  'sms-promo':   DS.brandYellowInk,// #D9A400
+  'wa-billet':   DS.coral,         // #EE5A4F
+  'analytics':   DS.orange,        // #FE9D55
+  'sms-partner': DS.blue500,       // #2575fc (single blue)
 };
 
 const CHANNEL_ICON = {
@@ -198,9 +200,10 @@ export default function ConsentsV3() {
         description="Track and manage opt-in consents across your channels"
         actions={<>
           <Btn type="Tertiary" size="Medium" iconLeft={<Ico.AIicon />} onClick={() => {}}>Ask AI</Btn>
-          <Btn type="Secondary" size="Medium" iconLeft={<Ico.Export />} onClick={() => {}}>Export</Btn>
           <Btn type="Primary" size="Medium" iconLeft={<Ico.Plus />} onClick={() => { setEditingConsent(null); setCreateOpen(true); }}>Create a consent</Btn>
-          <IconBtn type="Secondary" size="Medium" icon={<Ico.Dots s={18} c={DS.actionPrimary} />} onClick={() => {}} />
+          <ActionMenu size="Medium" align="right" icon={<Ico.Dots s={18} c={DS.actionPrimary} />} items={[
+            { label: 'Export', icon: <Ico.Export s={16} c={DS.textSecondary} />, onClick: () => {} },
+          ]} />
         </>}
       />
 
@@ -216,18 +219,18 @@ export default function ConsentsV3() {
       {viewState === 'loading' && <OverviewSkeleton />}
 
       {viewState === 'ready' && (
-        <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* KPI strip */}
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+        <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* KPI strip — 3-column grid; the charts below align to the same columns */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16, alignItems: 'stretch' }}>
             <KpiCard title="Active opt-ins" value={fmtNum(activeOptIns)}
                      sub={`+${fmtNum(deltaVsRef)} since Jan 1`} subColor={DS.feedbackSuccess} />
             <KpiCard title="Active consents" value={String(activeConsents)} sub="excludes deactivated" />
             <KpiCard title="Opt-in rate" value={`${optInRate}%`} sub="avg across active consents" />
           </div>
 
-          {/* Dataviz row: evolution (60%) + channel breakdown (40%) */}
-          <div style={{ display: 'flex', gap: 16, alignItems: 'stretch', flexWrap: 'wrap' }}>
-            <section style={{ flex: '2 1 620px', minWidth: 460, background: DS.bgCard,
+          {/* Dataviz row: evolution spans 2 KPI columns, channel breakdown spans 1 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16, alignItems: 'stretch' }}>
+            <section style={{ gridColumn: 'span 2', minWidth: 0, background: DS.bgCard,
                               border: `1px solid ${DS.borderDefault}`, borderRadius: 10, padding: 20 }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
                             gap: 12, flexWrap: 'wrap' }}>
@@ -249,8 +252,9 @@ export default function ConsentsV3() {
               </div>
             </section>
 
-            <section style={{ flex: '1 1 320px', minWidth: 300, background: DS.bgCard,
-                              border: `1px solid ${DS.borderDefault}`, borderRadius: 10, padding: 20 }}>
+            <section style={{ gridColumn: 'span 1', minWidth: 0, background: DS.bgCard,
+                              border: `1px solid ${DS.borderDefault}`, borderRadius: 10, padding: 20,
+                              display: 'flex', flexDirection: 'column' }}>
               <div style={{ ...TY.h4, color: DS.textDefault }}>Channel breakdown</div>
               <div style={{ ...TY.b3, color: DS.textSecondary, marginTop: 2 }}>
                 Share of active opt-ins per channel.
@@ -268,20 +272,29 @@ export default function ConsentsV3() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <SearchField value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search a consent…" />
-                <Btn type="Secondary" size="Medium" iconLeft={<Ico.Filter />} onClick={() => {}}>Filters</Btn>
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {filtered.map((c) => (
-                <ConsentBanner key={c.id} consent={c} onOpen={() => setOpenConsent(c)} />
-              ))}
-              {filtered.length === 0 && (
-                <div style={{ ...TY.b2, color: DS.textSecondary, padding: '24px 0', textAlign: 'left' }}>
-                  No consent matches “{query}”.
-                </div>
-              )}
-            </div>
+            {filtered.length === 0 ? (
+              <div style={{ ...TY.b2, color: DS.textSecondary, padding: '24px 0', textAlign: 'left' }}>
+                No consent matches “{query}”.
+              </div>
+            ) : (
+              <BannerTable
+                columns={CONSENT_COLUMNS}
+                rows={filtered}
+                rowId={(c) => c.id}
+                onRowClick={(c) => setOpenConsent(c)}
+                dim={(c) => c.status === 'deactivated'}
+                cell={consentCell}
+                actions={(c) => (
+                  <ActionMenu items={[
+                    { label: 'View details', icon: <Ico.Eye s={16} c={DS.actionPrimary} />, onClick: () => setOpenConsent(c) },
+                    { label: 'Export this consent', icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => {} },
+                  ]} />
+                )}
+              />
+            )}
           </section>
         </div>
       )}
@@ -431,7 +444,21 @@ function RangeDropdown({ value, onChange }) {
 //  Evolution chart  (lighter restyle of the ConsentsPage line chart)
 // =====================================================================
 function EvolutionChart({ consents, selection, months, labels }) {
-  const W = 1080, H = 420;
+  // Responsive width (measured) + fixed pixel height → consistent on any screen,
+  // no aspect-ratio collapse on narrower laptop columns.
+  const wrapRef = React.useRef(null);
+  const [W, setW] = React.useState(1080);
+  React.useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect?.width;
+      if (w && w > 0) setW(Math.round(w));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const H = 300;
   const PAD_L = 60, PAD_R = 24, PAD_T = 20, PAD_B = 40;
   const innerW = W - PAD_L - PAD_R;
   const innerH = H - PAD_T - PAD_B;
@@ -458,8 +485,8 @@ function EvolutionChart({ consents, selection, months, labels }) {
   }
 
   return (
-    <div style={{ position: 'relative' }}>
-      <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%"
+    <div ref={wrapRef} style={{ position: 'relative' }}>
+      <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" height={H}
            style={{ display: 'block', overflow: 'visible' }}
            onMouseMove={onMove} onMouseLeave={() => setHoverIdx(null)}>
         {/* light gridlines — fewer, softer */}
@@ -547,7 +574,11 @@ function EvolutionChart({ consents, selection, months, labels }) {
 // =====================================================================
 //  Channel breakdown donut  (BUILD-NEW)
 // =====================================================================
-const CHANNEL_COLORS = { Email: DS.blue500, SMS: DS.feedbackError, WhatsApp: DS.teal500, Push: DS.amber600 };
+// One brand secondary colour per channel — exactly four channels, four brand hues.
+// CHANNEL_COLORS: pale brand hues for large solid fills (donut arcs, legend swatches).
+const CHANNEL_COLORS = { Email: DS.brandViolet, SMS: DS.brandMagenta, WhatsApp: DS.brandMint, Push: DS.brandYellow };
+// CHANNEL_INK: darkened variants for small 14px icons that need contrast on white.
+const CHANNEL_INK = { Email: DS.brandViolet, SMS: DS.brandMagenta, WhatsApp: DS.brandMintInk, Push: DS.brandYellowInk };
 
 function ChannelDonut({ consents }) {
   const totals = {};
@@ -565,26 +596,32 @@ function ChannelDonut({ consents }) {
   });
 
   return (
-    <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-      <svg width={C * 2} height={C * 2} viewBox={`0 0 ${C * 2} ${C * 2}`}>
-        <circle cx={C} cy={C} r={R} fill="none" stroke={DS.bgSurface} strokeWidth={SW} />
-        {arcs.map((a) => (
-          <circle key={a.ch} cx={C} cy={C} r={R} fill="none" stroke={CHANNEL_COLORS[a.ch]}
-                  strokeWidth={SW} strokeDasharray={`${a.dash} ${circ - a.dash}`}
-                  strokeDashoffset={-a.offset} transform={`rotate(-90 ${C} ${C})`}
-                  strokeLinecap="butt" />
-        ))}
-        <text x={C} y={C - 4} textAnchor="middle" style={{ ...TY.h3 }} fill={DS.textDefault}>
-          {fmtNum(total)}
-        </text>
-        <text x={C} y={C + 16} textAnchor="middle" fontSize="11" fill={DS.textSecondary}
-              fontFamily="Inter, sans-serif">opt-ins</text>
-      </svg>
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {channels.map((ch) => {
+    <div style={{ marginTop: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
+      {/* Donut — centered in the flexible space */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 180 }}>
+        <svg width={C * 2} height={C * 2} viewBox={`0 0 ${C * 2} ${C * 2}`}>
+          <circle cx={C} cy={C} r={R} fill="none" stroke={DS.bgSurface} strokeWidth={SW} />
+          {arcs.map((a) => (
+            <circle key={a.ch} cx={C} cy={C} r={R} fill="none" stroke={CHANNEL_COLORS[a.ch]}
+                    strokeWidth={SW} strokeDasharray={`${a.dash} ${circ - a.dash}`}
+                    strokeDashoffset={-a.offset} transform={`rotate(-90 ${C} ${C})`}
+                    strokeLinecap="butt" />
+          ))}
+          <text x={C} y={C - 4} textAnchor="middle" style={{ ...TY.h3 }} fill={DS.textDefault}>
+            {fmtNum(total)}
+          </text>
+          <text x={C} y={C + 16} textAnchor="middle" fontSize="11" fill={DS.textSecondary}
+                fontFamily="Inter, sans-serif">opt-ins</text>
+        </svg>
+      </div>
+      {/* Legend — rows spread with dividers so the card fills evenly */}
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+        {channels.map((ch, i) => {
           const pct = (totals[ch] / total) * 100;
           return (
-            <div key={ch} style={{ display: 'flex', alignItems: 'center', gap: 8, ...TY.b3, color: DS.textDefault }}>
+            <div key={ch} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0',
+                                   borderTop: i === 0 ? 'none' : `1px solid ${DS.borderDefault}`,
+                                   ...TY.b3, color: DS.textDefault }}>
               <span style={{ width: 10, height: 10, borderRadius: 3, background: CHANNEL_COLORS[ch], flexShrink: 0 }} />
               <span style={{ flex: 1 }}>{ch}</span>
               <span style={{ color: DS.textSecondary }}>{fmtNum(totals[ch])}</span>
@@ -633,45 +670,52 @@ function Sparkline({ data, color }) {
 }
 
 // =====================================================================
-//  Consent banner row  (KEEP from V2 — identifier columns removed)
+//  Consents list — shared BannerTable (same table component as Lists)
 // =====================================================================
-function ConsentBanner({ consent, onOpen }) {
-  const ChIcon = CHANNEL_ICON[consent.channel] || Ico.Mail;
-  const t = trendMeta(consent.netTrend);
-  const deactivated = consent.status === 'deactivated';
-  return (
-    <Banner
-      onClick={onOpen}
-      dim={deactivated}
-      icon={<ChIcon s={20} c={DS.actionPrimary} />}
-      title={consent.name}
-      badge={deactivated ? <StatusBadge status="inactive">Deactivated</StatusBadge> : null}
-      description={consent.purpose}
-      columns={[
-        { label: 'CHANNEL', basis: '120px', value: (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <ChIcon s={14} c={DS.textSecondary} />{consent.channel}
+const CONSENT_COLUMNS = [
+  { key: 'name',     label: 'Consent',     basis: 'minmax(220px, 2.4fr)' },
+  { key: 'channel',  label: 'Channel',     basis: '130px' },
+  { key: 'created',  label: 'Created',     basis: '120px' },
+  { key: 'contacts', label: 'Contacts',    basis: '150px' },
+  { key: 'trend',    label: '12-mo trend', basis: '130px' },
+];
+
+function consentCell(c, key) {
+  const ChIcon = CHANNEL_ICON[c.channel] || Ico.Mail;
+  switch (key) {
+    case 'name':
+      return (
+        <BannerIdentity
+          icon={<ChIcon s={20} c={DS.actionPrimary} />}
+          title={c.name}
+          badge={c.status === 'deactivated' ? <StatusBadge status="inactive">Deactivated</StatusBadge> : null}
+          description={c.purpose}
+        />
+      );
+    case 'channel':
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+          <ChIcon s={14} c={CHANNEL_INK[c.channel] || DS.textSecondary} />{c.channel}
+        </span>
+      );
+    case 'created':
+      return <span style={{ color: DS.textSecondary, whiteSpace: 'nowrap' }}>{c.createdAt}</span>;
+    case 'contacts': {
+      const t = trendMeta(c.netTrend);
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+          <span style={{ fontWeight: 700, color: DS.textDefault }}>{fmtNum(c.contacts)}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, ...TY.b3, color: t.color }}>
+            <t.Icon s={14} c={t.color} />{t.label}
           </span>
-        ) },
-        { label: 'CREATED', basis: '120px', value: consent.createdAt },
-        { label: 'CONTACTS', basis: '130px', value: (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ ...TY.h5, color: DS.textDefault }}>{fmtNum(consent.contacts)}</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, ...TY.b3, color: t.color }}>
-              <t.Icon s={14} c={t.color} />{t.label}
-            </span>
-          </span>
-        ) },
-      ]}
-      trailing={<Sparkline data={consent.series} color={DS.blue500} />}
-      actions={
-        <ActionMenu items={[
-          { label: 'View details', icon: <Ico.Eye s={16} c={DS.blue500} />, onClick: onOpen },
-          { label: 'Export this consent', icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => {} },
-        ]} />
-      }
-    />
-  );
+        </span>
+      );
+    }
+    case 'trend':
+      return <Sparkline data={c.series} color={CONSENT_COLORS[c.id] || DS.blue500} />;
+    default:
+      return null;
+  }
 }
 
 // =====================================================================
@@ -693,7 +737,7 @@ function DetailDrawer({ consent }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <Tag variant="unselected">{consent.optIn === 'double' ? 'Double opt-in' : 'Single opt-in'}</Tag>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, ...TY.b3, color: DS.textSecondary }}>
-          <ChIcon s={14} c={DS.textSecondary} />{consent.channel}
+          <ChIcon s={14} c={CHANNEL_INK[consent.channel] || DS.textSecondary} />{consent.channel}
         </span>
         {consent.status === 'deactivated' && <StatusBadge status="inactive">Deactivated</StatusBadge>}
       </div>
@@ -849,7 +893,7 @@ function CreateDrawer({ open, editing, onRequestClose }) {
 // =====================================================================
 function OverviewSkeleton() {
   return (
-    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ display: 'flex', gap: 16 }}>
         {[0, 1, 2].map((i) => (
           <div key={i} style={{ flex: 1, background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,

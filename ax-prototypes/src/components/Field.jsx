@@ -57,7 +57,7 @@ function inputStyle({ focused, error, disabled, value }) {
   return {
     height:      40,
     padding:     '0 12px',
-    borderRadius: 6,
+    borderRadius: 8,
     border,
     background:  bg,
     color,
@@ -137,7 +137,7 @@ export function SearchField({
       style={{
         height:       40,
         padding:      '0 12px',
-        borderRadius: 6,
+        borderRadius: 8,
         border,
         background:   disabled ? DS.actionDisabledBg : DS.bgSurface,
         display:      'flex',
