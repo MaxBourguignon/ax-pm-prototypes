@@ -7,7 +7,7 @@ import USE_CASES from "../../utils/useCases";
 
 // ─── DATA OBJECTS ─────────────────────────────────────────────────────────────
 const DATA_OBJECTS = [
-    { id: "contact",       label: "Contacts",         description: "Filter contacts by their profile attributes",                          color: DS.blue500,    bg: DS.blue100    },
+    { id: "contact",       label: "Contacts",         description: "Filter contacts by their profile attributes",                          color: DS.actionPrimary,    bg: DS.blue100    },
     { id: "consumptions",  label: "Purchase summary",  description: "Filter by number of purchases or total spending, across all channels", color: DS.neutral500, bg: DS.neutral200 },
     { id: "ticket",        label: "Ticketing",         description: "Filter by tickets, representations or purchases — event, type or date",color: DS.purple600,  bg: DS.purple100  },
     { id: "order",         label: "E-commerce",        description: "Filter by individual products — item, category, or order status",      color: DS.teal500,    bg: DS.teal100    },
@@ -27,7 +27,7 @@ const OBJECT_GROUPS = [
 // ─── ICON MAP ─────────────────────────────────────────────────────────────────
 const ObjIcon = ({ id, s = 14, c }) => {
     const obj = DATA_OBJECTS.find(o => o.id === id);
-    const col = c || obj?.color || DS.blue500;
+    const col = c || obj?.color || DS.actionPrimary;
     const map = {
         contact:       <Ico.User          s={s} c={col} />,
         ticket:        <Ico.Ticket        s={s} c={col} />,

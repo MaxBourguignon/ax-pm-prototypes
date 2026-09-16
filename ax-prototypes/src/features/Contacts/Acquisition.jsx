@@ -42,7 +42,7 @@ const nf = new Intl.NumberFormat('en-US');
 
 /* Source TYPE catalog — the high-level bucket. */
 const TYPES = {
-  Datasource: { label: 'Datasource', color: DS.blue500,   icon: (s, c) => <Ico.Connect s={s} c={c} /> },
+  Datasource: { label: 'Datasource', color: DS.actionPrimary,   icon: (s, c) => <Ico.Connect s={s} c={c} /> },
   Forms:      { label: 'Forms',      color: DS.greenBrand, icon: (s, c) => <Ico.Form s={s} c={c} /> },
   Manual:     { label: 'Manual',     color: DS.orange,     icon: (s, c) => <Ico.UserPlus s={s} c={c} /> },
 };
@@ -51,7 +51,7 @@ const TYPE_KEYS = ['Datasource', 'Forms', 'Manual'];
 const AUTOMATED = new Set(['Datasource', 'Forms']);
 
 /* Palette for the by-source (named) views. */
-const NAME_PALETTE = [DS.blue500, DS.greenBrand, DS.orange, DS.purple600, DS.teal500,
+const NAME_PALETTE = [DS.actionPrimary, DS.greenBrand, DS.orange, DS.purple600, DS.teal500,
                       DS.indigoBrand, DS.blue300, DS.amber600, DS.blue700, DS.green400];
 
 /* Source NAME catalog — the specific origin within a type.

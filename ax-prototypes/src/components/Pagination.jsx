@@ -26,8 +26,8 @@ function PagBtn({ children, onClick, disabled, active }) {
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{
         width: 30, height: 30, borderRadius: 4,
-        border: `1px solid ${active ? DS.blue500 : DS.neutral200}`,
-        background: active ? DS.blue500 : hovered ? DS.neutral100 : DS.white,
+        border: `1px solid ${active ? DS.actionPrimary : DS.neutral200}`,
+        background: active ? DS.actionPrimary : hovered ? DS.neutral100 : DS.white,
         color: active ? DS.white : DS.neutral900,
         fontSize: 12, fontWeight: active ? 600 : 400, fontFamily: DS.ff,
         cursor: disabled ? 'not-allowed' : 'pointer',

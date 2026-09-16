@@ -6,7 +6,7 @@
  * renders nothing.
  *
  *   <ActionMenu items={[
- *     { label: 'View',      icon: <Ico.Eye s={16} c={DS.blue500} />,       onClick: open },
+ *     { label: 'View',      icon: <Ico.Eye s={16} c={DS.actionPrimary} />,       onClick: open },
  *     { label: 'Duplicate', icon: <Ico.Copy s={16} c={DS.textSecondary} />, onClick: dup },
  *     { label: 'Delete',    icon: <Ico.Trash s={16} c={DS.feedbackError} />, onClick: del, danger: true, hidden: !canManage },
  *   ]} />

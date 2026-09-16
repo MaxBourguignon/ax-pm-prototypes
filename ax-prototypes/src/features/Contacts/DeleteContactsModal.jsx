@@ -16,9 +16,9 @@ const StepIndicator = ({ currentStep }) => {
         const done   = currentStep > s.n;
         const active = currentStep === s.n;
         const dotBg     = done ? DS.teal100 : active ? DS.blue100 : DS.neutral100;
-        const dotBorder = done ? DS.teal500 : active ? DS.blue500 : DS.neutral200;
-        const dotColor  = done ? DS.teal500 : active ? DS.blue500 : DS.neutral500;
-        const textColor = done ? DS.teal500 : active ? DS.blue500 : DS.neutral500;
+        const dotBorder = done ? DS.teal500 : active ? DS.actionPrimary : DS.neutral200;
+        const dotColor  = done ? DS.teal500 : active ? DS.actionPrimary : DS.neutral500;
+        const textColor = done ? DS.teal500 : active ? DS.actionPrimary : DS.neutral500;
         return (
           <div key={s.n} style={{ display: "flex", alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>

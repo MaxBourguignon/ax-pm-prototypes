@@ -38,7 +38,9 @@ function HeaderModal({ title, onClose, headerContent, headerActions }) {
   return (
     <div style={{
       flexShrink: 0,
-      background: `${DS.gradientBlueV}`,
+      // DS paint style `Gradient/Brand` (blue/550 → blue/300), verified on the
+      // modal header at 1477:3168. Was the legacy gradientBlueV (blue→teal).
+      background: DS.gradientBrand,
       padding: headerContent ? '20px 20px 0' : 20,
       display: 'flex',
       flexDirection: 'column',

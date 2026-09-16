@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Modal } from "../../components/Modal";
 import { Btn } from "../../components/Btn";
 import { Checkbox } from "../../components/Controls";
+import { Badge, RemovableChip } from "../../components/Tag";
 import { DS } from "../../utils/designSystem";
 import Ico from "../../utils/icons";
 
@@ -32,10 +33,10 @@ const StepIndicator = ({ currentStep, step1Label }) => {
       {steps.map((s, i) => {
         const done   = currentStep > s.n;
         const active = currentStep === s.n;
-        const dotBg     = done ? DS.teal100 : active ? DS.blue100 : DS.neutral100;
-        const dotBorder = done ? DS.teal500 : active ? DS.blue500 : DS.neutral200;
-        const dotColor  = done ? DS.teal500 : active ? DS.blue500 : DS.neutral500;
-        const textColor = done ? DS.teal500 : active ? DS.blue500 : DS.neutral500;
+        const dotBg     = done ? DS.feedbackSuccessBg : active ? DS.brandPrimarySubtle : DS.surfaceSubtle;
+        const dotBorder = done ? DS.teal500 : active ? DS.actionPrimary : DS.borderDefault;
+        const dotColor  = done ? DS.teal500 : active ? DS.actionPrimary : DS.textMuted;
+        const textColor = done ? DS.teal500 : active ? DS.actionPrimary : DS.textMuted;
         return (
           <div key={s.n} style={{ display: "flex", alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -55,7 +56,7 @@ const StepIndicator = ({ currentStep, step1Label }) => {
               </span>
             </div>
             {i < steps.length - 1 && (
-              <div style={{ width: 20, height: 1, background: DS.neutral200, margin: "0 8px" }} />
+              <div style={{ width: 20, height: 1, background: DS.borderDefault, margin: "0 8px" }} />
             )}
           </div>
         );
@@ -134,15 +135,15 @@ const Step1 = ({ entities, selectedIds, onToggle, cfg, countUnit }) => {
         {dropOpen && (
           <PortalDropdown anchorRef={wrapRef}>
             <div style={{
-              background: DS.white,
-              border: `1px solid ${DS.neutral200}`,
+              background: DS.surfaceCanvas,
+              border: `1px solid ${DS.borderDefault}`,
               borderRadius: 6,
               boxShadow: "0 12px 32px rgba(15,23,42,.2)",
               maxHeight: 180,
               overflowY: "auto",
             }}>
               {filtered.length === 0 ? (
-                <div style={{ padding: "12px 14px", fontSize: 12, color: DS.neutral500, fontFamily: DS.ff }}>
+                <div style={{ padding: "12px 14px", fontSize: 12, color: DS.textMuted, fontFamily: DS.ff }}>
                   {trimmed
                     ? "No match found"
                     : selectedIds.size === entities.length
@@ -167,7 +168,7 @@ const Step1 = ({ entities, selectedIds, onToggle, cfg, countUnit }) => {
       <div>
         <div style={{
           fontSize: 11, fontWeight: 600, letterSpacing: ".06em",
-          textTransform: "uppercase", color: DS.neutral500,
+          textTransform: "uppercase", color: DS.textMuted,
           fontFamily: DS.ff, marginBottom: 8,
         }}>
           {cfg.selectedSection}
@@ -176,9 +177,9 @@ const Step1 = ({ entities, selectedIds, onToggle, cfg, countUnit }) => {
         {selectedEntities.length === 0 ? (
           <div style={{
             padding: "10px 12px",
-            border: `1px dashed ${DS.neutral200}`,
+            border: `1px dashed ${DS.borderDefault}`,
             borderRadius: 6,
-            fontSize: 12, color: DS.neutral500, fontFamily: DS.ff,
+            fontSize: 12, color: DS.textMuted, fontFamily: DS.ff,
           }}>
             {cfg.emptySelected}
           </div>
@@ -203,10 +204,10 @@ const SearchBox = ({ value, onChange, onFocus, inputRef, placeholder }) => {
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 36,
-      border: `1px solid ${focused ? DS.blue500 : DS.neutral200}`,
-      borderRadius: 4, background: DS.neutral100, transition: "border-color .15s",
+      border: `1px solid ${focused ? DS.actionPrimary : DS.borderDefault}`,
+      borderRadius: 4, background: DS.surfaceSubtle, transition: "border-color .15s",
     }}>
-      <Ico.Search s={14} c={DS.neutral500} />
+      <Ico.Search s={14} c={DS.textMuted} />
       <input
         ref={inputRef}
         value={value}
@@ -214,10 +215,10 @@ const SearchBox = ({ value, onChange, onFocus, inputRef, placeholder }) => {
         onFocus={() => { setFocused(true); onFocus?.(); }}
         onBlur={() => setFocused(false)}
         placeholder={placeholder}
-        style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: DS.ff, fontSize: 13, color: DS.neutral900 }}
+        style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: DS.ff, fontSize: 13, color: DS.textStrong }}
       />
       {value && (
-        <span onClick={() => onChange("")} style={{ cursor: "pointer", fontSize: 11, color: DS.neutral500, lineHeight: 1 }}>✕</span>
+        <span onClick={() => onChange("")} style={{ cursor: "pointer", fontSize: 11, color: DS.textMuted, lineHeight: 1 }}>✕</span>
       )}
     </div>
   );
@@ -233,54 +234,30 @@ const DropdownItem = ({ entity, countUnit, isLast, onSelect }) => {
       style={{
         display: "flex", alignItems: "center", gap: 10, padding: "8px 12px",
         cursor: "pointer",
-        borderBottom: isLast ? "none" : `0.5px solid ${DS.neutral200}`,
-        background: hovered ? DS.blue100 : DS.white,
+        borderBottom: isLast ? "none" : `0.5px solid ${DS.borderDefault}`,
+        background: hovered ? DS.brandPrimarySubtle : DS.surfaceCanvas,
         transition: "background .1s",
       }}
     >
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 500, color: hovered ? DS.blue500 : DS.neutral900, fontFamily: DS.ff, lineHeight: "18px", transition: "color .1s" }}>
+        <div style={{ fontSize: 13, fontWeight: 500, color: hovered ? DS.actionPrimary : DS.textStrong, fontFamily: DS.ff, lineHeight: "18px", transition: "color .1s" }}>
           {entity.name}
         </div>
         {entity.count != null && (
-          <div style={{ fontSize: 11, color: DS.neutral500, fontFamily: DS.ff, marginTop: 1 }}>
+          <div style={{ fontSize: 11, color: DS.textMuted, fontFamily: DS.ff, marginTop: 1 }}>
             {entity.count.toLocaleString()} {countUnit}
           </div>
         )}
       </div>
-      <Ico.Plus s={13} c={hovered ? DS.blue500 : DS.neutral500} />
+      <Ico.Plus s={13} c={hovered ? DS.actionPrimary : DS.textMuted} />
     </div>
   );
 };
 
-const SelectedChip = ({ entity, onRemove }) => {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <div style={{
-      display: "inline-flex", alignItems: "center", gap: 6,
-      padding: "4px 8px 4px 10px", borderRadius: 999,
-      background: DS.blue100, border: `1px solid ${DS.blue200}`,
-    }}>
-      <span style={{ fontSize: 12, fontWeight: 500, color: DS.blue500, fontFamily: DS.ff, lineHeight: "16px" }}>
-        {entity.name}
-      </span>
-      <button
-        onClick={onRemove}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          display: "flex", alignItems: "center", justifyContent: "center",
-          width: 16, height: 16, borderRadius: "50%",
-          background: hovered ? DS.blue500 : "transparent",
-          border: "none", cursor: "pointer", padding: 0,
-          transition: "background .12s", flexShrink: 0,
-        }}
-      >
-        <Ico.Cross s={10} c={hovered ? DS.white : DS.blue500} />
-      </button>
-    </div>
-  );
-};
+// DS Atoms/Chip (556:2973) — the removable pill, via the shared atom.
+const SelectedChip = ({ entity, onRemove }) => (
+  <RemovableChip onRemove={onRemove}>{entity.name}</RemovableChip>
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // STEP 2 — CONFIRMATION
@@ -293,10 +270,10 @@ const Step2 = ({ selectedContactCount, selectedEntities, confirmValue, onConfirm
   const isValid   = confirmValue === "1";
   const isInvalid = confirmValue !== "" && !isValid;
 
-  const inputBorder = isValid ? DS.feedbackSuccess   : isInvalid ? DS.feedbackError   : DS.neutral200;
-  const inputBg     = isValid ? DS.feedbackSuccessBg : isInvalid ? DS.feedbackErrorBg : DS.white;
-  const inputColor  = isValid ? "#14532D"     : isInvalid ? DS.feedbackError   : DS.neutral900;
-  const hintColor   = isValid ? DS.feedbackSuccess   : isInvalid ? DS.feedbackError   : DS.neutral500;
+  const inputBorder = isValid ? DS.feedbackSuccess   : isInvalid ? DS.feedbackError   : DS.borderDefault;
+  const inputBg     = isValid ? DS.feedbackSuccessBg : isInvalid ? DS.feedbackErrorBg : DS.surfaceCanvas;
+  const inputColor  = isValid ? DS.green800     : isInvalid ? DS.feedbackError   : DS.textStrong;
+  const hintColor   = isValid ? DS.feedbackSuccess   : isInvalid ? DS.feedbackError   : DS.textMuted;
   const hintText    = isValid
     ? "✓ Confirmed — you can proceed"
     : isInvalid
@@ -308,7 +285,7 @@ const Step2 = ({ selectedContactCount, selectedEntities, confirmValue, onConfirm
 
       {/* Warning banner — same amber style for both modes */}
       <div style={{
-        background: "#FEF3C7", border: `1px solid ${DS.feedbackWarning}`,
+        background: DS.feedbackWarningBg, border: `1px solid ${DS.feedbackWarning}`,
         borderRadius: 6, padding: "12px 14px",
         display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 16,
       }}>
@@ -317,34 +294,31 @@ const Step2 = ({ selectedContactCount, selectedEntities, confirmValue, onConfirm
             <path d="M10 2L2 17h16L10 2z"/><path d="M10 9v4"/><circle cx="10" cy="15.5" r=".5" fill={DS.amber100}/>
           </svg>
         </div>
-        <div style={{ fontSize: 12, color: "#92400E", lineHeight: "18px", fontFamily: DS.ff }}>
+        <div style={{ fontSize: 12, color: DS.orange800, lineHeight: "18px", fontFamily: DS.ff }}>
           {cfg.warningText}
         </div>
       </div>
 
       {/* Summary */}
       <div style={{
-        background: DS.neutral100, border: `1px solid ${DS.neutral200}`,
+        background: DS.surfaceSubtle, border: `1px solid ${DS.borderDefault}`,
         borderRadius: 6, padding: "10px 14px", marginBottom: 24,
         display: "flex", flexDirection: "column", gap: 8,
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 12, color: DS.neutral500, fontFamily: DS.ff }}>{cfg.summaryContactLabel}</span>
-          <span style={{ fontSize: 12, fontWeight: 600, color: DS.neutral900, fontFamily: DS.ff }}>
+          <span style={{ fontSize: 12, color: DS.textMuted, fontFamily: DS.ff }}>{cfg.summaryContactLabel}</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: DS.textStrong, fontFamily: DS.ff }}>
             {selectedContactCount} contact{selectedContactCount !== 1 ? "s" : ""}
           </span>
         </div>
-        <div style={{ height: 1, background: DS.neutral200 }} />
+        <div style={{ height: 1, background: DS.borderDefault }} />
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-          <span style={{ fontSize: 12, color: DS.neutral500, fontFamily: DS.ff, flexShrink: 0, paddingTop: 2 }}>{cfg.summaryEntityLabel}</span>
+          <span style={{ fontSize: 12, color: DS.textMuted, fontFamily: DS.ff, flexShrink: 0, paddingTop: 2 }}>{cfg.summaryEntityLabel}</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "flex-end" }}>
+            {/* DS Atoms/Badge — non-interactive summary labels (labelMd 12/16/500,
+                not the 11px this previously hand-rolled). */}
             {selectedEntities.map(e => (
-              <span key={e.id} style={{
-                fontSize: 11, fontWeight: 500, padding: "2px 8px", borderRadius: 999,
-                background: DS.blue100, color: DS.blue500, fontFamily: DS.ff,
-              }}>
-                {e.name}
-              </span>
+              <Badge key={e.id}>{e.name}</Badge>
             ))}
           </div>
         </div>
@@ -357,14 +331,14 @@ const Step2 = ({ selectedContactCount, selectedEntities, confirmValue, onConfirm
         transition: "border-color .2s",
         background: inputBg,
       }}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: DS.neutral900, fontFamily: DS.ff, marginBottom: 10 }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: DS.textStrong, fontFamily: DS.ff, marginBottom: 10 }}>
           Enter{" "}
           <code style={{
             fontFamily: "monospace", fontSize: 12,
-            background: isValid || isInvalid ? "rgba(255,255,255,.6)" : DS.neutral100,
+            background: isValid || isInvalid ? "rgba(255,255,255,.6)" : DS.surfaceSubtle,
             padding: "1px 6px", borderRadius: 3,
-            border: `1px solid ${isValid ? DS.feedbackSuccess : isInvalid ? DS.feedbackError : DS.neutral200}`,
-            color: isValid ? "#14532D" : isInvalid ? DS.feedbackErrorText : DS.neutral900,
+            border: `1px solid ${isValid ? DS.feedbackSuccess : isInvalid ? DS.feedbackError : DS.borderDefault}`,
+            color: isValid ? DS.green800 : isInvalid ? DS.feedbackErrorText : DS.textStrong,
             transition: "all .2s",
           }}>
             1
@@ -400,7 +374,7 @@ const Step2 = ({ selectedContactCount, selectedEntities, confirmValue, onConfirm
           <Checkbox
             checked={ackChecked}
             onChange={onAckChange}
-            label={<span style={{ fontSize: 12, color: DS.neutral700, fontFamily: DS.ff, lineHeight: "17px" }}>{cfg.confirmCheckbox}</span>}
+            label={<span style={{ fontSize: 12, color: DS.textSecondary, fontFamily: DS.ff, lineHeight: "17px" }}>{cfg.confirmCheckbox}</span>}
           />
         </div>
       )}
@@ -414,11 +388,11 @@ const Step2 = ({ selectedContactCount, selectedEntities, confirmValue, onConfirm
 
 const SuccessState = ({ contactCount, entityCount, cfg }) => (
   <div style={{ padding: "40px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14, textAlign: "center" }}>
-    <div style={{ width: 52, height: 52, borderRadius: "50%", background: DS.teal100, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ width: 52, height: 52, borderRadius: "50%", background: DS.feedbackSuccessBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
       <Ico.Check s={24} c={DS.teal500} />
     </div>
-    <div style={{ fontSize: 15, fontWeight: 600, color: DS.neutral900, fontFamily: DS.ff }}>{cfg.successTitle}</div>
-    <div style={{ fontSize: 13, color: DS.neutral500, fontFamily: DS.ff, maxWidth: 300, lineHeight: "20px" }}>
+    <div style={{ fontSize: 15, fontWeight: 600, color: DS.textStrong, fontFamily: DS.ff }}>{cfg.successTitle}</div>
+    <div style={{ fontSize: 13, color: DS.textMuted, fontFamily: DS.ff, maxWidth: 300, lineHeight: "20px" }}>
       {cfg.successBody(contactCount, entityCount)}
     </div>
   </div>

@@ -169,10 +169,26 @@ Invoke **design-consistency** with the lot's LLM spec. It scans:
 - the shared design system (`utils/designSystem`, `utils/icons`, `components/*`, `layout/*`), and
 - **the feature's own prior-lot code** under `src/features/<Folder>/` (for lot ≥ 2),
 
-and returns a Component Manifest with a REUSE / EXTEND / BUILD-NEW verdict per element —
-where prior-lot components count as REUSE/EXTEND. If it reports conflicts (inline-token
-redefinition, route collision, a duplicate of an existing component) → **pause**, show the
-PM, confirm resolution before building.
+- the **Figma DS coverage map** and the **Principles page usage rules** (file
+  `nIMtO7v8dDamI8b2vnMcRc`) — which also expand each spec element into its required
+  companions (a "delete button" is really Destructive Btn + confirmation modal),
+
+and returns a Component Manifest with one verdict per element — where prior-lot
+components count as REUSE/EXTEND:
+
+| Verdict | Meaning |
+|---------|---------|
+| REUSE | an existing export covers it |
+| EXTEND | close, but missing a prop/variant (default: feature-local wrapper) |
+| **BUILD-TO-DS** | not in code, but **Figma specs it** — build from the node, don't improvise |
+| **BUILD-CUSTOM** | in neither — invent it, and flag it as having no design authority |
+
+The Figma DS is ahead of the code (~47 components vs ~22), so BUILD-TO-DS is the common
+case. **Every BUILD-CUSTOM item is a PM decision point** — surface the list.
+
+If it reports conflicts (inline-token redefinition, route collision, a duplicate of an
+existing component, a spec needing dark mode or an unpublished token) → **pause**, show
+the PM, confirm resolution before building.
 
 ### Stage 2b — design-prototypes (build the lot)
 
@@ -182,7 +198,18 @@ Before it writes code:
    filename. For lot ≥ 2, reuse the existing feature folder/files — the prototyper
    **extends** prior-lot files, it does not invent new ones unless the lot needs a new
    screen/component.
-2. **Fetch Figma design context** only for BUILD-NEW / EXTEND component types.
+2. **⚠ BUILD-OR-PLACEHOLDER GATE — put the choice to the PM.** For every component
+   the manifest lists as missing from `components/` (BUILD-TO-DS *or* BUILD-CUSTOM),
+   design-prototypes must ask — **once, batched, with a recommendation per item** —
+   whether to build it or leave a `<Placeholder/>` (a dashed labelled box that keeps
+   the gap visible in the running prototype). Do not let it proceed by silently
+   inventing components or dropping elements. The manifest's `build_or_placeholder`
+   list supplies the evidence for the ask. If the PM doesn't answer, the default is
+   the placeholder — it's the reversible option.
+3. **Fetch Figma design context** for every BUILD-TO-DS / EXTEND component type.
+   Note `Figma:search_design_system` does not work on this file (its variables are
+   file-local, so search silently returns the old library) — node-scoped
+   `get_design_context` / `get_variable_defs` only.
 
 The prototyper must IMPORT the design system (`DS`/`TY`/`Ico`) and shared components
 (including the shared `PageHeader`) from the repo — redefining them inline is a failure.
@@ -191,7 +218,9 @@ It builds the **page only** (never the app shell) and writes only this lot's add
 You re-take control when design-prototypes delivers:
 - Artifact 1 — the page-only feature file(s), importing the shared design system
 - Artifact 2 — the traceability report (this lot's criteria → screen → status)
-- Artifact 3 — the open questions log (BUILD-NEW items + any shared-file additions)
+- Artifact 3 — the open questions log (BUILD-CUSTOM items, components promoted to
+  `components/`, shared-file additions, and any 16px/20px type step or unpublished
+  token the spec implied)
 
 ---
 
@@ -233,13 +262,40 @@ Announce:
   [ ] Prior-lot screens/components were reused/extended — not rebuilt or broken
   [ ] The feature still reads as one coherent product across lots
 
-  DESIGN SYSTEM
+  DESIGN SYSTEM  (Figma nIMtO7v8dDamI8b2vnMcRc)
   [ ] DS / TY / Ico IMPORTED from utils/* — never redefined inline
   [ ] Reused existing shared components per the manifest (incl. PageHeader)
   [ ] DS colour tokens used — no hardcoded hex; TY for all type; Ico for all icons
+  [ ] SEMANTIC tokens, not primitives — and no legacy aliases in new code
+      (white, neutral700/800/900, green*, purple*, amber*, rose*, indigo*, navy, coral)
+  [ ] DS.actionPrimary used for the brand blue — NOT DS.blue500 (that's the accent)
+  [ ] Figma type names used (bodyMd, titleMd, labelMd/labelLg/labelXl…); no new
+      TY.h3/h4/b1 uses. Text inside an interactive control uses the label* family
+      (weight 500), not bodyMd (400)
+  [ ] Radius from the scale — 2/4/8/999. No 6px
+  [ ] BUILD-TO-DS components built from their Figma node, not improvised
+  [ ] BUILD-CUSTOM components listed in open questions (no design authority)
+  [ ] Every missing component was PUT TO THE PM (build vs placeholder) — nothing
+      silently invented, nothing silently dropped
+  [ ] Every <Placeholder/> left in the feature is listed in Artifact 3, with its
+      name + Figma node + why it isn't built
+  [ ] No dark-mode / ThemeSwitch implementation (values not extracted yet)
+
+  USAGE RULES  (Figma Principles page 10:2 — design-prototypes/references/usage-rules.md)
+  [ ] Exactly ONE Primary button per view
+  [ ] Every Destructive action has a confirmation modal
+  [ ] Every IconButton has a Tooltip
+  [ ] Form Inputs/Textareas wrapped in FormField (label + helptext + error)
+  [ ] Error messages are specific and actionable — not "Invalid field"
+  [ ] Business status uses StatusChip (Cell Type=Status in tables), never Badge
+  [ ] Chip for interactive filters; Badge only for non-interactive labels
+  [ ] Switch = immediate effect; Checkbox = needs a Save step
+  [ ] Table: Actions column last + fixed width; Number cells right-aligned
+  [ ] Primary CTAs in PageHeader, not in the Toolbar
+  [ ] Pagination shows an "X–Y of Z results" indicator, hidden when it all fits one page
   [ ] Page only — no re-coded nav bar / sidebar / app shell
-  [ ] Copy is in English (no leftover French)
-  [ ] Hover, focus, disabled, and error states match Figma specs
+  [ ] Copy is in English (no leftover French — several Figma modals are named in French)
+  [ ] Hover, focus, disabled states match the DS variant matrix (design-prototypes §4)
 
   INTEGRATION (ship-prototype)
   [ ] Route present in src/App.jsx (added in Lot 1, not duplicated later)
@@ -330,6 +386,14 @@ Maintain a compact internal state object. Never show it to the PM.
 9. Build incrementally — lot ≥ 2 extends the existing feature folder; never rebuild or
    overwrite prior-lot work, never duplicate routes/sidebar/home-card entries.
 10. The prototyper builds the PAGE ONLY — never the nav bar, sidebar, or app shell.
+10b. Never let a BUILD-CUSTOM verdict pass silently — if the DS specs it (BUILD-TO-DS),
+    the prototyper builds from the node. If nothing specs it, the PM must see it.
+10d. Never let a missing component be built OR dropped without the PM choosing.
+    Build-vs-`<Placeholder/>` is their call every time; asking is not optional, and
+    a placeholder left in the prototype is a feature, not a defect — it makes the
+    gap reviewable.
+10c. Never approve a lot that implements dark mode — it's blocked until the Figma dark
+    values are extracted via a `use_figma` pass.
 11. Run more than 2 correction rounds in Stage 4 — never.
 12. Never declare a lot complete if open_items has unresolved critical failures, or if
     `npm run lint` / `npm run build` fails, or the dev server won't start.

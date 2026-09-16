@@ -122,7 +122,7 @@ const StepIndicator = ({ currentStep }) => {
 // static = blue List) so the preview reads as a rehearsal of the real item.
 const TYPE_META = {
   dynamic: { label: "Dynamic", bg: DS.green100, fg: DS.green500, Icon: Ico.Zap },
-  static:  { label: "Static",  bg: DS.blue100,  fg: DS.blue500,  Icon: Ico.List },
+  static:  { label: "Static",  bg: DS.blue100,  fg: DS.actionPrimary,  Icon: Ico.List },
 };
 
 const TypeBadge = ({ bg, fg, icon, label }) => {

@@ -292,7 +292,9 @@ NOT a standalone HTML file. Follow the design-system pipeline.
 
 ### Before you write a single line of code
 1. Run **design-consistency** on this spec to get the Component Manifest (REUSE / EXTEND /
-   BUILD-NEW). It scans the shared design system AND this feature's prior-lot code.
+   BUILD-TO-DS / BUILD-CUSTOM). It scans the shared design system, this feature's prior-lot
+   code, and the Figma DS (`nIMtO7v8dDamI8b2vnMcRc`) — including the Principles page's usage
+   rules, which expand each spec element into its required companions.
 2. Confirm the destination feature folder/file (Lot 1: ask the PM; lot ≥ 2: the existing folder).
 3. Confirm every page in "Pages to build" maps to your plan, every acceptance criterion
    maps to a visible testable UI state, and all 3 edge states exist per major view.
@@ -306,9 +308,18 @@ NOT a standalone HTML file. Follow the design-system pipeline.
   `PageHeader`, `Btn`, `Field`, `Controls`, `Tag`, `Card`, `Modal`, `Kpi`, `StatePreview`, …).
   Declaring a local `DS`/`TY`/`Ico` in a feature file is a hard failure.
 - For lot ≥ 2: extend the existing feature files — reuse prior-lot screens/components/mock data.
-- Build only BUILD-NEW items (charts, timelines, drawers) inside the feature folder, using
-  libs already in package.json (recharts/highcharts/tabulator-tables). New icons go in
-  `utils/icons.jsx`, never inline.
+- **Any component not already in `components/` is a PM decision.** Before building it,
+  ask — once, batched, with a recommendation per item — whether to **build it** or leave
+  a `<Placeholder/>` (a dashed labelled box that keeps the gap visible in the running
+  prototype). Never silently invent a component or drop the element.
+- **BUILD-TO-DS** items (not in code but specced in Figma — e.g. table `Cell`, `Tooltip`,
+  `Tab`, `Breadcrumb`) are built from their Figma node, not improvised.
+  **BUILD-CUSTOM** items (in neither — charts, timelines) use libs already in package.json
+  (recharts/highcharts/tabulator-tables) and go in the open-questions log, since nothing in
+  the DS backs them. New icons go in `utils/icons.jsx`, never inline.
+- Follow the DS **usage rules** (`design-prototypes/references/usage-rules.md`): one Primary
+  per view, Tooltip on every IconButton, confirmation modal on every Destructive action,
+  Inputs wrapped in FormField, StatusChip (not Badge) for business status.
 - Show all 3 edge states for every major view, driven by the shared `StatePreview` switcher.
 - Mock data from the spec — realistic, consistent across screens and lots.
 - All copy in English.

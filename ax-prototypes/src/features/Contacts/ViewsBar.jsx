@@ -38,7 +38,7 @@ const MenuItem = ({ icon, label, danger, disabled, onClick }) => {
   );
 };
 
-const FacetIcon = ({ facet, s = 12, c = DS.blue500 }) => {
+const FacetIcon = ({ facet, s = 12, c = DS.actionPrimary }) => {
   if (facet === "filters") return <Ico.Filter s={s} c={c} />;
   if (facet === "columns") return <Ico.List   s={s} c={c} />;
   if (facet === "sort")    return <Ico.SortUp s={s} c={c} />;
@@ -52,7 +52,7 @@ const InfoRow = ({ facet, label, muted, kind }) => {
     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", minHeight: 28 }}>
       {kind
         ? <span style={{ width: 12, flexShrink: 0, textAlign: "center", fontFamily: DS.ff, fontSize: 14, fontWeight: 700, color }}>{kind === "add" ? "+" : "−"}</span>
-        : <span style={{ flexShrink: 0, display: "flex" }}><FacetIcon facet={facet} c={muted ? DS.neutral500 : DS.blue500} /></span>}
+        : <span style={{ flexShrink: 0, display: "flex" }}><FacetIcon facet={facet} c={muted ? DS.neutral500 : DS.actionPrimary} /></span>}
       <span style={{ flex: 1, minWidth: 0, fontFamily: DS.ff, fontSize: 12, color, textDecoration: kind === "remove" ? "line-through" : "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
     </div>
   );
@@ -132,9 +132,9 @@ export default function ViewsBar({
               style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "0 12px", height: 44,
                 border: "none", background: "transparent", cursor: "pointer", whiteSpace: "nowrap",
-                borderBottom: `2px solid ${active ? DS.blue500 : "transparent"}`,
+                borderBottom: `2px solid ${active ? DS.actionPrimary : "transparent"}`,
                 fontFamily: DS.ff, fontSize: 13, fontWeight: active ? 600 : 400,
-                color: active ? DS.blue500 : DS.neutral700,
+                color: active ? DS.actionPrimary : DS.neutral700,
               }}
               onMouseEnter={(e) => {
                 if (!active) { e.currentTarget.style.color = DS.neutral900; return; }
@@ -152,7 +152,7 @@ export default function ViewsBar({
 
         <button onClick={() => { setSearch(""); setMenu((m) => (m === "picker" ? null : "picker")); }} title="Browse views"
           style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 28, height: 44, border: "none", background: "transparent", cursor: "pointer" }}>
-          <Ico.Plus s={16} c={DS.blue500} />
+          <Ico.Plus s={16} c={DS.actionPrimary} />
         </button>
       </div>
 
@@ -177,8 +177,8 @@ export default function ViewsBar({
             style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 14px", height: 40, cursor: "pointer", borderTop: `1px solid ${DS.neutral200}` }}
             onMouseEnter={(e) => { e.currentTarget.style.background = DS.neutral100; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
-            <Ico.Plus s={14} c={DS.blue500} />
-            <span style={{ fontFamily: DS.ff, fontSize: 13, fontWeight: 500, color: DS.blue500 }}>Create a view</span>
+            <Ico.Plus s={14} c={DS.actionPrimary} />
+            <span style={{ fontFamily: DS.ff, fontSize: 13, fontWeight: 500, color: DS.actionPrimary }}>Create a view</span>
           </div>
         </div>
       )}
@@ -187,14 +187,14 @@ export default function ViewsBar({
       <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
         {dirty && (
           <IcoBtn title="Discard changes" onClick={onRevert}>
-            <Ico.Refresh s={15} c={DS.blue500} />
+            <Ico.Refresh s={15} c={DS.actionPrimary} />
           </IcoBtn>
         )}
 
         {dirty && (
           <div style={{ position: "relative" }}>
             <IcoBtn title="Save" onClick={() => setMenu((m) => (m === "save" ? null : "save"))}>
-              <Ico.Save s={15} c={DS.blue500} />
+              <Ico.Save s={15} c={DS.actionPrimary} />
             </IcoBtn>
 
             {/* Click: choose how to save */}
@@ -210,7 +210,7 @@ export default function ViewsBar({
         {activeView && !isStandard && (
           <div style={{ position: "relative" }}>
             <IcoBtn title="View options" onClick={() => setMenu((m) => (m === "more" ? null : "more"))}>
-              <Ico.Dots s={16} c={DS.blue500} />
+              <Ico.Dots s={16} c={DS.actionPrimary} />
             </IcoBtn>
             {menu === "more" && (
               <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 9999, minWidth: 180, background: DS.white, border: `1px solid ${DS.neutral200}`, borderRadius: 8, boxShadow: "0 12px 32px rgba(15,23,42,.16)", padding: "5px 0", overflow: "hidden" }}>
@@ -239,10 +239,10 @@ const PickerGroup = ({ label, views, activeViewId, onSelect, empty }) => (
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "0 14px", height: 34, cursor: "pointer" }}
           onMouseEnter={(e) => { e.currentTarget.style.background = DS.neutral100; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
-          <span style={{ fontFamily: DS.ff, fontSize: 13, fontWeight: active ? 600 : 400, color: active ? DS.blue500 : DS.neutral900, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <span style={{ fontFamily: DS.ff, fontSize: 13, fontWeight: active ? 600 : 400, color: active ? DS.actionPrimary : DS.neutral900, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {v.name}
           </span>
-          {active && <Ico.Check s={13} c={DS.blue500} />}
+          {active && <Ico.Check s={13} c={DS.actionPrimary} />}
         </div>
       );
     })}

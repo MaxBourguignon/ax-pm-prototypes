@@ -147,7 +147,8 @@ export default function TopHeader() {
       background: DS.white,
       borderBottom: '1px solid #EAECEF',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      gap: 16, padding: '14px 32px', minHeight: 68,
+      // DS Organisms/TopBar is 72 tall (mockup 2052:38178). Was 14px/68.
+      gap: 16, padding: '16px 32px', minHeight: 72,
       fontFamily: DS.ff,
     }}>
       <Breadcrumb />

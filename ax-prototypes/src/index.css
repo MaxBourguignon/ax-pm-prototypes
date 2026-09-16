@@ -1,124 +1,218 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500&display=swap");
 
 /* =====================================================================
-   Arenametrix — Design Tokens
+   Arenametrix — Design Tokens (CSS custom properties)
+
+   Synced 2026-08-27 against Figma "AX DESIGN SYSTEM"
+     file  nIMtO7v8dDamI8b2vnMcRc
+     page  "🧪 Foundations" (node 10:4)
+
+   These mirror `src/utils/designSystem.js` — that file is the primary source
+   of truth for React (inline styles). This file exists for the base element
+   reset below (body, h1–h5, p, a, ::selection). Keep the two in sync: if you
+   change a value here, change it there.
+
+   Light mode only — the Figma dark mode values are not yet readable via MCP.
    ===================================================================== */
 
 :root {
-  /* ---------- Neutrals --------------------------------------------- */
-  --ax-white:         #FFFFFF;
-  --ax-neutral-100:   #F9FBFB;
-  --ax-neutral-200:   #E2DDDD;
-  --ax-neutral-300:   #CED4DA;
-  --ax-neutral-400:   #ABBED1;
+  /* ---------- Primitives · Neutral --------------------------------- */
+  --ax-neutral-0:     #FFFFFF;
+  --ax-neutral-100:   #F4F5F5;
+  --ax-neutral-200:   #DEE0E3;
+  --ax-neutral-300:   #AFB6C1;
   --ax-neutral-500:   #9A9EA5;
-  --ax-neutral-600:   #8993A0;
-  --ax-neutral-700:   #717171;
-  --ax-neutral-800:   #1F2937;
-  --ax-neutral-900:   #212529;
   --ax-black:         #000000;
 
-  /* ---------- Primary (Blue) --------------------------------------- */
+  /* ---------- Primitives · Slate (text + dark surfaces) ------------ */
+  --ax-slate-400:     #94A3B8;
+  --ax-slate-500:     #64748B;
+  --ax-slate-700:     #3E4E65;
+  --ax-slate-900:     #1F2937;
+  --ax-slate-950:     #151B26;
+
+  /* ---------- Primitives · Blue ------------------------------------ */
+  /* brand/primary (#2575FC) is deliberately NOT part of this ramp */
   --ax-blue-100:      #EFF4FF;
   --ax-blue-200:      #C6E2FF;
   --ax-blue-300:      #96C2FE;
+  --ax-blue-400:      #2575FC; /* fill/label conflict — see designSystem.js note */
   --ax-blue-500:      #017BFE;
   --ax-blue-600:      #0D69D4;
-  --ax-blue-700:      #0058B4;
-  --ax-blue-ios:      #007AFF;
 
-  /* ---------- Secondary (Teal) ------------------------------------- */
-  --ax-green-100:     #DEF9F4;
-  --ax-green-200:     #B4EBE2;
-  --ax-green-300:     #7ECFC2;
-  --ax-green-400:     #52B0A1;
-  --ax-green-500:     #34B0A1;
-  --ax-green-brand:   #2CB1A2;
+  /* ---------- Primitives · Teal ------------------------------------ */
+  --ax-teal-100:      #DEF9F4;
+  --ax-teal-200:      #B4EBE2;
+  --ax-teal-300:      #7ECFC2;
+  --ax-teal-500:      #34B0A1;
 
-  /* ---------- Accent ----------------------------------------------- */
-  --ax-orange:        #FE9D55;
-  --ax-coral:         #EE5A4F;
-  --ax-indigo-brand:  #4E6FC7;
-  --ax-indigo-grad:   #5585B8;
+  /* ---------- Primitives · Status ---------------------------------- */
+  --ax-green-600:     #16A34A;
+  --ax-green-800:     #14532D;
+  --ax-orange-100:    #FCEDDE;
+  --ax-orange-400:    #FE9D55;
+  --ax-orange-800:    #78350F;
+  --ax-red-100:       #FFEBE8;
+  --ax-red-400:       #F87171;
+  --ax-red-600:       #DC2626;
+  --ax-red-800:       #991B1B;
 
-  /* ---------- Semantic --------------------------------------------- */
-  --ax-success:       #16A34A;
-  --ax-danger:        #DC2626;
-  --ax-danger-bg:     #FFEBE8;
-  --ax-info:          var(--ax-blue-500);
-  --ax-warning:       var(--ax-orange);
+  /* ---------- Primitives · Purple / Pink / accents ----------------- */
+  /* The starred swatches are documented on Foundations but NOT bound to Figma
+     variables, so the variable API cannot see them (read node 26:9 instead). */
+  --ax-purple-300:    #A78BFA;
+  --ax-purple-400:    #6B52FE;
+  --ax-purple-500:    #4F32FE; /* * fill/label conflict */
+  --ax-purple-800:    #3B2A7A;
+  --ax-purple-900:    #180636; /* * = the historical --ax-navy */
+  --ax-pink-300:      #D97BB0;
+  --ax-pink-600:      #B93177; /* * */
+  --ax-pink-700:      #A23192;
+  --ax-coral-500:     #FF7C6D; /* * */
+  --ax-yellow-200:    #FAEA87; /* * */
+  --ax-mint-400:      #6FE8B8; /* * */
 
-  /* ---------- Brand gradient --------------------------------------- */
-  --ax-brand-gradient:   linear-gradient(90deg, #017BFE 0%, #34C9AE 100%);
-  --ax-brand-gradient-h: linear-gradient(180deg, #017BFE 0%, #34C9AE 100%);
+  /* ---------- Semantic · Brand ------------------------------------- */
+  --ax-brand-primary:        #2575FC;
+  --ax-brand-primary-subtle: #EFF4FF;
+  --ax-brand-accent:         #017BFE;
+  --ax-brand-on-surface:     #2575FC;
+  --ax-brand-gradient-from:  #4F32FE;
+  --ax-brand-gradient-to:    #A23192;
+  /* The real Figma paint style `Gradient/Brand` (read off the Kanban AccentRail,
+     2071:40363): blue/550 → blue/300. NOT the violet→magenta endpoint tokens. */
+  --ax-gradient-brand:       linear-gradient(90deg,  #2575FC 0%, #96C2FE 100%);
+  /* Deprecated: composed from brand/gradient-from + brand/gradient-to. */
+  --ax-brand-gradient:       linear-gradient(90deg,  #4F32FE 0%, #A23192 100%);
+  --ax-brand-gradient-h:     linear-gradient(180deg, #4F32FE 0%, #A23192 100%);
 
-  /* ---------- Semantic surfaces ------------------------------------ */
-  --ax-bg:            #F8F9FB;
-  --ax-bg-canvas:     #F7F2F0;
-  --ax-bg-muted:      var(--ax-neutral-100);
-  --ax-surface-card:  var(--ax-white);
-  --ax-surface-hover: var(--ax-blue-100);
-  --ax-border:        var(--ax-neutral-200);
-  --ax-border-strong: var(--ax-neutral-300);
-  --ax-divider:       #D4D4D4;
+  /* ---------- Semantic · Surface ----------------------------------- */
+  /* NOT in Figma: the dark-mode prose names `surface/app-background` but it is
+     not bound to a swatch, so there is no published light value. This keeps
+     the 2026 rebrand value — re-check when the designer publishes it. */
+  --ax-bg:            #F4F9FF;
+  --ax-surface-canvas: #FFFFFF;
+  --ax-surface-subtle: #F4F5F5;
+  --ax-surface-muted:  #DEE0E3;
+  --ax-surface-card:  var(--ax-surface-canvas);
+  --ax-surface-hover: var(--ax-brand-primary-subtle);
+  --ax-bg-icons:      #EFF4FF;
 
-  --ax-fg:            var(--ax-neutral-800);
-  --ax-fg-strong:     var(--ax-neutral-900);
-  --ax-fg-muted:      var(--ax-neutral-500);
-  --ax-fg-on-primary: var(--ax-white);
-  --ax-fg-link:       var(--ax-blue-500);
+  /* ---------- Semantic · Border ------------------------------------ */
+  /* section/field/divider recovered from Table/Contacts (2052:38194) — they are
+     not swatched on Foundations, only used by components. */
+  --ax-border-subtle:  #F4F5F5;
+  --ax-border:         #DEE0E3;
+  --ax-border-strong:  #9A9EA5;
+  --ax-border-section: #E2E8F0;
+  --ax-border-field:   #CBD5E1;
+  --ax-border-divider:   #F1F5F9; /* real border/divider, per MenuSection 558:2957 */
+  --ax-border-table-sep: #E7E8EA; /* the Table template's literal separator hex */
+  --ax-surface-header: #EFF4FF;
+  --ax-border-focus-color: var(--ax-brand-primary);
+
+  /* ---------- Semantic · Text ------------------------------------- */
+  --ax-fg:            #073973;  /* text/default — navy, not charcoal */
+  --ax-fg-strong:     #073973;  /* text/strong */
+  --ax-fg-secondary:  #3E4E65;  /* text/secondary */
+  --ax-fg-muted:      #9A9EA5;  /* text/muted */
+  --ax-fg-disabled:   #AFB6C1;  /* text/disabled */
+  --ax-fg-inverse:    #FFFFFF;
+  --ax-fg-on-primary: #FFFFFF;  /* text/on-brand */
+  --ax-fg-link:       var(--ax-brand-on-surface);
+
+  /* ---------- Semantic · Feedback ---------------------------------- */
+  --ax-success:         #16A34A;
+  --ax-success-subtle:  #DEF9F4;
+  --ax-danger:          #DC2626;
+  --ax-danger-subtle:   #FFEBE8;
+  --ax-danger-text:     #991B1B;
+  --ax-warning:         #FE9D55;
+  --ax-warning-subtle:  #FCEDDE;
+  --ax-info:            #017BFE;
+  --ax-info-subtle:     #EFF4FF;
+
+  /* ---------- Semantic · Action ------------------------------------ */
+  --ax-action-primary:          var(--ax-brand-primary);
+  --ax-action-primary-hover:    #0D69D4;
+  --ax-action-primary-active:   #0D69D4;
+  --ax-action-primary-subtle:   #EFF4FF;
+  --ax-action-secondary:        #1F2937;  /* neutral, not blue */
+  --ax-action-secondary-hover:  #9A9EA5;
+  --ax-action-danger:           #DC2626;
+  --ax-action-danger-hover:     #991B1B;
+  --ax-action-disabled-bg:      #DEE0E3;
+  --ax-action-disabled-text:    #AFB6C1;
 
   /* ---------- Typography ------------------------------------------- */
-  --ax-font-sans: "Inter", sans-serif;
+  --ax-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --ax-font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --ax-h1: 700 48px/64px var(--ax-font-sans);
-  --ax-h2: 600 28px/36px var(--ax-font-sans);
-  --ax-h3: 600 20px/28px var(--ax-font-sans);
-  --ax-h4: 600 16px/22px var(--ax-font-sans);
-  --ax-h5: 600 14px/18px var(--ax-font-sans);
+  /* The eight named styles from Foundations › Typography (node 35:258) */
+  --ax-display-lg:  700 40px/48px var(--ax-font-sans);
+  --ax-headline-lg: 600 28px/36px var(--ax-font-sans);
+  --ax-headline-md: 700 22px/28px var(--ax-font-sans);
+  --ax-title-md:    600 18px/24px var(--ax-font-sans);
+  --ax-body-md:     400 14px/20px var(--ax-font-sans);
+  --ax-body-md-bold:600 14px/20px var(--ax-font-sans);
+  --ax-body-sm:      400 13px/18px var(--ax-font-sans);
+  --ax-body-sm-bold: 600 13px/18px var(--ax-font-sans);
+  --ax-label-md:    500 12px/16px var(--ax-font-sans);
+  --ax-label-lg:    500 14px/20px var(--ax-font-sans);
+  --ax-label-xl:    500 16px/24px var(--ax-font-sans);
+  --ax-caption-sm:  400 11px/16px var(--ax-font-sans);
+  --ax-mono-md:     500 12px/16px var(--ax-font-mono);
 
-  --ax-body-lead: 400 28px/40px var(--ax-font-sans);
-  --ax-body-1:    400 16px/22px var(--ax-font-sans);
-  --ax-body-2:    400 14px/18px var(--ax-font-sans);
-  --ax-body-3:    400 12px/16px var(--ax-font-sans);
+  /* Established aliases. CORRECTION: the DS does have a 16px step —
+     Label/XLarge (--ax-label-xl), at weight 500 rather than 600/400. The 20px
+     step (h3) is still unconfirmed. Values unchanged pending that decision. */
+  --ax-h1: var(--ax-display-lg);
+  --ax-h2: var(--ax-headline-lg);
+  --ax-h3: 600 20px/28px var(--ax-font-sans);   /* not in DS */
+  --ax-h4: 600 16px/22px var(--ax-font-sans);   /* not in DS */
+  --ax-h5: var(--ax-body-md-bold);
+  --ax-body-1: 400 16px/22px var(--ax-font-sans); /* not in DS */
+  --ax-body-2: var(--ax-body-md);
+  --ax-body-3: var(--ax-label-md);
 
-  --ax-label-lg:  500 16px/24px var(--ax-font-sans);
-  --ax-label-md:  500 14px/20px var(--ax-font-sans);
-  --ax-label-sm:  500 12px/16px var(--ax-font-sans);
+  /* ---------- Spacing (9 steps) ------------------------------------ */
+  --ax-space-2xs: 2px;
+  --ax-space-xs:  4px;
+  --ax-space-sm:  8px;
+  --ax-space-md:  12px;
+  --ax-space-lg:  16px;
+  --ax-space-xl:  20px;
+  --ax-space-2xl: 24px;
+  --ax-space-3xl: 32px;
+  --ax-space-4xl: 48px;
 
-  /* ---------- Spacing ---------------------------------------------- */
-  --ax-space-1:  4px;
-  --ax-space-2:  8px;
-  --ax-space-3:  12px;
-  --ax-space-4:  16px;
-  --ax-space-5:  20px;
-  --ax-space-6:  24px;
-  --ax-space-7:  28px;
-  --ax-space-8:  32px;
-  --ax-space-10: 40px;
-  --ax-space-12: 48px;
-  --ax-space-16: 64px;
+  /* ---------- Radii ----------------------------------------------- */
+  --ax-radius-none: 0px;
+  --ax-radius-sm:   2px;
+  --ax-radius-md:   4px;
+  --ax-radius-lg:   8px;
+  --ax-radius-pill: 999px;
+  /* Observed in components but absent from the Foundations radius scale */
+  --ax-radius-xl:      12px; /* table/card container shell */
+  --ax-radius-md-plus: 6px;  /* search input, table-row icon button */
+  --ax-radius-button: var(--ax-radius-md);
+  --ax-radius-field:  var(--ax-radius-md);
+  --ax-radius-card:   var(--ax-radius-lg);
 
-  /* ---------- Radii ------------------------------------------------ */
-  --ax-radius-button:  4px;
-  --ax-radius-field:   4px;
-  --ax-radius-tag:     10px;
-  --ax-radius-card:    8px;
-  --ax-radius-card-lg: 10px;
-  --ax-radius-pill:    100px;
-
-  /* ---------- Elevation -------------------------------------------- */
-  --ax-shadow-sm:    0 1px 2px 0 rgba(0,0,0,0.06);
+  /* ---------- Elevation ------------------------------------------- */
+  /* Figma ships one effect style ("6px", for buttons); the rest are kept
+     from the existing implementation. */
+  --ax-shadow-sm:    0 1px 2px 0 rgba(0,0,0,0.05); /* Figma effect style `shadow/sm` */
   --ax-shadow-md:    0 2px 4px 0 rgba(0,0,0,0.25);
   --ax-shadow-lg:    0 8px 24px 0 rgba(31,41,55,0.12);
   --ax-shadow-modal: 0 16px 48px -8px rgba(0,0,0,0.30);
 
-  /* ---------- Borders ---------------------------------------------- */
-  --ax-border-thin:       1px solid var(--ax-border);
-  --ax-border-strong-1:   1px solid var(--ax-border-strong);
-  --ax-border-focus:      1px solid var(--ax-blue-500);
+  /* ---------- Borders --------------------------------------------- */
+  --ax-border-thin:     1px solid var(--ax-border);
+  --ax-border-strong-1: 1px solid var(--ax-border-strong);
+  --ax-border-focus:    1px solid var(--ax-border-focus-color);
 
-  /* ---------- Motion ----------------------------------------------- */
+  /* ---------- Motion ---------------------------------------------- */
   --ax-ease:     cubic-bezier(0.4, 0, 0.2, 1);
   --ax-ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ax-dur-fast: 120ms;
@@ -160,9 +254,15 @@ a {
   text-decoration: none;
   transition: color var(--ax-dur-fast) var(--ax-ease);
 }
-a:hover { color: var(--ax-blue-600); }
+a:hover { color: var(--ax-action-primary-hover); }
 
 button { font-family: var(--ax-font-sans); }
+
+/* Table header filter input (DS Cell Type=Input, Background=Header). The DS shows
+   the column label at full text/strong, not as a washed-out placeholder — and an
+   inline style can't reach ::placeholder, so it lives here. `opacity: 1` is for
+   Firefox, which dims placeholders by default. */
+.ax-th-filter::placeholder { color: var(--ax-fg-strong); opacity: 1; }
 
 ::selection { background: var(--ax-blue-200); color: var(--ax-fg-strong); }
 

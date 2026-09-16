@@ -110,12 +110,27 @@ until both pass. Common failures and fixes:
   use an existing key or add the icon to `utils/icons.jsx` (per design-prototypes §11).
 - **Inline `DS`/`TY`/`Ico` redefinition in the feature** — replace with imports from
   `utils/designSystem` / `utils/icons` (this is a design-consistency violation; fix it).
+- **Undefined `DS.<token>`** — renders as `undefined` in a style and fails silently rather
+  than at build time. The token layer was re-synced to the new DS, so a dropped name may be
+  gone. Map it to the correct **semantic** token (see design-prototypes §2) — **never
+  hardcode a hex** and never re-add it to the legacy alias block.
+- **`DS.blue500` used as the brand blue** — it is the accent (`#017BFE`). The brand blue is
+  `DS.actionPrimary`. Fix the reference; this is not a style opinion.
+- **A token edit in only one of the two copies** — `utils/designSystem.js` and `index.css`
+  (`--ax-*`) must stay in step. `index.css` is live: it drives body background, body text
+  colour and `h1`–`h5`.
 - **ESLint: unused vars / hooks deps** — remove unused, satisfy `react-hooks` rules.
 - **Missing dependency** — prefer a lib already in `package.json`
   (`recharts`/`highcharts`/`tabulator-tables`); only `npm install` a new one if the
   user approves.
 Keep fixes limited to wiring + build correctness. Do NOT redesign the page; if a fix
 would change intended design, flag it instead.
+
+**`<Placeholder/>` boxes are intentional — never "fix" them.** A dashed labelled box
+marks a component the PM chose not to build yet (design-prototypes §0.6). Do not
+replace one with an improvised implementation and do not delete it. Just list them in
+the shipped report so they're visible:
+`grep -rn '<Placeholder' src/features/<Folder>`
 
 ### 6. Launch locally
 - Start the dev server in the background: `npm run dev` (run_in_background).

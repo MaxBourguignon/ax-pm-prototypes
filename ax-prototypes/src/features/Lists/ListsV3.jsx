@@ -1,11 +1,23 @@
 /**
  * Lists V3 — Contact Lists management (CRM > Contacts)
  * Built via the design-prototypes workflow. PAGE ONLY — renders inside the app
- * shell. Imports the shared design system + components; only BUILD-NEW pieces
- * (Select, Chip, KPI card, table, criteria editor, full-page record) are local.
+ * shell. Imports the shared design system + components.
  *
  * Lot: full-page List record — list information, criteria, audience dataviz
  * (synthetic profile per list) and a CTA into the full contact list.
+ *
+ * Re-aligned on the new AX DS (Figma nIMtO7v8dDamI8b2vnMcRc, 2026-09):
+ *   - semantic tokens only — surfaceCanvas / surfaceSubtle / borderSection /
+ *     textMuted replace the bgCard / bgSurface / neutral* legacy aliases
+ *   - Figma type names (headlineMd · titleMd · bodyMd · labelMd · captionSm)
+ *     replace the h1–h5 / b1–b3 aliases
+ *   - card shells follow the DS container rule: 1px borderSection, radius 12,
+ *     shadowSm — same shell as PageHeader and Table
+ *   - the local tab strip is gone: the record uses the shared DS `Tabs`
+ *   - the chart palette is sourced from DS primitives, no raw hexes
+ * Local-only, no DS counterpart (flagged, not silently DS-badged): TypeBadge
+ * (a DS Badge plus a leading type icon), FolderMenu, OptionsMenu, and the
+ * dataviz atoms (Donut / BarList / ReachRow / TrendChart).
  */
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +26,7 @@ import Ico from '../../utils/icons';
 import { Btn } from '../../components/Btn';
 import { IconBtn } from '../../components/Iconbtn';
 import { Field, TextArea, SearchField } from '../../components/Field';
-import { StatusBadge, Avatar } from '../../components/Tag';
+import { StatusBadge, Avatar, Badge } from '../../components/Tag';
 import { Modal } from '../../components/Modal';
 import StatePreview from '../../components/StatePreview';
 import Skel from '../../components/Skeleton';
@@ -24,6 +36,7 @@ import Pagination from '../../components/Pagination';
 import BannerTable, { BannerIdentity } from '../../components/BannerTable';
 import NameModal from '../../components/NameModal';
 import ActionMenu from '../../components/ActionMenu';
+import Tabs from '../../components/Tabs';
 import Toast from '../../components/Toast';
 import { EmptyState, ErrorState, ConfirmDialog } from '../../components/Feedback';
 
@@ -159,17 +172,24 @@ function buildProfile(l) {
   };
 }
 
-/* ── Local BUILD-NEW atoms ──────────────────────────────────────────────────── */
+/* ── Local atoms ─────────────────────────────────────────────────────────────── */
+/* Tone pairs come from the DS Badge tones (Tag.jsx BADGE_TONES). `import` has
+   no DS tone — the DS Badge ships 5 colours, none neutral — so it borrows the
+   surface/subtle + text/secondary pair rather than misusing `warning`. */
 const TYPES = {
-  dynamic: { label: 'Dynamic',       long: 'Dynamic (auto)',        bg: DS.green100,   fg: DS.green500,   icon: Ico.Zap },
-  static:  { label: 'Static',        long: 'Static (manual)',       bg: DS.blue100,    fg: DS.blue500,    icon: Ico.List },
-  import:  { label: 'Manual import', long: 'Manual import (file)',  bg: '#EFF1F4',     fg: '#5B6472',     icon: Ico.Download },
+  dynamic: { label: 'Dynamic',       long: 'Dynamic (auto)',       bg: DS.feedbackSuccessBg,  fg: DS.feedbackSuccess, icon: Ico.Zap },
+  static:  { label: 'Static',        long: 'Static (manual)',      bg: DS.brandPrimarySubtle, fg: DS.brandOnSurface,  icon: Ico.List },
+  import:  { label: 'Manual import', long: 'Manual import (file)', bg: DS.surfaceSubtle,      fg: DS.textSecondary,   icon: Ico.Download },
 };
+/* DS Atoms/Badge (523:73) geometry — px8/py2, radiusPill, Label/Medium — with a
+   leading 12px type icon. The icon is a local extension: the DS Badge has no
+   icon slot, but the type is the row's primary qualifier and reads faster with
+   one. Everything else matches the atom exactly. */
 function TypeBadge({ type }) {
   const t = TYPES[type] || TYPES.static;
   const I = t.icon;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 999, padding: '3px 10px', background: t.bg, color: t.fg, ...TY.b3, fontWeight: 500, fontFamily: DS.ff, whiteSpace: 'nowrap' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: DS.radiusPill, padding: '2px 8px', background: t.bg, color: t.fg, ...TY.labelMd, fontFamily: DS.ff, whiteSpace: 'nowrap' }}>
       <I s={12} c={t.fg} />{t.label}
     </span>
   );
@@ -224,7 +244,7 @@ function ListsBanners({ data, sortKey, sortDir, onSort, canManage, onOpen, onEdi
       cell={cell}
       actions={(l) => (
         <ActionMenu items={[
-          { label: 'View', icon: <Ico.Eye s={16} c={DS.blue500} />, onClick: () => onOpen(l.id) },
+          { label: 'View', icon: <Ico.Eye s={16} c={DS.actionPrimary} />, onClick: () => onOpen(l.id) },
           { label: 'Duplicate', icon: <Ico.Copy s={16} c={DS.textSecondary} />, onClick: () => onDuplicate(l) },
           { label: 'Edit', icon: <Ico.Edit s={16} c={DS.textSecondary} />, onClick: () => onEdit(l), hidden: !canManage },
           { label: 'Delete', icon: <Ico.Trash s={16} c={DS.feedbackError} />, onClick: () => onDelete(l), danger: true, hidden: !canManage },
@@ -238,18 +258,23 @@ function ListsBanners({ data, sortKey, sortDir, onSort, canManage, onOpen, onEdi
 /* ═══════════════════════════════════════════════════════════════════════════
    FULL-PAGE LIST RECORD — dataviz atoms
    ═══════════════════════════════════════════════════════════════════════════ */
-const CHART_BLUE = DS.blue500, CHART_INDIGO = '#4E6FC7', CHART_TEAL = '#14B8A6',
-      CHART_ORANGE = DS.orange500, CHART_PURPLE = '#9333EA';
+/* Categorical chart palette — DS primitives only, no raw hexes. Five hues that
+   stay distinguishable next to each other on surfaceCanvas. */
+const CHART_BLUE   = DS.brandPrimary,   // #2575FC
+      CHART_INDIGO = DS.purple400,      // #6B52FE
+      CHART_TEAL   = DS.teal500,        // #34B0A1
+      CHART_ORANGE = DS.orange400,      // #FE9D55
+      CHART_PURPLE = DS.pink700;        // #A23192
 
 function RecordCard({ icon, title, sub, right, children, style }) {
   return (
-    <div style={{ background: DS.bgCard, border: `1px solid ${DS.borderDefault}`, borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', gap: 14, ...style }}>
+    <div style={{ background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusXl, boxShadow: DS.shadowSm, padding: 20, display: 'flex', flexDirection: 'column', gap: 16, ...style }}>
       {(title || icon) && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {icon && <span style={{ width: 32, height: 32, borderRadius: 8, background: DS.bgSurface, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</span>}
+          {icon && <span style={{ width: 32, height: 32, borderRadius: DS.radiusLg, background: DS.bgIcons, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</span>}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ ...TY.h5, color: DS.textDefault, fontFamily: DS.ff }}>{title}</div>
-            {sub && <div style={{ ...TY.b3, color: DS.textSecondary, fontFamily: DS.ff }}>{sub}</div>}
+            <div style={{ ...TY.titleMd, color: DS.textStrong, fontFamily: DS.ff }}>{title}</div>
+            {sub && <div style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff }}>{sub}</div>}
           </div>
           {right}
         </div>
@@ -264,9 +289,9 @@ function RecordCard({ icon, title, sub, right, children, style }) {
 function InfoItem({ label, value }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase',
-                     color: DS.textSecondary, fontFamily: DS.ff }}>{label}</span>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...TY.b2, color: DS.textDefault, fontFamily: DS.ff }}>{value}</span>
+      <span style={{ ...TY.labelMd, letterSpacing: '0.04em', textTransform: 'uppercase',
+                     color: DS.textMuted, fontFamily: DS.ff }}>{label}</span>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...TY.bodyMd, color: DS.textDefault, fontFamily: DS.ff }}>{value}</span>
     </div>
   );
 }
@@ -284,19 +309,19 @@ function Donut({ data, centerValue, centerLabel, size = 150, renderValue }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
-        <circle cx={C} cy={C} r={R} fill="none" stroke={DS.bgSurface} strokeWidth={SW} />
+        <circle cx={C} cy={C} r={R} fill="none" stroke={DS.surfaceSubtle} strokeWidth={SW} />
         {arcs.map((a) => (
           <circle key={a.label} cx={C} cy={C} r={R} fill="none" stroke={a.color}
                   strokeWidth={SW} strokeDasharray={`${a.dash} ${circ - a.dash}`}
                   strokeDashoffset={-a.off} transform={`rotate(-90 ${C} ${C})`} strokeLinecap="butt" />
         ))}
-        <text x={C} y={C - 2} textAnchor="middle" style={{ ...TY.h4 }} fill={DS.textDefault}>{centerValue}</text>
-        <text x={C} y={C + 15} textAnchor="middle" fontSize="10" fill={DS.textSecondary} fontFamily="Inter, sans-serif">{centerLabel}</text>
+        <text x={C} y={C - 2} textAnchor="middle" style={{ ...TY.titleMd }} fill={DS.textStrong} fontFamily={DS.ff}>{centerValue}</text>
+        <text x={C} y={C + 16} textAnchor="middle" style={{ ...TY.captionSm }} fill={DS.textMuted} fontFamily={DS.ff}>{centerLabel}</text>
       </svg>
       <div style={{ flex: 1, minWidth: 130, display: 'flex', flexDirection: 'column' }}>
         {data.map((x, i) => (
-          <div key={x.label} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderTop: i === 0 ? 'none' : `1px solid ${DS.borderDefault}`, ...TY.b3, color: DS.textDefault, fontFamily: DS.ff }}>
-            <span style={{ width: 10, height: 10, borderRadius: 3, background: x.color, flexShrink: 0 }} />
+          <div key={x.label} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderTop: i === 0 ? 'none' : `1px solid ${DS.borderDivider}`, ...TY.labelMd, color: DS.textDefault, fontFamily: DS.ff }}>
+            <span style={{ width: 10, height: 10, borderRadius: DS.radiusSm, background: x.color, flexShrink: 0 }} />
             <span style={{ flex: 1 }}>{x.label}</span>
             <span style={{ fontWeight: TY.weightSemiBold }}>{renderValue ? renderValue(x.value) : `${x.value < 1 ? '<1' : Math.round(x.value)}%`}</span>
           </div>
@@ -312,12 +337,12 @@ function BarList({ items }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {items.map((it) => (
         <div key={it.label} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary }}>
             <span style={{ color: DS.textDefault }}>{it.label}</span>
             <span style={{ fontWeight: TY.weightSemiBold, color: DS.textDefault }}>{it.pct}%</span>
           </div>
-          <div style={{ height: 8, borderRadius: 6, background: DS.bgSurface, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${it.pct}%`, background: it.color, borderRadius: 6, transition: 'width .3s' }} />
+          <div style={{ height: 8, borderRadius: DS.radiusPill, background: DS.surfaceSubtle, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${it.pct}%`, background: it.color, borderRadius: DS.radiusPill, transition: 'width .3s' }} />
           </div>
         </div>
       ))}
@@ -329,14 +354,14 @@ function BarList({ items }) {
 function ReachRow({ icon, label, reach, optin, color }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, ...TY.b3, fontFamily: DS.ff }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, ...TY.labelMd, fontFamily: DS.ff }}>
         {icon}
         <span style={{ flex: 1, color: DS.textDefault }}>{label}</span>
         <span style={{ color: DS.textSecondary }}>{reach}% reachable · <span style={{ color, fontWeight: TY.weightSemiBold }}>{optin}% opt-in</span></span>
       </div>
-      <div style={{ position: 'relative', height: 10, borderRadius: 6, background: DS.bgSurface, overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, width: `${reach}%`, background: `${color}33`, borderRadius: 6 }} />
-        <div style={{ position: 'absolute', inset: 0, width: `${optin}%`, background: color, borderRadius: 6 }} />
+      <div style={{ position: 'relative', height: 10, borderRadius: DS.radiusPill, background: DS.surfaceSubtle, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, width: `${reach}%`, background: `${color}33`, borderRadius: DS.radiusPill }} />
+        <div style={{ position: 'absolute', inset: 0, width: `${optin}%`, background: color, borderRadius: DS.radiusPill }} />
       </div>
     </div>
   );
@@ -416,14 +441,14 @@ function TrendChart({ months, values, height = 280 }) {
             <g key={i}>
               <line x1={PAD_L} x2={W - PAD_R} y1={y} y2={y} stroke={DS.borderDefault}
                     strokeWidth="1" strokeDasharray={i === 0 ? '0' : '2 5'} opacity={i === 0 ? 0.8 : 0.5} />
-              <text x={PAD_L - 12} y={y + 4} textAnchor="end" fontSize="12" fill={DS.textSecondary} fontFamily="Inter, sans-serif">{num(t)}</text>
+              <text x={PAD_L - 12} y={y + 4} textAnchor="end" fontSize="12" fill={DS.textSecondary} fontFamily={DS.ff}>{num(t)}</text>
             </g>
           );
         })}
         {/* x-axis month labels */}
         {months.map((m, i) => (
           <text key={i} x={xAt(i)} y={H - PAD_B + 22} textAnchor="middle" fontSize="11"
-                fill={hoverIdx === i ? DS.textDefault : DS.textSecondary} fontFamily="Inter, sans-serif">{m}</text>
+                fill={hoverIdx === i ? DS.textDefault : DS.textSecondary} fontFamily={DS.ff}>{m}</text>
         ))}
         {/* hover guide */}
         {hoverIdx != null && (
@@ -433,10 +458,10 @@ function TrendChart({ months, values, height = 280 }) {
         <path d={areaD} fill="url(#lvTrend)" />
         <path d={lineD} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         {/* end dot */}
-        <circle cx={last.x} cy={last.y} r="3.5" fill={DS.bgCard} stroke={color} strokeWidth="2" />
+        <circle cx={last.x} cy={last.y} r="3.5" fill={DS.surfaceCanvas} stroke={color} strokeWidth="2" />
         {/* hovered point */}
         {hoverIdx != null && (
-          <circle cx={xAt(hoverIdx)} cy={yAt(values[hoverIdx])} r="6" fill={DS.bgCard} stroke={color} strokeWidth="2.5" />
+          <circle cx={xAt(hoverIdx)} cy={yAt(values[hoverIdx])} r="6" fill={DS.surfaceCanvas} stroke={color} strokeWidth="2.5" />
         )}
       </svg>
 
@@ -444,39 +469,18 @@ function TrendChart({ months, values, height = 280 }) {
       {hoverIdx != null && (
         <div style={{ position: 'absolute', top: 12,
                       left: `calc(${(xAt(hoverIdx) / W) * 100}% + ${xAt(hoverIdx) > W / 2 ? '-200px' : '16px'})`,
-                      background: DS.bgCard, border: `1px solid ${DS.borderDefault}`, borderRadius: 8,
+                      background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusLg,
                       boxShadow: '0 6px 18px rgba(0,0,0,0.12)', padding: 12, minWidth: 184, pointerEvents: 'none', zIndex: 5 }}>
-          <div style={{ ...TY.b3, color: DS.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: DS.ff }}>
+          <div style={{ ...TY.labelMd, color: DS.textMuted, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: DS.ff }}>
             {months[hoverIdx]}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0' }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
-            <span style={{ flex: 1, ...TY.b3, color: DS.textDefault, fontFamily: DS.ff }}>Contacts</span>
-            <span style={{ ...TY.h5, color: DS.textDefault }}>{num(values[hoverIdx])}</span>
+            <span style={{ flex: 1, ...TY.labelMd, color: DS.textDefault, fontFamily: DS.ff }}>Contacts</span>
+            <span style={{ ...TY.bodyMdBold, color: DS.textDefault }}>{num(values[hoverIdx])}</span>
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-/* Tabs (mirrors PerformanceV3 TabBar idiom). */
-function RecordTabs({ tabs, active, onChange }) {
-  return (
-    <div style={{ display: 'flex', gap: 24, borderBottom: `1px solid ${DS.borderDefault}` }}>
-      {tabs.map((tb) => {
-        const on = tb.value === active;
-        const color = on ? DS.actionPrimary : DS.textSecondary;
-        return (
-          <button key={tb.value} type="button" onClick={() => onChange(tb.value)}
-            style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
-                     padding: '0 2px 12px', fontFamily: DS.ff, ...TY.b1, fontWeight: 500, color,
-                     display: 'inline-flex', alignItems: 'center' }}>
-            {tb.label}
-            {on && <span style={{ position: 'absolute', left: 0, right: 0, bottom: -1, height: 3, borderRadius: '3px 3px 0 0', background: DS.actionPrimary }} />}
-          </button>
-        );
-      })}
     </div>
   );
 }
@@ -487,13 +491,13 @@ function FolderRow({ active, count, onClick, children }) {
   return (
     <div onClick={onClick}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-      style={{ minHeight: 38, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-               background: active ? DS.blue100 : hover ? DS.actionSecondaryHover : 'transparent',
-               ...TY.b2, fontFamily: DS.ff, color: active ? DS.actionPrimary : DS.textDefault }}>
+      style={{ minHeight: 40, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+               background: active ? DS.actionPrimarySubtle : hover ? DS.surfaceSubtle : 'transparent',
+               ...TY.bodyMd, fontFamily: DS.ff, color: active ? DS.actionPrimary : DS.textDefault }}>
       <Ico.Inbox s={14} c={active ? DS.actionPrimary : DS.textSecondary} />
       <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {children}
-        <span style={{ ...TY.b3, color: DS.textSecondary, marginLeft: 6 }}>— {count} list{count === 1 ? '' : 's'}</span>
+        <span style={{ ...TY.labelMd, color: DS.textMuted, marginLeft: 6 }}>— {count} list{count === 1 ? '' : 's'}</span>
       </span>
       {active && <Ico.Check s={16} c={DS.actionPrimary} />}
     </div>
@@ -513,30 +517,33 @@ function FolderMenu({ folders, value, counts, total, onChange, onRequestCreateFo
 
   return (
     <div ref={ref} style={{ position: 'relative', width: 260 }}>
+      {/* Geometry follows the DS TableToolbar folder filter (1784:33159):
+          h36, surfaceCanvas on borderField, radiusLg. */}
       <button type="button" onClick={() => setOpen((o) => !o)}
-        style={{ height: 40, width: '100%', background: DS.bgSurface, border: `1px solid ${open ? DS.borderFocus : DS.borderDefault}`,
-                 borderRadius: 6, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                 fontFamily: DS.ff, ...TY.b2, color: DS.textDefault }}>
+        style={{ height: 36, width: '100%', boxSizing: 'border-box', background: DS.surfaceCanvas,
+                 border: `1px solid ${open ? DS.borderFocus : DS.borderField}`,
+                 borderRadius: DS.radiusLg, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                 fontFamily: DS.ff, ...TY.bodyMd, color: DS.textDefault }}>
         <Ico.Inbox s={16} c={DS.textSecondary} />
         <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
-        <span style={{ ...TY.b3, color: DS.textSecondary }}>{value === 'all' ? total : (counts[value] ?? 0)}</span>
-        <Ico.ChevDown s={18} c={DS.textSecondary} />
+        <span style={{ ...TY.labelMd, color: DS.textMuted }}>{value === 'all' ? total : (counts[value] ?? 0)}</span>
+        <Ico.ChevDown s={16} c={DS.textDefault} />
       </button>
       {open && (
-        <div style={{ position: 'absolute', top: 44, left: 0, width: '100%', background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
-                      borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.10)', zIndex: 50, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 40, left: 0, width: '100%', background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`,
+                      borderRadius: DS.radiusLg, boxShadow: DS.shadowSm, zIndex: 50, overflow: 'hidden' }}>
           <div style={{ maxHeight: 260, overflowY: 'auto' }}>
             <FolderRow active={value === 'all'} count={total} onClick={() => { onChange('all'); setOpen(false); }}>All folders</FolderRow>
             {folders.map((f) => (
               <FolderRow key={f} active={value === f} count={counts[f] ?? 0} onClick={() => { onChange(f); setOpen(false); }}>{f}</FolderRow>
             ))}
           </div>
-          <div style={{ height: 1, background: DS.borderDefault }} />
+          <div style={{ height: 1, background: DS.borderDivider }} />
           <div onClick={() => { setOpen(false); onRequestCreateFolder(); }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = DS.actionSecondaryHover)}
+            onMouseEnter={(e) => (e.currentTarget.style.background = DS.surfaceSubtle)}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                     ...TY.b2, fontWeight: 600, color: DS.actionPrimary, fontFamily: DS.ff }}>
+                     ...TY.labelLg, color: DS.actionPrimary, fontFamily: DS.ff }}>
             <Ico.Plus s={16} c={DS.actionPrimary} />Create a folder
           </div>
         </div>
@@ -560,13 +567,13 @@ function OptionsMenu({ items }) {
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
       <Btn type="Secondary" size="Medium" iconLeft={<Ico.Dots s={16} c={DS.actionPrimary} />} onClick={() => setOpen((o) => !o)}>Options</Btn>
       {open && (
-        <div style={{ position: 'absolute', top: 46, right: 0, zIndex: 30, width: 200, background: DS.bgCard,
-                      border: `1px solid ${DS.actionPrimary}`, borderRadius: 8, boxShadow: '0 3px 10px rgba(0,0,0,0.08)', padding: 6 }}>
+        <div style={{ position: 'absolute', top: 42, right: 0, zIndex: 30, width: 240, background: DS.surfaceCanvas,
+                      border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusLg, boxShadow: DS.shadowSm, padding: 6 }}>
           {visible.map((it, i) => (
             <div key={i} role="button" onClick={() => { setOpen(false); it.onClick && it.onClick(); }}
-                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 6, cursor: 'pointer',
-                          ...TY.b2, fontFamily: DS.ff, color: it.danger ? DS.feedbackError : DS.textDefault }}
-                 onMouseEnter={(e) => (e.currentTarget.style.background = it.danger ? DS.feedbackErrorBg : DS.actionSecondaryHover)}
+                 style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 40, padding: '8px 12px', borderRadius: DS.radiusMd, cursor: 'pointer',
+                          ...TY.bodyMd, fontFamily: DS.ff, color: it.danger ? DS.feedbackError : DS.textDefault }}
+                 onMouseEnter={(e) => (e.currentTarget.style.background = it.danger ? DS.feedbackErrorBg : DS.surfaceSubtle)}
                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
               {it.icon}{it.label}
             </div>
@@ -588,12 +595,12 @@ function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewCo
   const genderData = [
     { label: 'Female', value: p.gender[0], color: CHART_PURPLE },
     { label: 'Male',   value: p.gender[1], color: CHART_BLUE },
-    { label: 'Other',  value: p.gender[2], color: DS.neutral400 },
+    { label: 'Other',  value: p.gender[2], color: DS.neutral300 },
   ];
   const catchmentData = [
     { label: 'Local (< 25 km)', value: p.catchment[0], color: CHART_BLUE },
     { label: 'Regional',        value: p.catchment[1], color: CHART_TEAL },
-    { label: 'National',        value: p.catchment[2], color: DS.neutral400 },
+    { label: 'National',        value: p.catchment[2], color: DS.neutral300 },
   ];
   const ageItems = ['Gen Z (18–24)', 'Millennials (25–40)', 'Gen X (41–56)', 'Boomers (57+)']
     .map((label, i) => ({ label, pct: p.age[i], color: [CHART_BLUE, CHART_INDIGO, CHART_TEAL, CHART_ORANGE][i] }));
@@ -609,25 +616,25 @@ function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewCo
   return (
     <div style={{ paddingBottom: 8 }}>
       {/* Back */}
-      <div style={{ padding: '18px 24px 0' }}>
+      <div style={{ padding: '18px 32px 0' }}>
         <Btn type="Tertiary" size="Small" iconLeft={<Ico.ArrowBack s={16} c={DS.actionPrimary} />} onClick={onBack}>Back to lists</Btn>
       </div>
 
       {/* Record header */}
-      <div style={{ padding: '12px 24px 4px', display: 'flex', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-        <span style={{ width: 52, height: 52, borderRadius: 12, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <div style={{ padding: '12px 32px 4px', display: 'flex', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+        <span style={{ width: 52, height: 52, borderRadius: DS.radiusXl, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <TypeIcon s={26} c={t.fg} />
         </span>
         <div style={{ flex: 1, minWidth: 240 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
-            <span style={{ ...TY.h3, color: DS.textDefault, fontFamily: DS.ff }}>{l.name}</span>
+            <span style={{ ...TY.headlineMd, color: DS.textStrong, fontFamily: DS.ff }}>{l.name}</span>
             <TypeBadge type={l.type} />
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 999,
-                           padding: '3px 10px', background: '#EFF1F4', color: '#5B6472', ...TY.b3, fontWeight: 500, fontFamily: DS.ff }}>
-              <Ico.Inbox s={12} c="#5B6472" />{l.folder}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: DS.radiusPill,
+                           padding: '2px 8px', background: DS.surfaceSubtle, color: DS.textSecondary, ...TY.labelMd, fontFamily: DS.ff }}>
+              <Ico.Inbox s={12} c={DS.textSecondary} />{l.folder}
             </span>
           </div>
-          <div style={{ ...TY.b2, color: DS.textSecondary, fontFamily: DS.ff }}>{l.description || 'No description'}</div>
+          <div style={{ ...TY.bodyMd, color: DS.textSecondary, fontFamily: DS.ff }}>{l.description || 'No description'}</div>
         </div>
         <OptionsMenu items={[
           { label: 'Edit', icon: <Ico.Edit s={16} c={DS.textSecondary} />, onClick: () => onEdit(l), hidden: !canManage },
@@ -636,14 +643,14 @@ function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewCo
         ]} />
       </div>
 
-      <div style={{ padding: '12px 24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ padding: '12px 32px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        <RecordTabs
+        <Tabs
+          value={tab} onChange={setTab} divider
           tabs={[
-            { value: 'info', label: 'Information', icon: Ico.Info },
-            { value: 'audience', label: 'Audience analysis', icon: Ico.Chart },
+            { value: 'info', label: 'Information', width: 140 },
+            { value: 'audience', label: 'Audience analysis', width: 180 },
           ]}
-          active={tab} onChange={setTab}
         />
 
         {tab === 'info' && (
@@ -656,10 +663,10 @@ function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewCo
               <InfoItem label="Created on" value={fmtDate(d(l.created))} />
               <InfoItem label="Folder" value={<><Ico.Inbox s={14} c={DS.textSecondary} />{l.folder}</>} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, borderTop: `1px solid ${DS.borderDefault}`, paddingTop: 14 }}>
-              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase',
-                             color: DS.textSecondary, fontFamily: DS.ff }}>Description</span>
-              <span style={{ ...TY.b2, color: l.description ? DS.textDefault : DS.textPlaceholder, fontFamily: DS.ff, whiteSpace: 'pre-wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, borderTop: `1px solid ${DS.borderDivider}`, paddingTop: 14 }}>
+              <span style={{ ...TY.labelMd, letterSpacing: '0.04em', textTransform: 'uppercase',
+                             color: DS.textMuted, fontFamily: DS.ff }}>Description</span>
+              <span style={{ ...TY.bodyMd, color: l.description ? DS.textDefault : DS.textMuted, fontFamily: DS.ff, whiteSpace: 'pre-wrap' }}>
                 {l.description || 'No description provided.'}
               </span>
             </div>
@@ -667,12 +674,12 @@ function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewCo
 
           <RecordCard icon={<Ico.Chart s={18} c={CHART_BLUE} />} title="Share of base" style={{ flex: '1 1 200px' }}>
             <div style={{ textAlign: 'center', width: '100%', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <div style={{ ...TY.h2, color: DS.textDefault, fontFamily: DS.ff, lineHeight: 1.1 }}>{pctLabel}</div>
-              <div style={{ ...TY.b3, color: DS.textSecondary, fontFamily: DS.ff, marginTop: 4 }}>
+              <div style={{ ...TY.headlineLg, color: DS.textStrong, fontFamily: DS.ff }}>{pctLabel}</div>
+              <div style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff, marginTop: 4 }}>
                 {num(p.total)} of {num(BASE_TOTAL)} contacts
               </div>
-              <div style={{ height: 6, borderRadius: 3, background: DS.bgSurface, overflow: 'hidden', marginTop: 12 }}>
-                <div style={{ width: `${Math.max(2, Math.min(100, p.pctOfBase))}%`, height: '100%', background: CHART_BLUE, borderRadius: 3 }} />
+              <div style={{ height: 6, borderRadius: DS.radiusPill, background: DS.surfaceSubtle, overflow: 'hidden', marginTop: 12 }}>
+                <div style={{ width: `${Math.max(2, Math.min(100, p.pctOfBase))}%`, height: '100%', background: CHART_BLUE, borderRadius: DS.radiusPill }} />
               </div>
             </div>
           </RecordCard>
@@ -683,11 +690,11 @@ function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewCo
             {hasCriteria ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {l.criteria.map((cr, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: DS.bgSurface, border: `1px solid ${DS.borderDefault}`, borderRadius: 8, padding: '9px 12px', ...TY.b3, fontFamily: DS.ff }}>
-                    <span style={{ ...TY.b3, color: DS.textPlaceholder, fontWeight: 700 }}>{i === 0 ? 'WHERE' : 'AND'}</span>
-                    <span style={{ color: DS.textDefault, fontWeight: 600 }}>{cr.field}</span>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: DS.surfaceSubtle, border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusLg, padding: '10px 12px', ...TY.bodyMd, fontFamily: DS.ff }}>
+                    <span style={{ ...TY.labelMd, color: DS.textMuted }}>{i === 0 ? 'WHERE' : 'AND'}</span>
+                    <span style={{ ...TY.labelLg, color: DS.textStrong }}>{cr.field}</span>
                     <span style={{ color: DS.textSecondary }}>{cr.op}</span>
-                    <span style={{ color: DS.actionPrimary, fontWeight: 600 }}>{cr.value}</span>
+                    <span style={{ ...TY.labelLg, color: DS.brandOnSurface }}>{cr.value}</span>
                   </div>
                 ))}
               </div>
@@ -710,7 +717,7 @@ function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewCo
           title="Contacts — last 12 months"
           sub="Monthly evolution of this list"
           right={(
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, ...TY.b2, fontFamily: DS.ff, fontWeight: TY.weightSemiBold, color: trendDelta >= 0 ? DS.feedbackSuccess : DS.feedbackError }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, ...TY.bodyMd, fontFamily: DS.ff, fontWeight: TY.weightSemiBold, color: trendDelta >= 0 ? DS.feedbackSuccess : DS.feedbackError }}>
               {trendDelta >= 0 ? <Ico.TrendUp s={15} c={DS.feedbackSuccess} /> : <Ico.TrendDown s={15} c={DS.feedbackError} />}
               {trendDelta >= 0 ? '+' : '−'}{num(Math.abs(trendDelta))} over 12 mo
             </span>
@@ -721,14 +728,14 @@ function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewCo
 
         {/* View contacts — below the overall chart */}
         <div style={{ display: 'flex' }}>
-          <Btn type="Primary" size="Medium" iconLeft={<Ico.Users s={18} c={DS.white} />} onClick={onViewContacts}>View contacts</Btn>
+          <Btn type="Primary" size="Medium" iconLeft={<Ico.Users s={18} c={DS.textOnBrand} />} onClick={onViewContacts}>View contacts</Btn>
         </div>
 
         {/* Audience profile */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-          <Ico.Chart s={18} c={DS.textDefault} />
-          <span style={{ ...TY.h5, color: DS.textDefault, fontFamily: DS.ff }}>Audience profile</span>
-          <span style={{ ...TY.b3, color: DS.textSecondary, fontFamily: DS.ff }}>· who the contacts in this list are</span>
+          <Ico.Chart s={18} c={DS.textStrong} />
+          <span style={{ ...TY.titleMd, color: DS.textStrong, fontFamily: DS.ff }}>Audience profile</span>
+          <span style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff }}>· who the contacts in this list are</span>
         </div>
 
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
@@ -754,10 +761,10 @@ function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewCo
 
           <RecordCard icon={<Ico.Globe s={18} c={CHART_BLUE} />} title="Location & catchment" style={{ flex: '1 1 340px' }}>
             <Donut data={catchmentData} centerValue={`${p.catchment[0]}%`} centerLabel="local" size={130} />
-            <div style={{ borderTop: `1px solid ${DS.borderDefault}`, paddingTop: 10 }}>
-              <div style={{ ...TY.b3, color: DS.textSecondary, fontFamily: DS.ff, marginBottom: 6 }}>Top cities</div>
+            <div style={{ borderTop: `1px solid ${DS.borderDivider}`, paddingTop: 10 }}>
+              <div style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff, marginBottom: 6 }}>Top cities</div>
               {p.cities.map((city, i) => (
-                <div key={city} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', ...TY.b3, fontFamily: DS.ff }}>
+                <div key={city} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', ...TY.labelMd, fontFamily: DS.ff }}>
                   <span style={{ flex: 1, color: DS.textDefault }}>{city}</span>
                   <span style={{ color: DS.textSecondary, fontWeight: TY.weightSemiBold }}>{p.cityPct[i]}%</span>
                 </div>
@@ -830,19 +837,19 @@ function ListFormPanel({ open, editing, onClose, onSave, folders = FOLDERS }) {
         {form.type === 'dynamic' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <label style={{ ...TY.b2, color: DS.textSecondary, fontFamily: DS.ff }}>Criteria</label>
+              <label style={{ ...TY.bodyMd, color: DS.textSecondary, fontFamily: DS.ff }}>Criteria</label>
               <Btn type="Tertiary" size="Small" iconLeft={<Ico.Plus s={14} />} onClick={addCriterion}>Add</Btn>
             </div>
-            {form.criteria.length === 0 && <div style={{ ...TY.b3, color: DS.textPlaceholder, fontFamily: DS.ff }}>No criteria — add one to define the audience.</div>}
+            {form.criteria.length === 0 && <div style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff }}>No criteria — add one to define the audience.</div>}
             {form.criteria.map((c, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Select value={c.field} onChange={(v) => setCriterion(i, 'field', v)} options={FIELDS.map((f) => ({ value: f, label: f }))} width={130} />
                 <Select value={c.op} onChange={(v) => setCriterion(i, 'op', v)} options={OPS.map((o) => ({ value: o, label: o }))} width={92} />
                 <Field value={c.value} onChange={(e) => setCriterion(i, 'value', e.target.value)} placeholder="value" style={{ flex: 1 }} />
-                <IconBtn icon={<Ico.Trash s={16} c={DS.feedbackError} />} type="Secondary" size="Small" onClick={() => removeCriterion(i)} aria-label="Remove" />
+                <IconBtn icon={<Ico.Trash s={16} c={DS.feedbackError} />} type="Secondary" size="Small" onClick={() => removeCriterion(i)} aria-label="Remove criterion" title="Remove criterion" />
               </div>
             ))}
-            {err.criteria && <span style={{ ...TY.b3, color: DS.feedbackError, fontFamily: DS.ff }}>{err.criteria}</span>}
+            {err.criteria && <span style={{ ...TY.labelMd, color: DS.feedbackError, fontFamily: DS.ff }}>{err.criteria}</span>}
           </div>
         )}
         <Field label="Tags (comma-separated)" value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="VIP, Loyalty" />
@@ -958,9 +965,10 @@ export default function ListsV3() {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, background: DS.bgCard,
-                                   border: `1px solid ${DS.borderDefault}`, borderRadius: 10, padding: '14px 16px' }}>
-              <Skel w={44} h={44} r={10} />
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, background: DS.surfaceCanvas,
+                                   border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusXl,
+                                   boxShadow: DS.shadowSm, padding: '14px 16px' }}>
+              <Skel w={44} h={44} r={8} />
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}><Skel w="40%" h={14} /><Skel w="60%" h={10} /></div>
               <Skel w={90} h={16} /><Skel w={90} h={16} /><Skel w={90} h={16} />
             </div>
@@ -1008,7 +1016,6 @@ export default function ListsV3() {
 
           {/* Page header */}
           <PageHeader
-            icon={<Ico.List s={20} c={DS.actionPrimary} />}
             title="Lists"
             description="Manage the contact lists in your CRM"
             actions={canManage && (
@@ -1035,8 +1042,9 @@ export default function ListsV3() {
                           if (e.key === 'Enter') { renameFolder(folderFilter, renameValue); setRenamingFolder(false); }
                           if (e.key === 'Escape') setRenamingFolder(false);
                         }}
-                        style={{ width: 220, height: 40, padding: '0 12px', borderRadius: 6, border: `1px solid ${DS.borderFocus}`,
-                                 background: DS.bgSurface, outline: 'none', fontFamily: DS.ff, ...TY.b2, color: DS.textDefault }} />
+                        style={{ width: 240, height: 36, boxSizing: 'border-box', padding: '0 12px', borderRadius: DS.radiusLg,
+                                 border: `1px solid ${DS.borderFocus}`, background: DS.surfaceCanvas, outline: 'none',
+                                 fontFamily: DS.ff, ...TY.bodyMd, color: DS.textDefault }} />
                       <Btn type="Primary" size="Small" onClick={() => { renameFolder(folderFilter, renameValue); setRenamingFolder(false); }}>Save</Btn>
                       <Btn type="Tertiary" size="Small" onClick={() => setRenamingFolder(false)}>Cancel</Btn>
                     </>
@@ -1052,10 +1060,10 @@ export default function ListsV3() {
                       />
                       {folderFilter !== 'all' && canManage && (
                         <>
-                          <IconBtn type="Secondary" size="Small" aria-label="Rename folder"
+                          <IconBtn type="Secondary" size="Small" aria-label="Rename folder" title="Rename folder"
                             icon={<Ico.EditSquare s={16} />}
                             onClick={() => { setRenameValue(folderFilter); setRenamingFolder(true); }} />
-                          <IconBtn type="Secondary" size="Small" aria-label="Delete folder"
+                          <IconBtn type="Secondary" size="Small" aria-label="Delete folder" title="Delete folder"
                             icon={<Ico.TrashBin s={16} c={DS.feedbackError} />}
                             onClick={() => setFolderPendingDelete(folderFilter)} />
                         </>
@@ -1066,7 +1074,7 @@ export default function ListsV3() {
                 <SearchField value={query} onChange={(e) => { setQuery(e.target.value); setPage(0); }} placeholder="Search a list…" />
               </div>
               {(query.trim() !== '' || folderFilter !== 'all') && (
-                <div style={{ ...TY.b3, color: DS.textSecondary, fontFamily: DS.ff }}>{filtered.length} result{filtered.length > 1 ? 's' : ''}</div>
+                <div style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff }}>{filtered.length} result{filtered.length > 1 ? 's' : ''}</div>
               )}
               {body()}
             </section>

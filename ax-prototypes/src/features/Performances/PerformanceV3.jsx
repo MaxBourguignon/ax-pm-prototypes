@@ -253,7 +253,7 @@ const PROFILE = {
  * split across a representative product mix, deterministically derived from its id
  * (stable across renders). */
 const PRODUCT_CATS = [
-  { key: 'Tickets',       color: DS.blue500 },
+  { key: 'Tickets',       color: DS.actionPrimary },
   { key: 'Subscriptions', color: DS.teal500 },
   { key: 'Memberships',   color: DS.purple600 },
   { key: 'Workshops',     color: DS.orange500 },
@@ -370,7 +370,6 @@ function ChannelFunnel({ channel, onChannel, stages, loading }) {
               </div>
               {!loading && !noData && st.bench != null && (
                 <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
-                  norm {pct(st.bench)}
                   <span style={{ fontWeight: 600, color: st.value >= st.bench ? DS.feedbackSuccess : DS.feedbackError }}>
                     · {st.value >= st.bench ? 'above' : 'below'}
                   </span>
@@ -687,7 +686,7 @@ function ConversionRulesDialog({ open, onClose, rules, onSave, isAdmin }) {
       footer={<div style={{ display: 'flex', gap: 8, marginLeft: 'auto', alignItems: 'center' }}>
                 {!isAdmin && <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginRight: 'auto' }}>Read-only — admin access required to edit.</span>}
                 <Btn type="Tertiary" onClick={onClose}>Close</Btn>
-                <Btn type="Primary" disabled={!isAdmin} onClick={() => { onSave(draft); onClose(); }} iconLeft={<Ico.Refresh s={16} />}>Save &amp; recompute</Btn>
+                <Btn type="Primary" disabled={!isAdmin} onClick={() => { onSave(draft); onClose(); }} iconLeft={<Ico.Refresh s={16} />}>Save</Btn>
               </div>}>
       <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: SP.section }}>
         {!isAdmin && (
@@ -1461,7 +1460,7 @@ export default function PerformanceV3() {
 
   const campaignActions = (c) => (
     <ActionMenu items={[
-      { label: 'Open', icon: <Ico.Eye s={16} c={DS.blue500} />, onClick: () => setDrawer(c) },
+      { label: 'Open', icon: <Ico.Eye s={16} c={DS.actionPrimary} />, onClick: () => setDrawer(c) },
       { label: c.isManual ? 'Edit' : 'Edit description', icon: <Ico.Edit s={16} c={DS.textSecondary} />, onClick: () => fireToast(c.isManual ? 'Edit manual campaign (prototype)' : 'Edit description only — tracked metrics locked') },
       { label: 'Delete', icon: <Ico.Trash s={16} c={DS.feedbackError} />, danger: true, hidden: !c.isManual, onClick: () => setConfirmDel(c) },
     ]} />

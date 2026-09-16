@@ -34,7 +34,7 @@ const CONSENT_COLORS = {
   'sms-promo':   DS.brandYellowInk,// #D9A400
   'wa-billet':   DS.coral,         // #EE5A4F
   'analytics':   DS.orange,        // #FE9D55
-  'sms-partner': DS.blue500,       // #2575fc (single blue)
+  'sms-partner': DS.actionPrimary,       // #2575fc (single blue)
 };
 
 const CHANNEL_ICON = {
@@ -712,7 +712,7 @@ function consentCell(c, key) {
       );
     }
     case 'trend':
-      return <Sparkline data={c.series} color={CONSENT_COLORS[c.id] || DS.blue500} />;
+      return <Sparkline data={c.series} color={CONSENT_COLORS[c.id] || DS.actionPrimary} />;
     default:
       return null;
   }
