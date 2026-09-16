@@ -1,7 +1,10 @@
 /**
  * AX Design System — Tag & Badge components
- * Figma nodes: 196:1978 (Tags), 4.5 (Status badges)
- * https://www.figma.com/design/NUOoC3GC7mB4U1AydRKIoy/AX-DESIGN-SYSTEM--NEW-?node-id=196-1978
+ * Figma: Atoms › Chip 556:2973 · Badge 523:73 · StatusChip 524:80 · Avatar 47:8
+ * https://www.figma.com/design/nIMtO7v8dDamI8b2vnMcRc/AX-DESIGN-SYSTEM?node-id=523-73
+ *
+ * ⚠ The new DS splits these into four distinct atoms (Chip, Badge, StatusChip,
+ *   Avatar) where this file merges them. Avatar also gains an XL (64px) size.
  *
  * Exports:
  *   Tag          — filter chip, two DS variants: "unselected" | "active" (removable)
@@ -140,7 +143,16 @@ const AVATAR_PALETTE = [
   { bg: DS.purpleLight,       fg: DS.purple           }, // 3
 ];
 
-export function Avatar({ name = '', size = 32 }) {
+/**
+ * Avatar — Figma Atoms/Avatar (47:8). DS sizes: Sm 24 · Md 32 · Lg 40 · XL 64.
+ * Initials are auto-computed from the full name (pass the whole name, per the
+ * Principles page).
+ *
+ *   tone="palette"  (default) — name-derived pastel, the historical behaviour
+ *   tone="brand"    — solid brand/primary with white initials, as the DS
+ *                     PageHeader Contact type specifies
+ */
+export function Avatar({ name = '', size = 32, tone = 'palette' }) {
   const initials = name
     .split(/\s+/)
     .map((p) => p[0])
@@ -150,6 +162,9 @@ export function Avatar({ name = '', size = 32 }) {
     .toUpperCase();
 
   const palette = AVATAR_PALETTE[(name.charCodeAt(0) || 0) % 4];
+  const brand = tone === 'brand';
+  // XL carries Headline/Medium initials in Figma; smaller sizes stay compact.
+  const typo = size >= 64 ? TY.headlineMd : size >= 40 ? TY.labelLg : TY.b3;
 
   return (
     <span
@@ -158,17 +173,107 @@ export function Avatar({ name = '', size = 32 }) {
         height:         size,
         borderRadius:   '50%',
         flexShrink:     0,
-        background:     palette.bg,
-        color:          palette.fg,
+        background:     brand ? DS.brandPrimary : palette.bg,
+        color:          brand ? DS.textOnBrand : palette.fg,
         fontFamily:     DS.ff,
-        ...TY.b3,
-        fontWeight:     TY.weightSemiBold,
+        ...typo,
+        fontWeight:     brand && size >= 64 ? TY.weightBold : TY.weightSemiBold,
         display:        'inline-flex',
         alignItems:     'center',
         justifyContent: 'center',
       }}
     >
       {initials || '?'}
+    </span>
+  );
+}
+
+// ─── Badge (DS Atoms/Badge 523:73) ────────────────────────────────────────────
+/**
+ * Non-interactive categorical label. DS Atoms/Badge, Kind=Subtle, 5 colours
+ * (523:63/65/67/69/71). Verified via get_design_context 2026-09:
+ *   px 8 / py 2 · radius 999 · Label/Medium (12/16/500)
+ *
+ * Per the Principles page: Badge is a free-form label and must NEVER be a button
+ * or link. For a business status use StatusBadge; for a clickable filter use Chip.
+ */
+const BADGE_TONES = {
+  primary: { bg: DS.brandPrimarySubtle,  fg: DS.brandOnSurface   },
+  accent:  { bg: DS.feedbackInfoSubtle,  fg: DS.feedbackInfo     },
+  success: { bg: DS.feedbackSuccessBg,   fg: DS.feedbackSuccess  },
+  warning: { bg: DS.feedbackWarningBg,   fg: DS.feedbackWarning  },
+  danger:  { bg: DS.feedbackErrorBg,     fg: DS.feedbackDanger   },
+};
+
+export function Badge({ children, tone = 'primary' }) {
+  const t = BADGE_TONES[tone] ?? BADGE_TONES.primary;
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '2px 8px',
+        borderRadius: DS.radiusPill,
+        background: t.bg,
+        ...TY.labelMd,
+        fontFamily: DS.ff,
+        color: t.fg,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+// ─── RemovableChip (DS Atoms/Chip 556:2973) ───────────────────────────────────
+/**
+ * The DS's `Atoms/Chip`: a REMOVABLE pill. Verified via get_design_context:
+ *   h 28 · pl 8 / pr 6 / py 4 · gap 4 · radius 6 · bg surface/subtle
+ *   border 1px border/default · Label/Medium in text/default · 12px cross
+ *
+ * ⚠ Naming: `components/Chip.jsx` also exports `Chip`, but that one is the
+ *   pre-DS *toggle* filter pill (blue/white, radius 10, no remove) — a different
+ *   component with different semantics. The DS's Chip is this one. The two need
+ *   reconciling; until then use RemovableChip when following the DS.
+ */
+export function RemovableChip({ children, onRemove }) {
+  const [hovered, setHovered] = React.useState(false);
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        height: 28,
+        padding: '4px 6px 4px 8px',
+        boxSizing: 'border-box',
+        borderRadius: DS.radiusMdPlus,
+        background: DS.surfaceSubtle,
+        border: `1px solid ${DS.borderDefault}`,
+        ...TY.labelMd,
+        fontFamily: DS.ff,
+        color: DS.textDefault,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {children}
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          aria-label="Remove"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 12, height: 12, padding: 0, flexShrink: 0,
+            border: 'none', background: 'transparent', cursor: 'pointer',
+          }}
+        >
+          <Ico.Cross s={12} c={hovered ? DS.textStrong : DS.textMuted} />
+        </button>
+      )}
     </span>
   );
 }

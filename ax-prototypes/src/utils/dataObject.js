@@ -46,7 +46,7 @@ const DATA_OBJECTS = [
     id: "contact",
     label: "Contacts",
     description: "Filter contacts by their profile attributes",
-    color: DS.blue500, bg: DS.blue100,
+    color: DS.actionPrimary, bg: DS.blue100,
     fields: [
       { id: "firstName",         label: "First name",         type: "string" },
       { id: "lastName",          label: "Last name",          type: "string" },

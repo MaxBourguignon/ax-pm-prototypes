@@ -1,79 +1,88 @@
 import { useState } from "react";
 
-import LogoAx from "../../assets/Logo Arenametrix détouré blanc HD.png";
-import {DS} from "../../utils/designSystem";
-import Ico from "../../utils/icons";
+import { DS } from "../../utils/designSystem";
 import { Link } from "react-router-dom";
+
+// ── Light-theme palette (2026 rebrand) ────────────────────────────────────────
+const ACCENT       = "#3B6FF5"; // active fill / brand blue
+const ACCENT_HOVER = "#2F60E0";
+const SOFT_BG      = "#EEF3FF"; // hover wash
+const TEXT_MAIN    = "#1F2937"; // nav labels
+const TEXT_SUB     = "#6B7280"; // sub-items / secondary
+const ICON_REST    = "#3B6FF5"; // resting icon tint
+const BORDER       = "#EAECEF"; // hairline dividers
+const LOGO_INK     = "#180636"; // brand navy (wordmark + logo mark)
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
-const IconSearch = () => (
-  <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-    <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4" />
-    <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+const IconChevron = ({ c }) => (
+  <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+    <path d="M8 5l5 5-5 5" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
-const IconChevron = () => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-    <path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+// Just the mountain mark from logo_2026_logo-dark.svg (wordmark cropped out).
+const IconLogo = ({ s = 30 }) => (
+  <svg width={s} height={s} viewBox="40 35 360 300" fill="none">
+    <path
+      d="M48.69,327.47h106.51c5.19,0,10.05-2.52,13.05-6.75l44.58-62.97,46.71,59.49c3.03,3.86,7.67,6.11,12.57,6.11h104.11c5.22,0,10.06-2.55,13.03-6.74.43-.6.83-1.22,1.18-1.89,2.78-5.21,2.45-11.53-.84-16.43l-65.81-97.94s-.09.08-.13.13L221.23,48.08c-2.97-4.42-7.95-7.07-13.27-7.07-.09,0-.17,0-.26,0-1.81.03-3.58.37-5.24.98-.02,0-.05.02-.07.03-.91.34-1.79.76-2.62,1.26-.02.01-.04.02-.06.04-.83.5-1.61,1.08-2.34,1.72-.02.02-.04.04-.06.05-.72.65-1.39,1.36-1.99,2.14-.02.02-.04.05-.05.07-.3.39-.59.8-.85,1.22l-117.78,188.26s-.03-.02-.04-.03l-41.46,66.27c-3.08,4.93-3.25,11.14-.43,16.22,2.82,5.08,8.17,8.24,13.98,8.24ZM77.6,295.5l17.82-28.49s0,0,0,0l55.28-88.37,41.51,52.87-36.2,51.13s-.04,0-.06,0l-9.1,12.85h-69.26ZM346.1,291.23h-66.12l-11.8-15.03c-.07,0-.14.02-.21.03l-35.88-45.69,37.57-53.06,76.44,113.76ZM211.5,204.29l-42.76-54.46,39.7-63.46,42.14,62.71-39.09,55.21Z"
+      fill={LOGO_INK}
+    />
   </svg>
 );
 
-const IconDots = () => (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-    <circle cx="8" cy="4"  r="1.2" fill="currentColor" />
-    <circle cx="8" cy="8"  r="1.2" fill="currentColor" />
-    <circle cx="8" cy="12" r="1.2" fill="currentColor" />
+// ── Nav icons (bold / filled — sidebar identity set) ──────────────────────────
+
+const IcoContacts = ({ s = 20, c }) => (
+  <svg width={s} height={s} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6.25 10.8333C5.50832 10.8333 4.7833 10.6134 4.16661 10.2013C3.54993 9.78929 3.06928 9.20362 2.78545 8.5184C2.50162 7.83318 2.42736 7.07918 2.57206 6.35175C2.71675 5.62432 3.0739 4.95613 3.59835 4.43168C4.1228 3.90724 4.79098 3.55008 5.51841 3.40539C6.24584 3.2607 6.99984 3.33496 7.68506 3.61879C8.37029 3.90262 8.95596 4.38326 9.36801 4.99995C9.78007 5.61663 10 6.34166 10 7.08334C9.9989 8.07756 9.60345 9.03075 8.90043 9.73377C8.19741 10.4368 7.24422 10.8322 6.25 10.8333ZM6.25 5.83334C6.00277 5.83334 5.7611 5.90665 5.55554 6.044C5.34998 6.18135 5.18976 6.37657 5.09515 6.60498C5.00054 6.83339 4.97579 7.08472 5.02402 7.3272C5.07225 7.56967 5.1913 7.7924 5.36612 7.96722C5.54093 8.14203 5.76366 8.26109 6.00614 8.30932C6.24861 8.35755 6.49995 8.33279 6.72835 8.23818C6.95676 8.14358 7.15199 7.98336 7.28934 7.7778C7.42669 7.57224 7.5 7.33056 7.5 7.08334C7.5 6.75181 7.3683 6.43387 7.13388 6.19945C6.89946 5.96503 6.58152 5.83334 6.25 5.83334ZM12.5 18.75C12.5 17.0924 11.8415 15.5027 10.6694 14.3306C9.49731 13.1585 7.9076 12.5 6.25 12.5C4.5924 12.5 3.00268 13.1585 1.83058 14.3306C0.65848 15.5027 0 17.0924 0 18.75C0 19.0815 0.131696 19.3995 0.366116 19.6339C0.600537 19.8683 0.918479 20 1.25 20C1.58152 20 1.89946 19.8683 2.13388 19.6339C2.3683 19.3995 2.5 19.0815 2.5 18.75C2.5 17.7554 2.89509 16.8016 3.59835 16.0984C4.30161 15.3951 5.25544 15 6.25 15C7.24456 15 8.19839 15.3951 8.90165 16.0984C9.60491 16.8016 10 17.7554 10 18.75C10 19.0815 10.1317 19.3995 10.3661 19.6339C10.6005 19.8683 10.9185 20 11.25 20C11.5815 20 11.8995 19.8683 12.1339 19.6339C12.3683 19.3995 12.5 19.0815 12.5 18.75ZM20 15C20.0001 13.8937 19.6856 12.8101 19.0931 11.8757C18.5007 10.9414 17.6548 10.1948 16.654 9.72302C15.6533 9.25127 14.5391 9.07383 13.4413 9.2114C12.3435 9.34898 11.3075 9.79589 10.4542 10.5C10.3275 10.6045 10.2228 10.7329 10.1458 10.8779C10.0688 11.023 10.0211 11.1817 10.0055 11.3451C9.98986 11.5086 10.0066 11.6735 10.0547 11.8305C10.1028 11.9874 10.1813 12.1334 10.2858 12.26C10.3903 12.3866 10.5188 12.4914 10.6638 12.5684C10.8088 12.6454 10.9675 12.693 11.131 12.7087C11.2944 12.7243 11.4593 12.7076 11.6163 12.6595C11.7733 12.6114 11.9192 12.5328 12.0458 12.4283C12.6412 11.9329 13.3921 11.6632 14.1667 11.6667C15.0507 11.6667 15.8986 12.0179 16.5237 12.643C17.1488 13.2681 17.5 14.1159 17.5 15C17.5 15.3315 17.6317 15.6495 17.8661 15.8839C18.1005 16.1183 18.4185 16.25 18.75 16.25C19.0815 16.25 19.3995 16.1183 19.6339 15.8839C19.8683 15.6495 20 15.3315 20 15ZM14.5833 7.5C13.8417 7.5 13.1166 7.28007 12.4999 6.86801C11.8833 6.45596 11.4026 5.87029 11.1188 5.18506C10.835 4.49984 10.7607 3.74584 10.9054 3.01841C11.0501 2.29098 11.4072 1.6228 11.9317 1.09835C12.4561 0.573904 13.1243 0.216751 13.8517 0.0720569C14.5792 -0.0726377 15.3332 0.00162482 16.0184 0.285453C16.7036 0.569282 17.2893 1.04993 17.7013 1.66661C18.1134 2.2833 18.3333 3.00832 18.3333 3.75C18.3322 4.74423 17.9368 5.69741 17.2338 6.40043C16.5307 7.10346 15.5776 7.4989 14.5833 7.5ZM14.5833 2.5C14.3361 2.5 14.0944 2.57331 13.8889 2.71066C13.6833 2.84802 13.5231 3.04324 13.4285 3.27165C13.3339 3.50006 13.3091 3.75139 13.3574 3.99386C13.4056 4.23634 13.5246 4.45907 13.6995 4.63389C13.8743 4.8087 14.097 4.92775 14.3395 4.97598C14.5819 5.02422 14.8333 4.99946 15.0617 4.90485C15.2901 4.81024 15.4853 4.65003 15.6227 4.44446C15.76 4.2389 15.8333 3.99723 15.8333 3.75C15.8333 3.41848 15.7016 3.10054 15.4672 2.86612C15.2328 2.6317 14.9149 2.5 14.5833 2.5Z" fill={c}/>
   </svg>
 );
 
-const IconLogo = () => (
-  <img src={LogoAx} style={{ width: 18, height: 18 }} alt="Arenametrix" />
-);
-
-const IconHome = () => (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-    <path d="M2.5 7L8 2.5L13.5 7V13a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V7Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-    <path d="M6.5 14V9.5h3V14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+// Campaigns — provided paper-plane mark, recoloured to inherit `c`.
+const IcoCampaigns = ({ s = 20, c }) => (
+  <svg width={s} height={s} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19.1663 0.833072C18.4771 0.134345 17.4723 -0.152137 16.5183 0.0781809L3.78015 2.75529C1.36113 3.11325 -0.309685 5.36445 0.0482712 7.78343C0.187431 8.72388 0.62561 9.59458 1.29797 10.2667L2.6636 11.6332C2.72753 11.6963 2.76327 11.7825 2.76276 11.8723V14.392C2.7646 15.9595 4.03484 17.2297 5.60235 17.2316H8.12199C8.21194 17.2316 8.29825 17.2672 8.36195 17.3307L9.72758 18.6964C10.5533 19.5276 11.6763 19.9953 12.8479 19.9962C13.3316 19.9958 13.812 19.9167 14.2702 19.762C15.8517 19.2368 17.0009 17.8635 17.239 16.2142L19.9161 3.51604C20.1566 2.55204 19.8717 1.53266 19.1663 0.833072ZM2.60114 6.52057C2.8276 5.82094 3.43868 5.31574 4.16842 5.22494C4.19787 5.22103 4.227 5.21603 4.25591 5.20994L15.356 2.87696L5.26244 12.9646V11.8723C5.26428 11.1187 4.96416 10.3958 4.42924 9.86509L3.06526 8.49946C2.5399 7.98563 2.35899 7.21442 2.60114 6.52057ZM14.7844 15.7426C14.7777 15.7718 14.7736 15.8009 14.7694 15.8301C14.6247 16.8855 13.6518 17.6238 12.5964 17.4791C12.1794 17.4219 11.7926 17.23 11.4949 16.9324L10.1301 15.5676C9.59904 15.0325 8.87586 14.7325 8.12203 14.7344H7.02968L17.1207 4.64088L14.7844 15.7426Z" fill={c}/>
   </svg>
 );
 
-function HomeButton() {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <Link
-      to="/home"
-      title="Back to home"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        marginLeft: "auto",
-        width: 30,
-        height: 30,
-        borderRadius: DS.radiusButton,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        color: hovered ? DS.white : NAV_TEXT_SECONDARY,
-        background: hovered ? NAV_ITEM_HOVER : "transparent",
-        border: `1px solid ${NAV_BORDER}`,
-        textDecoration: "none",
-        transition: `background ${DS.durFast} ${DS.ease}, color ${DS.durFast} ${DS.ease}`,
-      }}
-    >
-      <IconHome />
-    </Link>
-  );
-}
+const IcoSales = ({ s = 20, c }) => (
+  <svg width={s} height={s} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15.4167 0H4.58333C3.36816 0.00132347 2.20314 0.484634 1.34389 1.34389C0.484634 2.20314 0.00132347 3.36816 0 4.58333L0 11.25C0.00132347 12.4652 0.484634 13.6302 1.34389 14.4894C2.20314 15.3487 3.36816 15.832 4.58333 15.8333H8.75V17.5H6.25C5.91848 17.5 5.60054 17.6317 5.36612 17.8661C5.1317 18.1005 5 18.4185 5 18.75C5 19.0815 5.1317 19.3995 5.36612 19.6339C5.60054 19.8683 5.91848 20 6.25 20H13.75C14.0815 20 14.3995 19.8683 14.6339 19.6339C14.8683 19.3995 15 19.0815 15 18.75C15 18.4185 14.8683 18.1005 14.6339 17.8661C14.3995 17.6317 14.0815 17.5 13.75 17.5H11.25V15.8333H15.4167C16.6318 15.832 17.7969 15.3487 18.6561 14.4894C19.5154 13.6302 19.9987 12.4652 20 11.25V4.58333C19.9987 3.36816 19.5154 2.20314 18.6561 1.34389C17.7969 0.484634 16.6318 0.00132347 15.4167 0ZM17.5 11.25C17.5 11.8025 17.2805 12.3324 16.8898 12.7231C16.4991 13.1138 15.9692 13.3333 15.4167 13.3333H4.58333C4.0308 13.3333 3.5009 13.1138 3.11019 12.7231C2.71949 12.3324 2.5 11.8025 2.5 11.25V4.58333C2.5 4.0308 2.71949 3.5009 3.11019 3.11019C3.5009 2.71949 4.0308 2.5 4.58333 2.5H15.4167C15.9692 2.5 16.4991 2.71949 16.8898 3.11019C17.2805 3.5009 17.5 4.0308 17.5 4.58333V11.25ZM15.8333 7.91667C15.8333 8.24819 15.7016 8.56613 15.4672 8.80055C15.2328 9.03497 14.9149 9.16667 14.5833 9.16667H13.5833L12.2875 11.11C12.1736 11.2809 12.0194 11.421 11.8384 11.5181C11.6574 11.6152 11.4554 11.6662 11.25 11.6667C11.2239 11.6667 11.1981 11.6667 11.1725 11.6667C10.9539 11.6532 10.7427 11.5825 10.56 11.4617C10.3774 11.3409 10.2297 11.1742 10.1317 10.9783L8.595 7.9025L8.12333 8.61C8.0092 8.78122 7.85455 8.92162 7.67313 9.01873C7.4917 9.11583 7.28911 9.16665 7.08333 9.16667H5.41667C5.08515 9.16667 4.7672 9.03497 4.53278 8.80055C4.29836 8.56613 4.16667 8.24819 4.16667 7.91667C4.16667 7.58515 4.29836 7.2672 4.53278 7.03278C4.7672 6.79836 5.08515 6.66667 5.41667 6.66667H6.41667L7.71 4.72333C7.83142 4.54109 7.99859 4.39395 8.19477 4.29663C8.39094 4.19932 8.60924 4.15525 8.82781 4.16883C9.04637 4.18242 9.25753 4.25319 9.44014 4.37405C9.62276 4.49491 9.77042 4.66162 9.86833 4.8575L11.405 7.93083L11.8767 7.22333C11.9908 7.05211 12.1454 6.91172 12.3269 6.81461C12.5083 6.7175 12.7109 6.66668 12.9167 6.66667H14.5833C14.7475 6.66667 14.91 6.699 15.0617 6.76182C15.2133 6.82464 15.3511 6.91671 15.4672 7.03278C15.5833 7.14886 15.6754 7.28666 15.7382 7.43831C15.801 7.58997 15.8333 7.75251 15.8333 7.91667Z" fill={c}/>
+  </svg>
+);
 
-// ── Sidebar-specific overlays ─────────────────────────────────────────────────
-const NAV_ITEM_ACTIVE    = "rgba(255,255,255,0.15)";
-const NAV_ITEM_HOVER     = "rgba(255,255,255,0.07)";
-const NAV_BORDER         = "rgba(255,255,255,0.12)";
-const NAV_TEXT_MUTED     = "rgba(255,255,255,0.45)";
-const NAV_TEXT_SECONDARY = "rgba(255,255,255,0.65)";
+const IcoB2B = ({ s = 20, c }) => (
+  <svg width={s} height={s} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15.4167 4.16667H13.3125C13.2075 3.0287 12.6816 1.97089 11.8377 1.20025C10.9939 0.429601 9.8928 0.00159829 8.75 0L4.58333 0C3.36816 0.00132347 2.20314 0.484634 1.34389 1.34389C0.484634 2.20314 0.00132347 3.36816 0 4.58333L0 15.4167C0.00132347 16.6318 0.484634 17.7969 1.34389 18.6561C2.20314 19.5154 3.36816 19.9987 4.58333 20H15.4167C16.6318 19.9987 17.7969 19.5154 18.6561 18.6561C19.5154 17.7969 19.9987 16.6318 20 15.4167V8.75C19.9987 7.53483 19.5154 6.36981 18.6561 5.51056C17.7969 4.6513 16.6318 4.16799 15.4167 4.16667ZM2.5 15.4167V4.58333C2.5 4.0308 2.71949 3.5009 3.11019 3.11019C3.5009 2.71949 4.0308 2.5 4.58333 2.5H8.75C9.30253 2.5 9.83244 2.71949 10.2231 3.11019C10.6138 3.5009 10.8333 4.0308 10.8333 4.58333V17.5H4.58333C4.0308 17.5 3.5009 17.2805 3.11019 16.8898C2.71949 16.4991 2.5 15.9692 2.5 15.4167ZM17.5 15.4167C17.5 15.9692 17.2805 16.4991 16.8898 16.8898C16.4991 17.2805 15.9692 17.5 15.4167 17.5H13.3333V6.66667H15.4167C15.9692 6.66667 16.4991 6.88616 16.8898 7.27686C17.2805 7.66756 17.5 8.19747 17.5 8.75V15.4167ZM16.6667 9.58333C16.6667 9.83056 16.5934 10.0722 16.456 10.2778C16.3187 10.4834 16.1234 10.6436 15.895 10.7382C15.6666 10.8328 15.4153 10.8575 15.1728 10.8093C14.9303 10.7611 14.7076 10.642 14.5328 10.4672C14.358 10.2924 14.2389 10.0697 14.1907 9.8272C14.1425 9.58472 14.1672 9.33339 14.2618 9.10498C14.3564 8.87657 14.5166 8.68135 14.7222 8.544C14.9278 8.40664 15.1694 8.33333 15.4167 8.33333C15.7482 8.33333 16.0661 8.46503 16.3005 8.69945C16.535 8.93387 16.6667 9.25181 16.6667 9.58333ZM16.6667 13.75C16.6667 13.9972 16.5934 14.2389 16.456 14.4445C16.3187 14.65 16.1234 14.8102 15.895 14.9048C15.6666 14.9995 15.4153 15.0242 15.1728 14.976C14.9303 14.9277 14.7076 14.8087 14.5328 14.6339C14.358 14.4591 14.2389 14.2363 14.1907 13.9939C14.1425 13.7514 14.1672 13.5001 14.2618 13.2716C14.3564 13.0432 14.5166 12.848 14.7222 12.7107C14.9278 12.5733 15.1694 12.5 15.4167 12.5C15.7482 12.5 16.0661 12.6317 16.3005 12.8661C16.535 13.1005 16.6667 13.4185 16.6667 13.75ZM5.83333 5.41667C5.83333 5.66389 5.76002 5.90557 5.62267 6.11113C5.48532 6.31669 5.2901 6.47691 5.06169 6.57152C4.83328 6.66613 4.58195 6.69088 4.33947 6.64265C4.09699 6.59442 3.87427 6.47537 3.69945 6.30055C3.52463 6.12573 3.40558 5.90301 3.35735 5.66053C3.30912 5.41805 3.33387 5.16672 3.42848 4.93831C3.52309 4.7099 3.68331 4.51468 3.88887 4.37733C4.09443 4.23998 4.33611 4.16667 4.58333 4.16667C4.91485 4.16667 5.2328 4.29836 5.46722 4.53278C5.70164 4.7672 5.83333 5.08515 5.83333 5.41667ZM5.83333 9.58333C5.83333 9.83056 5.76002 10.0722 5.62267 10.2778C5.48532 10.4834 5.2901 10.6436 5.06169 10.7382C4.83328 10.8328 4.58195 10.8575 4.33947 10.8093C4.09699 10.7611 3.87427 10.642 3.69945 10.4672C3.52463 10.2924 3.40558 10.0697 3.35735 9.8272C3.30912 9.58472 3.33387 9.33339 3.42848 9.10498C3.52309 8.87657 3.68331 8.68135 3.88887 8.544C4.09443 8.40664 4.33611 8.33333 4.58333 8.33333C4.91485 8.33333 5.2328 8.46503 5.46722 8.69945C5.70164 8.93387 5.83333 9.25181 5.83333 9.58333ZM10 5.41667C10 5.66389 9.92669 5.90557 9.78934 6.11113C9.65199 6.31669 9.45676 6.47691 9.22835 6.57152C8.99995 6.66613 8.74861 6.69088 8.50614 6.64265C8.26366 6.59442 8.04093 6.47537 7.86612 6.30055C7.6913 6.12573 7.57225 5.90301 7.52402 5.66053C7.47579 5.41805 7.50054 5.16672 7.59515 4.93831C7.68976 4.7099 7.84998 4.51468 8.05554 4.37733C8.2611 4.23998 8.50277 4.16667 8.75 4.16667C9.08152 4.16667 9.39946 4.29836 9.63388 4.53278C9.8683 4.7672 10 5.08515 10 5.41667ZM10 9.58333C10 9.83056 9.92669 10.0722 9.78934 10.2778C9.65199 10.4834 9.45676 10.6436 9.22835 10.7382C8.99995 10.8328 8.74861 10.8575 8.50614 10.8093C8.26366 10.7611 8.04093 10.642 7.86612 10.4672C7.6913 10.2924 7.57225 10.0697 7.52402 9.8272C7.47579 9.58472 7.50054 9.33339 7.59515 9.10498C7.68976 8.87657 7.84998 8.68135 8.05554 8.544C8.2611 8.40664 8.50277 8.33333 8.75 8.33333C9.08152 8.33333 9.39946 8.46503 9.63388 8.69945C9.8683 8.93387 10 9.25181 10 9.58333ZM5.83333 13.75C5.83333 13.9972 5.76002 14.2389 5.62267 14.4445C5.48532 14.65 5.2901 14.8102 5.06169 14.9048C4.83328 14.9995 4.58195 15.0242 4.33947 14.976C4.09699 14.9277 3.87427 14.8087 3.69945 14.6339C3.52463 14.4591 3.40558 14.2363 3.35735 13.9939C3.30912 13.7514 3.33387 13.5001 3.42848 13.2716C3.52309 13.0432 3.68331 12.848 3.88887 12.7107C4.09443 12.5733 4.33611 12.5 4.58333 12.5C4.91485 12.5 5.2328 12.6317 5.46722 12.8661C5.70164 13.1005 5.83333 13.4185 5.83333 13.75ZM10 13.75C10 13.9972 9.92669 14.2389 9.78934 14.4445C9.65199 14.65 9.45676 14.8102 9.22835 14.9048C8.99995 14.9995 8.74861 15.0242 8.50614 14.976C8.26366 14.9277 8.04093 14.8087 7.86612 14.6339C7.6913 14.4591 7.57225 14.2363 7.52402 13.9939C7.47579 13.7514 7.50054 13.5001 7.59515 13.2716C7.68976 13.0432 7.84998 12.848 8.05554 12.7107C8.2611 12.5733 8.50277 12.5 8.75 12.5C9.08152 12.5 9.39946 12.6317 9.63388 12.8661C9.8683 13.1005 10 13.4185 10 13.75Z" fill={c}/>
+  </svg>
+);
+
+const IcoSSO = ({ s = 20, c }) => (
+  <svg width={s} height={s} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M17.5 11.25C17.0098 11.2504 16.5307 11.3953 16.1225 11.6666L15.2733 11.2425C15.4865 10.3387 15.4637 9.39529 15.2071 8.50285C14.9506 7.61041 14.4689 6.79891 13.8084 6.14625C13.1479 5.49359 12.3307 5.02169 11.4352 4.77587C10.5398 4.53005 9.59618 4.51855 8.695 4.74248L8.195 3.84165C8.48975 3.37709 8.62302 2.82827 8.57415 2.28027C8.52528 1.73227 8.29701 1.2157 7.92472 0.810619C7.55243 0.40554 7.05691 0.134582 6.51497 0.0397447C5.97303 -0.0550922 5.41495 0.0314892 4.92722 0.286068C4.43949 0.540647 4.04936 0.949005 3.8173 1.44784C3.58524 1.94668 3.52422 2.50814 3.64368 3.04518C3.76315 3.58223 4.05644 4.06487 4.47808 4.41829C4.89973 4.77171 5.42618 4.97617 5.97584 4.99998L6.47584 5.89498C5.50164 6.72986 4.85598 7.88387 4.65417 9.1509C4.45236 10.4179 4.70756 11.7154 5.37417 12.8116L3.03334 15.0575C2.49609 14.94 1.9351 15.0029 1.43725 15.2365C0.939398 15.4702 0.532467 15.8614 0.279484 16.3497C0.026501 16.838 -0.0584166 17.3961 0.0378834 17.9375C0.134183 18.479 0.406327 18.9736 0.812164 19.3447C1.218 19.7158 1.73488 19.9427 2.28276 19.9904C2.83063 20.038 3.37892 19.9036 3.84271 19.6081C4.30649 19.3126 4.65989 18.8724 4.84817 18.3557C5.03645 17.839 5.04911 17.2746 4.88417 16.75L7.12834 14.595C8.23631 15.2895 9.55838 15.559 10.8498 15.3537C12.1412 15.1484 13.3145 14.4821 14.1525 13.4783L15.005 13.9041C15.0351 14.3911 15.207 14.8586 15.4996 15.2491C15.7921 15.6395 16.1926 15.9358 16.6515 16.1015C17.1104 16.2671 17.6077 16.2949 18.0822 16.1813C18.5567 16.0677 18.9876 15.8178 19.3218 15.4623C19.656 15.1068 19.8788 14.6613 19.9629 14.1807C20.0469 13.7001 19.9885 13.2054 19.7948 12.7576C19.6012 12.3098 19.2807 11.9284 18.8729 11.6605C18.4651 11.3926 17.9879 11.2499 17.5 11.25ZM10 12.9166C9.42314 12.9166 8.85923 12.7456 8.37959 12.4251C7.89995 12.1046 7.52611 11.6491 7.30536 11.1161C7.0846 10.5832 7.02684 9.99674 7.13938 9.43097C7.25192 8.86519 7.52971 8.34549 7.93761 7.93759C8.34551 7.52968 8.86521 7.2519 9.43099 7.13936C9.99677 7.02682 10.5832 7.08458 11.1162 7.30533C11.6491 7.52609 12.1046 7.89992 12.4251 8.37957C12.7456 8.85921 12.9167 9.42312 12.9167 9.99998C12.9167 10.7735 12.6094 11.5154 12.0624 12.0624C11.5154 12.6094 10.7736 12.9166 10 12.9166Z" fill={c}/></svg>
+);
+
+// Admin (CS back-office) — gear mark, same fill treatment as the other nav icons.
+const IcoAdmin = ({ s = 20, c }) => (
+  <svg width={s} height={s} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fillRule="evenodd" clipRule="evenodd" d="M7.25 3.25C7.25 2.00736 8.25736 1 9.5 1H10.5C11.7426 1 12.75 2.00736 12.75 3.25V3.36087L12.8284 3.28244C13.7071 2.40376 15.1317 2.40376 16.0104 3.28244L16.7175 3.98955C17.5962 4.86823 17.5962 6.29285 16.7175 7.17153L16.639 7.25H16.75C17.9926 7.25 19 8.25736 19 9.5V10.5C19 11.7426 17.9926 12.75 16.75 12.75H16.6391L16.7175 12.8284C17.5962 13.7071 17.5962 15.1317 16.7175 16.0104L16.0104 16.7175C15.1317 17.5962 13.7071 17.5962 12.8284 16.7175L12.75 16.6391V16.75C12.75 17.9926 11.7426 19 10.5 19H9.5C8.25736 19 7.25 17.9926 7.25 16.75V16.639L7.17157 16.7175C6.29289 17.5962 4.86827 17.5962 3.98959 16.7175L3.28248 16.0104C2.40381 15.1317 2.4038 13.7071 3.28248 12.8284L3.36087 12.75H3.25C2.00736 12.75 1 11.7426 1 10.5L1 9.5C1 8.25736 2.00736 7.25 3.25 7.25H3.3609L3.28249 7.17159C2.40381 6.29291 2.40381 4.86829 3.28249 3.98961L3.9896 3.2825C4.86828 2.40382 6.2929 2.40382 7.17158 3.2825L7.25 3.36092V3.25ZM10 7C8.34315 7 7 8.34315 7 10C7 11.6569 8.34315 13 10 13C11.6569 13 13 11.6569 13 10C13 8.34315 11.6569 7 10 7Z" fill={c} />
+  </svg>
+);
+
+const IcoAcademy = ({ s = 20, c }) => (
+  <svg width={s} height={s} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18.285 4.19668C18.2508 4.17668 12.2967 1.42836 12.2967 1.42836C10.8668 0.640903 9.13319 0.640903 7.70335 1.42836C7.70335 1.42836 1.75003 4.17668 1.71503 4.19668C0.120774 5.06454 -0.468094 7.06051 0.399758 8.65477C0.702375 9.21071 1.15909 9.66739 1.71503 9.97005C1.75003 9.99004 4.16671 11.1067 4.16671 11.1067V15.0459C4.16905 16.7426 5.27394 18.2408 6.89421 18.7442C7.90335 19.0357 8.94972 19.178 10 19.1667C11.0504 19.178 12.0967 19.0357 13.1059 18.7442C14.7261 18.2407 15.831 16.7425 15.8334 15.0459V11.1067L17.5 10.3383V16.25C17.5 16.9404 18.0596 17.5 18.75 17.5C19.4403 17.5 20 16.9404 20 16.25V7.05083C19.9669 5.82204 19.3797 4.73001 18.285 4.19668ZM13.3333 15.0458C13.3364 15.6413 12.9523 16.1698 12.385 16.3508C10.8226 16.77 9.17738 16.77 7.61499 16.3508C7.04765 16.1698 6.66363 15.6413 6.66667 15.0458V12.26L7.70335 12.7383C9.13269 13.5279 10.8673 13.5279 12.2967 12.7383L13.3334 12.26V15.0458H13.3333ZM17.0708 7.78333C17.0708 7.78333 11.13 10.525 11.0966 10.545C10.4167 10.9317 9.58327 10.9317 8.90331 10.545C8.86999 10.525 2.92913 7.78333 2.92913 7.78333C2.54253 7.5861 2.38902 7.11282 2.58624 6.72622C2.66152 6.57864 2.78155 6.45864 2.92913 6.38333C2.92913 6.38333 8.86995 3.64165 8.90331 3.62165C9.58327 3.23493 10.4167 3.23493 11.0966 3.62165C11.13 3.64165 17.0708 6.38333 17.0708 6.38333C17.4574 6.58055 17.6109 7.05383 17.4137 7.44044C17.3384 7.58805 17.2184 7.70805 17.0708 7.78333Z" fill={c}/>
+  </svg>
+);
+
+const IcoSupport = ({ s = 20, c }) => (
+  <svg width={s} height={s} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15.4167 0H4.58333C3.36823 0.00154355 2.20334 0.484925 1.34413 1.34413C0.484925 2.20334 0.00154355 3.36823 0 4.58333L0 12.0833C0.00154355 13.2984 0.484925 14.4633 1.34413 15.3225C2.20334 16.1817 3.36823 16.6651 4.58333 16.6667H5.78167L9.19833 19.5233C9.42319 19.7113 9.70694 19.8143 10 19.8143C10.2931 19.8143 10.5768 19.7113 10.8017 19.5233L14.2183 16.6667H15.4167C16.6318 16.6651 17.7967 16.1817 18.6559 15.3225C19.5151 14.4633 19.9985 13.2984 20 12.0833V4.58333C19.9985 3.36823 19.5151 2.20334 18.6559 1.34413C17.7967 0.484925 16.6318 0.00154355 15.4167 0ZM17.5 12.0833C17.5 12.6359 17.2805 13.1658 16.8898 13.5565C16.4991 13.9472 15.9692 14.1667 15.4167 14.1667H13.7642C13.471 14.1669 13.1873 14.2701 12.9625 14.4583L10 16.935L7.0375 14.4583C6.81275 14.2701 6.52899 14.1669 6.23583 14.1667H4.58333C4.0308 14.1667 3.5009 13.9472 3.11019 13.5565C2.71949 13.1658 2.5 12.6359 2.5 12.0833V4.58333C2.5 4.0308 2.71949 3.5009 3.11019 3.11019C3.5009 2.71949 4.0308 2.5 4.58333 2.5H15.4167C15.9692 2.5 16.4991 2.71949 16.8898 3.11019C17.2805 3.5009 17.5 4.0308 17.5 4.58333V12.0833Z" fill={c}/>
+    <path d="M6.25 7.5H8.75C9.08152 7.5 9.39946 7.3683 9.63388 7.13388C9.8683 6.89946 10 6.58152 10 6.25C10 5.91848 9.8683 5.60054 9.63388 5.36612C9.39946 5.1317 9.08152 5 8.75 5H6.25C5.91848 5 5.60054 5.1317 5.36612 5.36612C5.1317 5.60054 5 5.91848 5 6.25C5 6.58152 5.1317 6.89946 5.36612 7.13388C5.60054 7.3683 5.91848 7.5 6.25 7.5Z" fill={c}/>
+    <path d="M13.75 9.16669H6.25C5.91848 9.16669 5.60054 9.29838 5.36612 9.5328C5.1317 9.76722 5 10.0852 5 10.4167C5 10.7482 5.1317 11.0662 5.36612 11.3006C5.60054 11.535 5.91848 11.6667 6.25 11.6667H13.75C14.0815 11.6667 14.3995 11.535 14.6339 11.3006C14.8683 11.0662 15 10.7482 15 10.4167C15 10.0852 14.8683 9.76722 14.6339 9.5328C14.3995 9.29838 14.0815 9.16669 13.75 9.16669Z" fill={c}/>
+  </svg>
+);
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -81,12 +90,13 @@ const NAV_TABS_L1 = [
   {
     id: "contacts",
     label: "Contacts",
-    icon: <Ico.Users s={16} c="rgba(255,255,255,0.80)" />,
+    Icon: IcoContacts,
     // Set `disabled: true` on any item whose page isn't built yet — it renders
     // greyed with an "Unable" tag and is non-clickable. Omit the flag to enable it.
     subitems: [
       { id: "overview",    label: "Overview page",  link: "/overview",   disabled: true },
       { id: "contacts",    label: "Contacts",       link: "/contacts"   },
+      { id: "acquisition", label: "Acquisition",    link: "/acquisition"},
       { id: "structures",  label: "Structures",     link: "/structures", disabled: true },
       { id: "lists-v3",    label: "Lists V3",       link: "/lists-v3"   },
       { id: "consents-v3", label: "Consents V3",    link: "/consents-v3"},
@@ -96,32 +106,44 @@ const NAV_TABS_L1 = [
   {
     id: "campaigns",
     label: "Campaigns",
-    icon: <Ico.Campaigns s={16} c="rgba(255,255,255,0.80)" />,
+    Icon: IcoCampaigns,
     subitems: [
       { id: "performances-v3", label: "Performances V3",     link: "/performances-v3"},
+      { id: "sms",             label: "SMS Management",       link: "/sms"            },
     ],
   },
   {
     id: "ventes",
     label: "Sales",
-    icon: <Ico.Ticket s={16} c="rgba(255,255,255,0.80)" />,
-    subitems: [
-    ],
+    Icon: IcoSales,
+    subitems: [],
   },
   {
     id: "gestion",
     label: "B2B management",
-    icon: <Ico.Organization s={16} c="rgba(255,255,255,0.80)" />,
-    subitems: [
-    ],
+    Icon: IcoB2B,
+    subitems: [],
   },
   {
     id: "sso",
     label: "SSO",
-    icon: <Ico.SSO s={16} c="rgba(255,255,255,0.80)" />,
+    Icon: IcoSSO,
+    subitems: [],
+  },
+  {
+    // Back-office section — CS only, never shown to a client account.
+    id: "admin",
+    label: "Admin (CS)",
+    Icon: IcoAdmin,
     subitems: [
+      { id: "entity-merge", label: "Entity merge", link: "/admin/entity-merge" },
     ],
   },
+];
+
+const NAV_TABS_BOTTOM = [
+  { id: "academy", label: "Academy",   Icon: IcoAcademy,    link: "/academy",  disabled: true },
+  { id: "support", label: "Support", Icon: IcoSupport, link: "/support",  disabled: true },
 ];
 
 // ── SubItem ───────────────────────────────────────────────────────────────────
@@ -136,17 +158,16 @@ function SubItem({ label, isActive, onClick, link, disabled }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: `${DS.space1} ${DS.space2}`,
+          padding: "7px 12px",
           borderRadius: 6,
           fontSize: 14,
           fontWeight: 400,
           lineHeight: "18px",
-          color: NAV_TEXT_MUTED,
+          color: "#B6BAC2",
           width: "100%",
           textAlign: "left",
           fontFamily: DS.ff,
           cursor: "not-allowed",
-          opacity: 0.6,
         }}
       >
         <span>{label}</span>
@@ -155,9 +176,9 @@ function SubItem({ label, isActive, onClick, link, disabled }) {
           fontWeight: 600,
           letterSpacing: "0.04em",
           textTransform: "uppercase",
-          color: NAV_TEXT_MUTED,
-          background: "rgba(255,255,255,0.06)",
-          border: `1px solid ${NAV_BORDER}`,
+          color: "#B6BAC2",
+          background: "#F3F4F6",
+          border: `1px solid ${BORDER}`,
           borderRadius: 4,
           padding: "1px 5px",
         }}>
@@ -175,13 +196,13 @@ function SubItem({ label, isActive, onClick, link, disabled }) {
       style={{
         display: "flex",
         alignItems: "center",
-        padding: `${DS.space1} ${DS.space2}`,
+        padding: "7px 12px",
         borderRadius: 6,
         fontSize: 14,
-        fontWeight: isActive ? 500 : 400,
+        fontWeight: isActive ? 600 : 400,
         lineHeight: "18px",
-        color: isActive ? DS.white : hovered ? "rgba(255,255,255,0.80)" : NAV_TEXT_SECONDARY,
-        background: isActive ? NAV_ITEM_ACTIVE : hovered ? NAV_ITEM_HOVER : "transparent",
+        color: isActive ? ACCENT : hovered ? TEXT_MAIN : TEXT_SUB,
+        background: isActive ? SOFT_BG : hovered ? "#F5F6F8" : "transparent",
         border: "none",
         cursor: "pointer",
         width: "100%",
@@ -200,6 +221,10 @@ function SubItem({ label, isActive, onClick, link, disabled }) {
 
 function NavItem({ item, isOpen, onToggle, activeL2, onL2Click }) {
   const [hovered, setHovered] = useState(false);
+  const hasChildren = item.subitems && item.subitems.length > 0;
+  const Icon = item.Icon;
+  const iconColor = isOpen ? DS.white : ICON_REST;
+
   return (
     <div>
       <button
@@ -208,142 +233,169 @@ function NavItem({ item, isOpen, onToggle, activeL2, onL2Click }) {
         onMouseLeave={() => setHovered(false)}
         style={{
           width: "100%",
+          height: 44,
           display: "flex",
           alignItems: "center",
-          gap: DS.space2,
-          padding: `9px ${DS.space2}`,
-          borderRadius: DS.radiusCard,
-          background: isOpen ? NAV_ITEM_ACTIVE : hovered ? NAV_ITEM_HOVER : "transparent",
+          gap: 12,
+          padding: "0 12px",
+          borderRadius: 10,
+          background: isOpen ? ACCENT : hovered ? SOFT_BG : "transparent",
           border: "none",
           cursor: "pointer",
           transition: `background ${DS.durBase} ${DS.ease}`,
-          fontFamily: DS.ff,
+          fontFamily: DS.ffn,
         }}
       >
-        <span style={{
-          display: "flex",
-          alignItems: "center",
-          flexShrink: 0,
-          opacity: isOpen ? 1 : 0.60,
-          transition: `opacity ${DS.durBase} ${DS.ease}`,
-        }}>
-          {item.icon}
+        <span style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+          <Icon s={20} c={iconColor} />
         </span>
         <span style={{
           flex: 1,
-          fontSize: 14,
-          fontWeight: isOpen ? 600 : 400,
-          lineHeight: "20px",
-          color: isOpen ? DS.white : NAV_TEXT_SECONDARY,
+          fontSize: 16,
+          fontWeight: isOpen ? 600 : 600,
+          lineHeight: "24px",
+          color: isOpen ? DS.white : TEXT_MAIN,
           textAlign: "left",
           transition: `color ${DS.durBase} ${DS.ease}`,
-          fontFamily: DS.ff,
+          fontFamily: DS.ffn,
         }}>
           {item.label}
         </span>
-        <span style={{
-          display: "flex",
-          alignItems: "center",
-          color: isOpen ? "rgba(255,255,255,0.35)" : NAV_TEXT_MUTED,
-          transform: isOpen ? "rotate(90deg)" : "rotate(0deg)",
-          transition: `transform 200ms ${DS.ease}`,
-          flexShrink: 0,
-        }}>
-          <IconChevron />
-        </span>
+        {hasChildren && (
+          <span style={{
+            display: "flex",
+            alignItems: "center",
+            transform: isOpen ? "rotate(90deg)" : "rotate(0deg)",
+            transition: `transform 200ms ${DS.ease}`,
+            flexShrink: 0,
+          }}>
+            <IconChevron c={isOpen ? DS.white : "#B6BAC2"} />
+          </span>
+        )}
       </button>
 
-      {isOpen && (
-        <div style={{ position: "relative", padding: `${DS.space1} 0 ${DS.space1} 26px` }}>
-          {/* Vertical track line */}
-          <div style={{
-            position: "absolute",
-            left: 18,
-            top: 4,
-            bottom: 6,
-            width: 1,
-            background: NAV_BORDER,
-            borderRadius: 1,
-          }} />
-          <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            {item.subitems.map((subtab) => (
-              <SubItem
-                key={subtab.id}
-                label={subtab.label}
-                link={subtab.link}
-                disabled={subtab.disabled}
-                isActive={activeL2 === `${item.id}-${subtab.id}`}
-                onClick={() => onL2Click(`${item.id}-${subtab.id}`)}
-              />
-            ))}
-          </div>
+      {isOpen && hasChildren && (
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+          padding: "4px 0 4px 44px",
+        }}>
+          {item.subitems.map((subtab) => (
+            <SubItem
+              key={subtab.id}
+              label={subtab.label}
+              link={subtab.link}
+              disabled={subtab.disabled}
+              isActive={activeL2 === `${item.id}-${subtab.id}`}
+              onClick={() => onL2Click(`${item.id}-${subtab.id}`)}
+            />
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-// ── Footer ────────────────────────────────────────────────────────────────────
+// ── Bottom link (Academy / Support) ──────────────────────────────────────────
 
-function FooterUser() {
+function BottomLink({ item }) {
+  const [hovered, setHovered] = useState(false);
+  const Icon = item.Icon;
+  const content = (
+    <>
+      <span style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+        <Icon s={20} c={ICON_REST} />
+      </span>
+      <span style={{
+        flex: 1,
+        fontSize: 14,
+        fontWeight: 500,
+        lineHeight: "20px",
+        color: TEXT_MAIN,
+        textAlign: "left",
+        fontFamily: DS.ff,
+      }}>
+        {item.label}
+      </span>
+    </>
+  );
+  const style = {
+    width: "100%",
+    height: 44,
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    padding: "0 12px",
+    borderRadius: 10,
+    background: hovered ? SOFT_BG : "transparent",
+    border: "none",
+    cursor: item.disabled ? "not-allowed" : "pointer",
+    opacity: item.disabled ? 0.55 : 1,
+    textDecoration: "none",
+    fontFamily: DS.ff,
+    transition: `background ${DS.durFast} ${DS.ease}`,
+  };
+  if (item.disabled) {
+    return <div title="Page not available" style={style}>{content}</div>;
+  }
+  return (
+    <Link
+      to={item.link}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={style}
+    >
+      {content}
+    </Link>
+  );
+}
+
+// ── Footer: client card ───────────────────────────────────────────────────────
+
+function ClientCard() {
   const [hovered, setHovered] = useState(false);
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        padding: DS.space4,
         display: "flex",
         alignItems: "center",
-        gap: DS.space2,
+        gap: 12,
+        padding: "10px 12px",
+        borderRadius: 12,
+        border: `1px solid ${BORDER}`,
+        background: hovered ? "#FBFBFC" : DS.white,
         cursor: "pointer",
-        background: hovered ? NAV_ITEM_HOVER : "transparent",
         transition: `background ${DS.durFast} ${DS.ease}`,
       }}
     >
       <div style={{
-        width: 32,
-        height: 32,
-        borderRadius: "50%",
-        background: "rgba(255,255,255,0.10)",
-        border: `1px solid ${NAV_BORDER}`,
+        width: 38,
+        height: 38,
+        borderRadius: 8,
+        background: LOGO_INK,
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: 11,
-        fontWeight: 600,
-        lineHeight: "16px",
-        color: DS.white,
         flexShrink: 0,
-        letterSpacing: "0.5px",
+        color: DS.white,
+        lineHeight: "8px",
+      }}>
+        <span style={{ fontSize: 7, fontWeight: 700, letterSpacing: "0.5px" }}>PARIS</span>
+        <span style={{ fontSize: 7, fontWeight: 700, letterSpacing: "0.5px" }}>MUSÉES</span>
+      </div>
+      <span style={{
+        flex: 1,
+        fontSize: 14,
+        fontWeight: 600,
+        lineHeight: "18px",
+        color: TEXT_MAIN,
         fontFamily: DS.ff,
       }}>
-        MB
-      </div>
-      <div style={{ flex: 1 }}>
-        <p style={{
-          fontSize: 13,
-          fontWeight: 500,
-          lineHeight: "18px",
-          color: DS.white,
-          margin: 0,
-          fontFamily: DS.ff,
-        }}>
-          Maxence Bourguignon
-        </p>
-        <p style={{
-          fontSize: 11,
-          fontWeight: 400,
-          lineHeight: "16px",
-          color: NAV_TEXT_MUTED,
-          margin: 0,
-          fontFamily: DS.ff,
-        }}>
-          Arenametrix
-        </p>
-      </div>
-      <span style={{ color: NAV_TEXT_MUTED, display: "flex" }}>
-        <IconDots />
+        Nom du client
       </span>
     </div>
   );
@@ -353,113 +405,54 @@ function FooterUser() {
 
 function Sidebar() {
   const [openItem, setOpenItem] = useState("contacts");
-  const [activeL2, setActiveL2] = useState("contacts-overview");
-  const [search, setSearch] = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
+  const [activeL2, setActiveL2] = useState("contacts-contacts");
 
   const toggle = (id) => setOpenItem((prev) => (prev === id ? null : id));
 
   return (
     <aside style={{
-      width: 280,
-      minHeight: "100vh",
-      background: DS.navy,
-      borderRight: `1px solid ${NAV_BORDER}`,
+      // DS Organisms/Sidebar State=Open is 288 (and the "Contacts – Vue par
+      // défaut" mockup 2052:38175 places Main at x=288). Was 280.
+      width: 288,
+      height: "100%",
+      minHeight: "100%",
+      background: DS.white,
+      borderRadius: "0 24px 24px 0",
+      boxShadow: "6px 0 11px rgba(16,24,40,0.06), 16px 0 40px rgba(16,24,40,0.04)",
       display: "flex",
       flexDirection: "column",
       fontFamily: DS.ff,
+      overflow: "hidden",
     }}>
 
       {/* Logo */}
       <div style={{
-        padding: `${DS.space4} ${DS.space4}`,
+        padding: "20px 20px 16px",
         display: "flex",
         alignItems: "center",
-        gap: DS.space2,
-        borderBottom: `1px solid ${NAV_BORDER}`,
+        gap: 10,
+        borderBottom: `1px solid ${BORDER}`,
       }}>
-        <div style={{
-          width: 32,
-          height: 32,
-          borderRadius: DS.radiusCard,
-          background: "rgba(255,255,255,0.10)",
-          border: `1px solid ${NAV_BORDER}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}>
-          <IconLogo />
-        </div>
+        <IconLogo s={30} />
         <span style={{
-          fontSize: 15,
-          fontWeight: 600,
-          lineHeight: "22px",
-          color: DS.white,
-          letterSpacing: "-0.3px",
+          fontSize: 21,
+          fontWeight: 700,
+          lineHeight: "24px",
+          color: LOGO_INK,
+          letterSpacing: "-0.5px",
           fontFamily: DS.ff,
         }}>
-          Arenametrix
+          arenametrix
         </span>
-        <HomeButton />
-      </div>
-
-      {/* Search */}
-      <div style={{ padding: DS.space3, borderBottom: `1px solid ${NAV_BORDER}` }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: DS.space2,
-          background: searchFocused ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.07)",
-          border: `1px solid ${searchFocused ? "rgba(255,255,255,0.25)" : NAV_BORDER}`,
-          borderRadius: 7,
-          padding: `0 ${DS.space2}`,
-          height: 32,
-          transition: `background ${DS.durFast} ${DS.ease}, border ${DS.durFast} ${DS.ease}`,
-        }}>
-          <span style={{ flexShrink: 0, color: NAV_TEXT_MUTED, display: "flex" }}>
-            <IconSearch />
-          </span>
-          <input
-            type="text"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-            style={{
-              border: "none",
-              background: "transparent",
-              fontSize: 13,
-              lineHeight: "20px",
-              color: DS.white,
-              outline: "none",
-              width: "100%",
-              fontFamily: DS.ff,
-            }}
-          />
-          <span style={{
-            fontSize: 10,
-            color: NAV_TEXT_MUTED,
-            background: "rgba(255,255,255,0.06)",
-            border: `1px solid ${NAV_BORDER}`,
-            borderRadius: DS.radiusButton,
-            padding: "1px 5px",
-            flexShrink: 0,
-            fontFamily: DS.ff,
-          }}>
-            ⌘K
-          </span>
-        </div>
       </div>
 
       {/* Nav */}
       <nav style={{
         flex: 1,
-        padding: `${DS.space3} ${DS.space2}`,
+        padding: "16px 12px",
         display: "flex",
         flexDirection: "column",
-        gap: DS.space1,
+        gap: 4,
         overflowY: "auto",
       }}>
         {NAV_TABS_L1.map((item) => (
@@ -472,11 +465,19 @@ function Sidebar() {
             onL2Click={setActiveL2}
           />
         ))}
+
+        {/* Bottom group pinned under the scrollable nav */}
+        <div style={{ marginTop: "auto", paddingTop: 12, display: "flex", flexDirection: "column", gap: 4 }}>
+          {NAV_TABS_BOTTOM.map((item) => (
+            <BottomLink key={item.id} item={item} />
+          ))}
+        </div>
       </nav>
 
       {/* Footer */}
-      <div style={{ height: 1, flexShrink: 0, background: NAV_BORDER }} />
-      <FooterUser />
+      <div style={{ padding: "12px" }}>
+        <ClientCard />
+      </div>
     </aside>
   );
 }

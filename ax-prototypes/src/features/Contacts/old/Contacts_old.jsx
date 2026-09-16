@@ -39,7 +39,7 @@ const DATA_OBJECTS = [
   {
     id: "contact",
     label: "Contact",
-    color: DS.blue500,
+    color: DS.actionPrimary,
     bg: DS.blue100,
     fields: [
       { id: "firstName", label: "First name", type: "string" },
@@ -439,9 +439,9 @@ const Btn = ({
   };
 
   const variants = {
-    primary: { background: h ? DS.blue300 : DS.blue500, border: `1px solid ${h ? DS.blue300 : DS.blue500}`, color: DS.neutral0 },
-    secondary: { background: h ? DS.blue100 : DS.neutral0, border: `1px solid ${h ? DS.blue300 : DS.blue500}`, color: h ? DS.blue500 : DS.neutral900 },
-    tertiary: { background: h ? DS.blue100 : "transparent", border: "1px solid transparent", color: h ? DS.blue500 : DS.neutral900 },
+    primary: { background: h ? DS.blue300 : DS.actionPrimary, border: `1px solid ${h ? DS.blue300 : DS.actionPrimary}`, color: DS.neutral0 },
+    secondary: { background: h ? DS.blue100 : DS.neutral0, border: `1px solid ${h ? DS.blue300 : DS.actionPrimary}`, color: h ? DS.actionPrimary : DS.neutral900 },
+    tertiary: { background: h ? DS.blue100 : "transparent", border: "1px solid transparent", color: h ? DS.actionPrimary : DS.neutral900 },
   };
 
   return (
@@ -462,8 +462,8 @@ const IconBtn = ({
   const dim = size === "sm" ? 28 : 40;
 
   const variants = {
-    primary: { background: h ? DS.blue300 : DS.blue500, border: `1px solid ${h ? DS.blue300 : DS.blue500}` },
-    secondary: { background: h ? DS.blue100 : DS.neutral0, border: `1px solid ${h ? DS.blue300 : DS.blue500}` },
+    primary: { background: h ? DS.blue300 : DS.actionPrimary, border: `1px solid ${h ? DS.blue300 : DS.actionPrimary}` },
+    secondary: { background: h ? DS.blue100 : DS.neutral0, border: `1px solid ${h ? DS.blue300 : DS.actionPrimary}` },
     tertiary: { background: h ? DS.blue100 : "transparent", border: "1px solid transparent" },
   };
 
@@ -498,7 +498,7 @@ const LogicPill = ({ value, onChange }) => {
           <button key={opt} onClick={() => onChange(opt)}
             style={{
               padding: "0 10px", height: "100%", border: "none",
-              background: active ? DS.blue500 : "transparent",
+              background: active ? DS.actionPrimary : "transparent",
               color: active ? DS.neutral0 : DS.neutral500,
               fontSize: 10, fontWeight: 700, fontFamily: DS.ff, cursor: "pointer",
               letterSpacing: "0.06em", transition: "all .15s",
@@ -518,8 +518,8 @@ const PagBtn = ({ children, onClick, disabled, active }) => {
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{
         width: 30, height: 30, borderRadius: 4,
-        border: `1px solid ${active ? DS.blue500 : DS.neutral200}`,
-        background: active ? DS.blue500 : hovered ? DS.neutral100 : DS.neutral0,
+        border: `1px solid ${active ? DS.actionPrimary : DS.neutral200}`,
+        background: active ? DS.actionPrimary : hovered ? DS.neutral100 : DS.neutral0,
         color: active ? DS.neutral0 : DS.neutral900,
         fontSize: 12, fontWeight: active ? 600 : 400, fontFamily: DS.ff,
         cursor: disabled ? "not-allowed" : "pointer",
@@ -564,7 +564,7 @@ const dropdownListStyle = {
 
 const DropdownItem = ({ label, isSelected, onClick }) => (
   <div onClick={onClick}
-    style={{ padding: "8px 12px", cursor: "pointer", fontSize: 13, fontFamily: DS.ff, transition: "background .1s", color: isSelected ? DS.blue500 : DS.neutralBlack, background: isSelected ? DS.blue100 : "transparent" }}
+    style={{ padding: "8px 12px", cursor: "pointer", fontSize: 13, fontFamily: DS.ff, transition: "background .1s", color: isSelected ? DS.actionPrimary : DS.neutralBlack, background: isSelected ? DS.blue100 : "transparent" }}
     onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = DS.neutral100; }}
     onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = isSelected ? DS.blue100 : "transparent"; }}>
     {label}
@@ -601,7 +601,7 @@ const FieldPickerPanel = ({ value, onChange, onQuick }) => {
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '0 12px', height: 40, minWidth: 210, borderRadius: 4,
-          border: `1px solid ${open ? DS.blue500 : currentObj ? currentObj.color + '50' : DS.neutral200}`,
+          border: `1px solid ${open ? DS.actionPrimary : currentObj ? currentObj.color + '50' : DS.neutral200}`,
           background: currentObj ? currentObj.bg : DS.neutral100,
           cursor: 'pointer', fontFamily: DS.ff, fontSize: 14,
           color: currentField ? currentObj.color : DS.neutral500,
@@ -613,7 +613,7 @@ const FieldPickerPanel = ({ value, onChange, onQuick }) => {
         <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {currentField ? currentField.label : 'Choose a field…'}
         </span>
-        <Ico.ChevD s={13} c={open ? DS.blue500 : (currentField ? currentObj.color : DS.neutral500)} />
+        <Ico.ChevD s={13} c={open ? DS.actionPrimary : (currentField ? currentObj.color : DS.neutral500)} />
       </button>
 
       {/* ── Portal panel ───────────────────────────────────────────────────── */}
@@ -713,14 +713,14 @@ const FieldPickerPanel = ({ value, onChange, onQuick }) => {
                         onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = DS.neutral100; }}
                         onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}
                       >
-                        <span style={{ fontSize: 13, fontFamily: DS.ff, color: isSel ? DS.blue500 : DS.neutralBlack, fontWeight: isSel ? 500 : 400 }}>
+                        <span style={{ fontSize: 13, fontFamily: DS.ff, color: isSel ? DS.actionPrimary : DS.neutralBlack, fontWeight: isSel ? 500 : 400 }}>
                           {f.label}
                         </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ fontSize: 10, color: DS.neutral500, padding: '1px 5px', borderRadius: 3, background: DS.neutral100, fontFamily: DS.ff }}>
                             {FIELD_TYPE_TAG[f.type]}
                           </span>
-                          {isSel && <Ico.Check s={12} c={DS.blue500} />}
+                          {isSel && <Ico.Check s={12} c={DS.actionPrimary} />}
                         </div>
                       </div>
                     );
@@ -774,7 +774,7 @@ const FieldPickerPanel = ({ value, onChange, onQuick }) => {
                     <div style={{ minWidth: 0 }}>
                       <div style={{
                         fontSize: 13, fontWeight: 500, lineHeight: '18px',
-                        color: isHov ? DS.blue500 : DS.neutralBlack,
+                        color: isHov ? DS.actionPrimary : DS.neutralBlack,
                         fontFamily: DS.ff,
                         transition: 'color .1s',
                       }}>
@@ -792,7 +792,7 @@ const FieldPickerPanel = ({ value, onChange, onQuick }) => {
                       width="12" height="12" viewBox="0 0 16 16" fill="none"
                       style={{ flexShrink: 0, opacity: isHov ? 0.6 : 0.25, transition: 'opacity .1s' }}
                     >
-                      <path d="M6 4l4 4-4 4" stroke={isHov ? DS.blue500 : DS.neutralBlack} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M6 4l4 4-4 4" stroke={isHov ? DS.actionPrimary : DS.neutralBlack} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                 );
@@ -816,12 +816,12 @@ const OpPicker = ({ ops, value, onChange }) => {
         style={{
           display: "flex", alignItems: "center", gap: 6,
           padding: "0 12px", height: 40, minWidth: 170, borderRadius: 4,
-          border: `1px solid ${open ? DS.blue500 : DS.neutral200}`,
+          border: `1px solid ${open ? DS.actionPrimary : DS.neutral200}`,
           background: DS.neutral100, cursor: "pointer", fontFamily: DS.ff, fontSize: 14,
           color: DS.neutralBlack, transition: "border-color .15s",
         }}>
         <span style={{ flex: 1, textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selected?.l ?? "—"}</span>
-        <Ico.ChevD s={13} c={open ? DS.blue500 : DS.neutral500} />
+        <Ico.ChevD s={13} c={open ? DS.actionPrimary : DS.neutral500} />
       </button>
 
       <PortalDropdown triggerRef={triggerRef} open={open} minWidth={210}>
@@ -849,9 +849,9 @@ const ValInput = ({ field, value, onChange }) => {
     return (
       <div style={{ position: "relative", flexShrink: 0 }}>
         <button ref={triggerRef} onClick={() => setOpen((o) => !o)}
-          style={{ display: "flex", alignItems: "center", gap: 6, ...inputBase, border: `1px solid ${open ? DS.blue500 : DS.neutral200}`, color: value ? DS.neutralBlack : DS.neutral500, cursor: "pointer" }}>
+          style={{ display: "flex", alignItems: "center", gap: 6, ...inputBase, border: `1px solid ${open ? DS.actionPrimary : DS.neutral200}`, color: value ? DS.neutralBlack : DS.neutral500, cursor: "pointer" }}>
           <span style={{ flex: 1, textAlign: "left" }}>{value || "Choose…"}</span>
-          <Ico.ChevD s={13} c={open ? DS.blue500 : DS.neutral500} />
+          <Ico.ChevD s={13} c={open ? DS.actionPrimary : DS.neutral500} />
         </button>
         <PortalDropdown triggerRef={triggerRef} open={open} minWidth={160}>
           <div ref={dropdownRef} style={{ ...dropdownListStyle, minWidth: 160 }}>
@@ -868,7 +868,7 @@ const ValInput = ({ field, value, onChange }) => {
     return (
       <input type="date" value={value} onChange={(e) => onChange(e.target.value)}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        style={{ ...inputBase, border: `1px solid ${focused ? DS.blue500 : DS.neutral200}`, background: DS.neutral0 }} />
+        style={{ ...inputBase, border: `1px solid ${focused ? DS.actionPrimary : DS.neutral200}`, background: DS.neutral0 }} />
     );
   }
 
@@ -876,7 +876,7 @@ const ValInput = ({ field, value, onChange }) => {
     <input value={value} onChange={(e) => onChange(e.target.value)}
       placeholder={field.type === "number" ? "0" : "Value…"}
       onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-      style={{ ...inputBase, border: `1px solid ${focused ? DS.blue500 : DS.neutral200}`, background: DS.neutral0 }} />
+      style={{ ...inputBase, border: `1px solid ${focused ? DS.actionPrimary : DS.neutral200}`, background: DS.neutral0 }} />
   );
 };
 
@@ -923,7 +923,7 @@ const FilterBlock = ({ block, idx, topLogic, onTopLogicChange, onPatchBlock, onR
       <div style={{ border: `1px solid ${DS.neutral200}`, borderRadius: 8, background: DS.neutral0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 8px", borderRadius: "4px 4px 0 0" }}>
           <div style={{ width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: DS.blue500, fontFamily: DS.ff }}>{idx + 1}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: DS.actionPrimary, fontFamily: DS.ff }}>{idx + 1}</span>
           </div>
           <span style={{ fontSize: 12, fontWeight: 600, color: DS.neutral900, fontFamily: DS.ff }}>Block {idx + 1}</span>
           <div style={{ marginLeft: "auto" }}>
@@ -945,7 +945,7 @@ const FilterBlock = ({ block, idx, topLogic, onTopLogicChange, onPatchBlock, onR
                 onRemove={() => removeFilter(filter.id)} />
             </div>
           ))}
-          <Btn size="sm" variant="tertiary" label="Add a filter" iconLeft={<Ico.Plus s={12} c={DS.blue500} />} onClick={addFilter} />
+          <Btn size="sm" variant="tertiary" label="Add a filter" iconLeft={<Ico.Plus s={12} c={DS.actionPrimary} />} onClick={addFilter} />
         </div>
       </div>
     </div>
@@ -976,9 +976,9 @@ const ContactsTable = ({ data, selected, onToggle, onToggleAll, onContactClick, 
           <tr style={{ background: DS.blue100 }}>
             <th style={{ width: 44, padding: "0 12px", height: 44, borderBottom: `1px solid ${DS.neutral200}`, textAlign: "center" }}>
               <div onClick={onToggleAll}
-                style={{ width: 16, height: 16, borderRadius: 4, margin: "0 auto", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${allSelected || someSelected ? DS.blue500 : DS.neutral500}`, background: allSelected ? DS.blue500 : DS.neutral0 }}>
+                style={{ width: 16, height: 16, borderRadius: 4, margin: "0 auto", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${allSelected || someSelected ? DS.actionPrimary : DS.neutral500}`, background: allSelected ? DS.actionPrimary : DS.neutral0 }}>
                 {allSelected && <Ico.Check s={10} c={DS.neutral0} />}
-                {someSelected && <div style={{ width: 8, height: 2, background: DS.blue500, borderRadius: 1 }} />}
+                {someSelected && <div style={{ width: 8, height: 2, background: DS.actionPrimary, borderRadius: 1 }} />}
               </div>
             </th>
             {COLUMNS.map((col) => (
@@ -1012,7 +1012,7 @@ const ContactsTable = ({ data, selected, onToggle, onToggleAll, onContactClick, 
                 onMouseLeave={(e) => { e.currentTarget.style.background = rowBase; }}>
                 <td style={{ padding: "0 12px", height: 40, borderBottom: `0.5px solid ${DS.neutral200}`, borderRight: `1px solid ${DS.neutral200}`, textAlign: "center" }}>
                   <div onClick={() => onToggle(contact.id)}
-                    style={{ width: 16, height: 16, borderRadius: 4, margin: "0 auto", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${isSel ? DS.blue500 : DS.neutral500}`, background: isSel ? DS.blue500 : DS.neutral0 }}>
+                    style={{ width: 16, height: 16, borderRadius: 4, margin: "0 auto", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${isSel ? DS.actionPrimary : DS.neutral500}`, background: isSel ? DS.actionPrimary : DS.neutral0 }}>
                     {isSel && <Ico.Check s={10} c={DS.neutral0} />}
                   </div>
                 </td>
@@ -1023,7 +1023,7 @@ const ContactsTable = ({ data, selected, onToggle, onToggleAll, onContactClick, 
                 ))}
                 <td style={{ padding: "0 12px", height: 40, borderBottom: `0.5px solid ${DS.neutral200}`, textAlign: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <IconBtn variant="secondary" size="sm" icon={<Ico.Eye s={14} c={DS.blue500} />} onClick={() => onContactClick(contact)} title="View profile" />
+                    <IconBtn variant="secondary" size="sm" icon={<Ico.Eye s={14} c={DS.actionPrimary} />} onClick={() => onContactClick(contact)} title="View profile" />
                   </div>
                 </td>
               </tr>
@@ -1041,7 +1041,7 @@ const ContactsTable = ({ data, selected, onToggle, onToggleAll, onContactClick, 
 const SearchField = ({ value, onChange }) => {
   const [focused, setFocused] = useState(false);
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 40, width: 180, borderRadius: 4, background: DS.neutral100, transition: "border-color .15s", border: `1px solid ${focused ? DS.blue500 : DS.neutral200}` }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 40, width: 180, borderRadius: 4, background: DS.neutral100, transition: "border-color .15s", border: `1px solid ${focused ? DS.actionPrimary : DS.neutral200}` }}>
       <Ico.Search s={14} c={DS.neutral500} />
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder="Quick search…"
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
@@ -1076,7 +1076,7 @@ const OptionsMenu = ({ disabled = false }) => {
     <div ref={ref} style={{ position: "relative" }}>
       <Btn onClick={() => { if (!disabled) setOpen(o => !o); }} disabled={disabled} variant="secondary" iconLeft={<Ico.Dots />} label="Options" />
       {open && (
-        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 9999, background: DS.neutral0, border: `1px solid ${DS.blue500}`, borderRadius: 4, padding: 5, display: "flex", flexDirection: "column", minWidth: 200 }}>
+        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 9999, background: DS.neutral0, border: `1px solid ${DS.actionPrimary}`, borderRadius: 4, padding: 5, display: "flex", flexDirection: "column", minWidth: 200 }}>
           {items.map((item, i) => (
             <div key={i} onClick={() => setOpen(false)}
               style={{ display: "flex", alignItems: "center", gap: 15, padding: "0 10px", height: 32, borderRadius: 4, cursor: "pointer" }}
@@ -1119,7 +1119,7 @@ const CreateContactSidebar = ({ open, onClose }) => {
       <span style={{ fontSize: 14, fontWeight: 400, lineHeight: "20px", color: DS.neutral500, fontFamily: DS.ff }}>{label}</span>
       <input type={type} value={form[fKey]} onChange={(e) => patch(fKey, e.target.value)}
         style={{ height: 40, padding: "4px 12px", borderRadius: 4, width: "100%", boxSizing: "border-box", border: `1px solid ${DS.neutral200}`, background: DS.neutral100, fontFamily: DS.ff, fontSize: 14, color: DS.neutral900, outline: "none", transition: "border-color .15s" }}
-        onFocus={(e) => { e.target.style.borderColor = DS.blue500; }}
+        onFocus={(e) => { e.target.style.borderColor = DS.actionPrimary; }}
         onBlur={(e) => { e.target.style.borderColor = DS.neutral200; }} />
     </div>
   );
@@ -1246,7 +1246,7 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
       <div style={{ backgroundColor: DS.neutral0, borderBottom: `1px solid ${DS.neutral200}`, padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: DS.blue100, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Ico.User s={18} c={DS.blue500} />
+            <Ico.User s={18} c={DS.actionPrimary} />
           </div>
           <div>
             <h1 style={{ margin: 0, fontSize: 16, fontWeight: 600, lineHeight: "22px", color: DS.neutral900, fontFamily: DS.ff }}>Contacts</h1>
@@ -1261,8 +1261,8 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
             disabled={builderOpen}
             onClick={() => setBuilderOpen(true)}
           />
-          {/* <IconBtn variant="secondary" icon={<Ico.AIicon c={DS.blue500} />} /> */}
-          <Btn variant="secondary" iconLeft={<Ico.Plus c={DS.blue500} />} label="Add a contact" onClick={() => setShowCreateSidebar(true)} />
+          {/* <IconBtn variant="secondary" icon={<Ico.AIicon c={DS.actionPrimary} />} /> */}
+          <Btn variant="secondary" iconLeft={<Ico.Plus c={DS.actionPrimary} />} label="Add a contact" onClick={() => setShowCreateSidebar(true)} />
         </div>
       </div>
 
@@ -1292,7 +1292,7 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
 
                   <div style={{ display: "flex", alignItems: "center", padding: "8px 32px", borderTop: `0.5px solid ${DS.neutral200}`, background: DS.neutral100, gap: 8, borderRadius: "0 0 4px 4px" }}>
                     <Btn variant="primary" iconLeft={<Ico.List c={DS.neutral0} />} label="Create a list" />
-                    <Btn variant="tertiary" iconLeft={<Ico.Plus s={13} c={DS.blue500} />} label="Add a filter block" onClick={addBlock} />
+                    <Btn variant="tertiary" iconLeft={<Ico.Plus s={13} c={DS.actionPrimary} />} label="Add a filter block" onClick={addBlock} />
                     <div style={{ flex: 1 }} />
                     <Btn variant="tertiary" label="Cancel" disabled={!isDirty} onClick={() => { handleCancel(); setBuilderOpen(false); }} />
                     <Btn variant="secondary" label="Search" disabled={!isDirty} onClick={() => { handleApply(); setBuilderOpen(false); }} />
@@ -1304,13 +1304,13 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
               <div style={{ margin: "12px 24px 0", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 14, fontWeight: 400, lineHeight: "20px", color: DS.neutral900, fontFamily: DS.ff }}>
-                    <strong style={{ color: DS.blue500 }}>{sorted.length}</strong>&nbsp;contact{sorted.length !== 1 ? "s" : ""}
+                    <strong style={{ color: DS.actionPrimary }}>{sorted.length}</strong>&nbsp;contact{sorted.length !== 1 ? "s" : ""}
                   </span>
                   {applied && (
                     <span style={{ padding: "2px 8px", borderRadius: 999, backgroundColor: DS.greenLight, color: DS.green600, fontSize: 11, fontWeight: 500 }}>Segmented</span>
                   )}
                   {selected.size > 0 && (
-                    <span style={{ padding: "2px 8px", borderRadius: 999, backgroundColor: DS.blue200, color: DS.blue500, fontSize: 11, fontWeight: 500 }}>
+                    <span style={{ padding: "2px 8px", borderRadius: 999, backgroundColor: DS.blue200, color: DS.actionPrimary, fontSize: 11, fontWeight: 500 }}>
                       {selected.size} selected
                     </span>
                   )}

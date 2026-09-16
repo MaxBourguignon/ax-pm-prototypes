@@ -8,7 +8,7 @@ import Field from '../../components/Field';
 
 /* =====================================================================
    Arenametrix — Consent Management Page
-   Tokens: AX Design System (NEW) — Figma NUOoC3GC7mB4U1AydRKIoy
+   Tokens: AX DESIGN SYSTEM — Figma nIMtO7v8dDamI8b2vnMcRc
    Rules: inline style only, DS/TY constants, Ico SVG pattern.
    ===================================================================== */
 
@@ -16,7 +16,7 @@ import Field from '../../components/Field';
 // DATA
 // ─────────────────────────────────────────────────────────────────────
 const CONSENT_COLORS = {
-  'newsletter-public': DS.blue500,
+  'newsletter-public': DS.actionPrimary,
   'newsletter-vip':    DS.purple,
   'activites':         DS.orange,
   'sms':               DS.feedbackError,

@@ -17,9 +17,9 @@ import { DS, TY } from '../../utils/designSystem';
 import Ico from '../../utils/icons';
 import { Btn } from '../../components/Btn';
 import { IconBtn } from '../../components/Iconbtn';
-import { Field } from '../../components/Field';
+import { Field, TextArea } from '../../components/Field';
 import Select from '../../components/Select';
-import Banner from '../../components/Banner';
+import BannerTable, { BannerIdentity } from '../../components/BannerTable';
 import ActionMenu from '../../components/ActionMenu';
 import Modal from '../../components/Modal';
 import KpiCard from '../../components/Kpi';
@@ -31,7 +31,7 @@ import StatePreview from '../../components/StatePreview';
 import PageHeader from '../../components/PageHeader';
 import { EmptyState, ErrorState, ConfirmDialog } from '../../components/Feedback';
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
+  ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
   PieChart, Pie, Cell, AreaChart, Area, Legend,
 } from 'recharts';
 
@@ -39,10 +39,31 @@ let _uid = 100;
 const uid = () => String(_uid++);
 
 /* Spacing scale — consistent rhythm across the page */
-const SP = { page: 24, section: 20, card: 16, gap: 16, tight: 12 };
+const SP = { page: 32, section: 20, card: 16, gap: 16, tight: 12 };
 /* Soft SaaS card elevation + radius */
 const SHADOW = '0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06)';
 const CARD = { padding: SP.card, boxShadow: SHADOW, borderRadius: 12 };
+
+/* Canonical text tiers — one system for every card header & category label on the page.
+ *  · title   — card heading
+ *  · sub     — one-line description under a title
+ *  · eyebrow — small uppercase category/column label (stat cards, table headers) */
+const LBL = {
+  title:   { ...TY.h4, fontFamily: DS.ff, color: DS.textDefault },
+  sub:     { ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary },
+  eyebrow: { ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' },
+};
+function CardHead({ title, sub, right }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: SP.tight, marginBottom: SP.card }}>
+      <div style={{ minWidth: 0 }}>
+        <div style={LBL.title}>{title}</div>
+        {sub && <div style={{ ...LBL.sub, marginTop: 2 }}>{sub}</div>}
+      </div>
+      {right}
+    </div>
+  );
+}
 
 /* ── Reference "now" for the prototype (today) ───────────────────────────── */
 const NOW = new Date('2026-06-10');
@@ -56,8 +77,15 @@ const CH = {
   Manual:   { label: 'Manual',   color: DS.neutralLGrey,  icon: (s, c) => <Ico.Edit s={s} c={c} /> },
 };
 const ONLINE = ['Email', 'SMS', 'WhatsApp', 'Wallet'];
-/* Monochrome blue scale — used ONLY where charts must separate channel series */
-const CHART = { Email: DS.blue600, SMS: DS.blue500, WhatsApp: DS.blue300, Wallet: DS.blue200 };
+/* Distinct per-channel accent (Channel performance donut + Campaigns list).
+ * All values are DS palette tokens. */
+const CHANNEL_TEXT = {
+  Email:    DS.actionPrimary, // blue
+  SMS:      DS.coral,         // light rose / red
+  WhatsApp: DS.greenBrand,    // green
+  Wallet:   DS.purple600,     // purple
+  Manual:   DS.textSecondary, // neutral / offline
+};
 
 /* Per-channel funnel stage config — adapts to each channel's tracking fidelity.
  * `def` supplies a value when the metric isn't tracked per-campaign (e.g. Email delivery). */
@@ -85,6 +113,9 @@ const TRIGGER_ACTIONS = {
 
 /* ── Mock data — 20 campaigns (10 Email · 4 SMS · 2 WhatsApp · 1 Wallet · 3 Manual) ── */
 const RULE_DEFAULT = { trigger: 'Opened', range: 5 };
+/* Representative per-recipient send cost by channel (prototype) — drives ROI/ROAS.
+ * Manual campaigns carry a real, explicitly-logged cost instead. */
+const COST_PER_RECIPIENT = { Email: 0.012, SMS: 0.045, WhatsApp: 0.038, Wallet: 0.02, Manual: 0 };
 function d(s) { return new Date(s); }
 const CAMPAIGNS_SEED = [
   // ── Email ×10 ──
@@ -132,7 +163,12 @@ const CAMPAIGNS_SEED = [
     conv: null, revenue: 3100, openDelta: null, subject: 'Campagne affichage 4x3', segment: 'Hors base', sendTime: '—', isManual: true, cost: 5400 },
   { id: 'M-03', name: 'Encart presse locale', channel: 'Manual', date: d('2026-03-15'), recipients: 0,
     conv: null, revenue: 0, openDelta: null, subject: 'Demi-page quotidien régional', segment: 'Hors base', sendTime: '—', isManual: true, cost: 1800 },
-].map((c) => ({ isManual: false, cost: null, rule: { ...RULE_DEFAULT }, editableOnline: ['description'], ...c }));
+].map((c) => {
+  const base = { isManual: false, cost: null, rule: { ...RULE_DEFAULT }, editableOnline: ['description'], ...c };
+  // Derive a send cost for online channels when not explicitly provided (Manual carries its real, logged cost).
+  if (base.cost == null && !base.isManual) base.cost = Math.round((base.recipients || 0) * (COST_PER_RECIPIENT[base.channel] || 0));
+  return base;
+});
 
 /* ── Daily sales series (~90 days) — general sales trend, with a spike + a flat stretch ── */
 function buildDailySales() {
@@ -151,11 +187,13 @@ const DAILY_SALES = buildDailySales();
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 const nf = new Intl.NumberFormat('fr-FR');
 const eur = (n) => n == null ? '—' : nf.format(Math.round(n)) + ' €';
-const pct = (n) => n == null ? '—' : `${n.toFixed(1)} %`;
+const pct = (n, d = 1) => n == null ? '—' : `${n.toFixed(d).replace('.', ',')} %`;
 const fmtDate = (dt) => `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${String(dt.getFullYear()).slice(2)}`;
 const mdLabel = (dt) => `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}`;
 const daysAgo = (dt) => Math.round((NOW - dt) / 86400000);
 const metricValue = (c, m) => ({ open: c.open, click: c.click, delivery: c.delivery, read: c.read, install: c.install, views: c.views, conv: c.conv }[m]);
+const trunc = (s, n = 32) => (s && s.length > n ? s.slice(0, n) + '…' : s);
+const median = (arr) => { if (!arr.length) return 0; const s = [...arr].sort((a, b) => a - b); const m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 
 const RANGE_PRESETS = [
   { value: 7, label: 'Last 7 days' },
@@ -165,15 +203,83 @@ const RANGE_PRESETS = [
   { value: 365, label: 'Last 12 months' },
 ];
 
-/* ── Delta pill ──────────────────────────────────────────────────────────── */
-function Delta({ value, size = 'b3' }) {
+/* Per-channel funnel benchmarks ("norm") — what a healthy rate looks like for each stage. */
+const BENCHMARKS = {
+  Email:    { delivery: 99, open: 30, click: 6, conv: 1.8 },
+  SMS:      { delivery: 98, click: 9, conv: 5 },
+  WhatsApp: { delivery: 97, read: 72, click: 18, conv: 8 },
+  Wallet:   { install: 60, conv: 1.8 },
+};
+
+/* ── Peer / market benchmarks — "clients of the same type" (sector + size bucket).
+ * Prototype values: peer median (p50) and top-quartile (p75) across similar Arenametrix
+ * clients. Drives the Analysis tab's market-comparison block & benchmark recommendations. */
+const MARKET = {
+  convRate:   { med: 2.4, p75: 4.0 },    // overall conversion rate (%)
+  revPerSend: { med: 0.50, p75: 0.85 },  // attributed revenue per recipient (€)
+  channelConv: {                         // per-channel conversion rate (%)
+    Email:    { med: 1.8, p75: 3.2 },
+    SMS:      { med: 5.0, p75: 7.5 },
+    WhatsApp: { med: 8.0, p75: 12.0 },
+    Wallet:   { med: 1.8, p75: 3.0 },
+  },
+  revPerContact: {                       // per-channel attributed revenue per contact (€), peer median
+    Email: 1.10, SMS: 2.50, WhatsApp: 4.50, Wallet: 0.60,
+  },
+};
+
+/* ── Buyer-profile model — who actually converts, by channel ───────────────────
+ * Drives the Analysis tab's "Typical buyer" block. We have no per-purchase identity
+ * in the prototype, so each online channel carries a representative demographic skew
+ * of its converters (age / gender / location). The block aggregates these across the
+ * filtered campaigns, weighted by each campaign's estimated converters, so the profile
+ * shifts as the channel/period filters change. Offline (Manual) campaigns carry no
+ * individual identity and are excluded. Each distribution sums to 100. */
+const AGE_BANDS = ['18–24', '25–34', '35–44', '45–54', '55–64', '65+'];
+const GENDERS = ['Female', 'Male', 'Other'];
+const LOCATIONS = ['Local', 'Regional', 'National'];
+/* Customer relationship tier — first purchase ever, repeat buyer, or a promoter
+ * (high-frequency / high-value advocate). */
+const TIERS = ['First-time buyer', 'Regular buyer', 'Promoter'];
+const PROFILE = {
+  Email:    { age: [5, 12, 18, 24, 23, 18], gender: [58, 40, 2], loc: [46, 34, 20], tier: [22, 58, 20] },
+  SMS:      { age: [12, 24, 26, 20, 12, 6],  gender: [55, 43, 2], loc: [58, 30, 12], tier: [30, 52, 18] },
+  WhatsApp: { age: [18, 30, 24, 15, 9, 4],   gender: [52, 46, 2], loc: [50, 32, 18], tier: [18, 50, 32] },
+  Wallet:   { age: [8, 20, 24, 22, 16, 10],  gender: [60, 38, 2], loc: [68, 24, 8],  tier: [10, 55, 35] },
+};
+
+/* ── Products / events purchased after a campaign — drives the drawer's Stats pie.
+ * No per-order line items in the prototype, so each campaign's attributed revenue is
+ * split across a representative product mix, deterministically derived from its id
+ * (stable across renders). */
+const PRODUCT_CATS = [
+  { key: 'Tickets',       color: DS.actionPrimary },
+  { key: 'Subscriptions', color: DS.teal500 },
+  { key: 'Memberships',   color: DS.purple600 },
+  { key: 'Workshops',     color: DS.orange500 },
+  { key: 'Shop',          color: DS.amber600 },
+];
+function productMix(campaign) {
+  const rev = campaign.revenue || 0;
+  if (rev <= 0) return [];
+  const seed = Number(String(campaign.id).replace(/\D/g, '')) || 1;
+  const weights = PRODUCT_CATS.map((_, i) => ((seed * (i + 3)) % 7) + 1);
+  const tot = weights.reduce((a, b) => a + b, 0);
+  return PRODUCT_CATS
+    .map((c, i) => ({ name: c.key, color: c.color, value: Math.round((weights[i] / tot) * rev) }))
+    .filter((p) => p.value > 0)
+    .sort((a, b) => b.value - a.value);
+}
+
+/* ── Delta tag — canonical "vs market/period" indicator. Plain colored text,
+ * ▲/▼ glyph, green up / red down. ─────────────────────────────────────────────── */
+function DeltaTag({ value }) {
   if (value == null) return null;
   const up = value >= 0;
-  const color = value === 0 ? DS.textSecondary : up ? DS.feedbackSuccess : DS.feedbackError;
-  const Tr = value === 0 ? Ico.TrendFlat : up ? Ico.TrendUp : Ico.TrendDown;
+  const color = up ? DS.feedbackSuccess : DS.feedbackError;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color, ...TY[size], fontFamily: DS.ff, fontWeight: 600 }}>
-      <Tr s={14} c={color} />{up && value !== 0 ? '+' : ''}{value.toFixed(1)}%
+    <span style={{ ...TY.b3, fontFamily: DS.ff, color, fontWeight: 600, whiteSpace: 'nowrap' }}>
+      {`${up ? '▲' : '▼'} ${Math.abs(Math.round(value))} %`}
     </span>
   );
 }
@@ -191,18 +297,21 @@ function ChannelTag({ channel }) {
 }
 
 /* ════════════════════════════════ TABS ═══════════════════════════════════ */
-function TabBar({ tabs, active, onChange }) {
+function TabBar({ tabs, active, onChange, tone = 'default' }) {
+  const onGradient = tone === 'gradient';
+  const activeColor = onGradient ? '#FFFFFF' : DS.actionPrimary;
+  const idleColor = onGradient ? 'rgba(255,255,255,0.72)' : DS.navText;
   return (
-    <div style={{ display: 'flex', gap: 24, borderBottom: `1px solid ${DS.borderDefault}` }}>
+    <div style={{ display: 'flex', gap: 24, borderBottom: `1px solid ${onGradient ? 'rgba(255,255,255,0.28)' : DS.borderDefault}` }}>
       {tabs.map((t) => {
         const on = t.value === active;
         return (
           <button key={t.value} type="button" onClick={() => onChange(t.value)}
             style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
                      padding: '0 2px 12px', fontFamily: DS.ff, ...TY.b1, fontWeight: 500,
-                     color: on ? DS.actionPrimary : DS.navText, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            {t.icon}{t.label}
-            {on && <span style={{ position: 'absolute', left: 0, right: 0, bottom: -1, height: 4, borderRadius: '4px 4px 0 0', background: DS.navActiveTab }} />}
+                     color: on ? activeColor : idleColor, display: 'inline-flex', alignItems: 'center' }}>
+            {t.label}
+            {on && <span style={{ position: 'absolute', left: 0, right: 0, bottom: -1, height: 4, borderRadius: '4px 4px 0 0', background: onGradient ? '#FFFFFF' : DS.navActiveTab }} />}
           </button>
         );
       })}
@@ -213,13 +322,7 @@ function TabBar({ tabs, active, onChange }) {
 function ChartFrame({ title, sub, right, children, height = 260 }) {
   return (
     <Card style={CARD}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: SP.tight, gap: SP.tight }}>
-        <div>
-          <div style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault }}>{title}</div>
-          {sub && <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 2 }}>{sub}</div>}
-        </div>
-        {right}
-      </div>
+      <CardHead title={title} sub={sub} right={right} />
       <div style={{ width: '100%', height }}>{children}</div>
     </Card>
   );
@@ -230,18 +333,13 @@ function ChannelFunnel({ channel, onChannel, stages, loading }) {
   const BOX_H = 72;
   return (
     <Card style={CARD}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SP.card, gap: SP.tight, flexWrap: 'wrap' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, ...TY.h4, fontFamily: DS.ff, color: DS.textDefault }}>
-          {CH[channel].icon(18, DS.actionPrimary)} {CH[channel].label} funnel summary
-        </div>
-        <div style={{ width: 200 }}>
-          <Select value={channel} onChange={onChannel} options={ONLINE.map((c) => ({ value: c, label: CH[c].label }))} />
-        </div>
-      </div>
+      <CardHead title="Channel funnel" sub="Stage conversion vs benchmark — for the selected channel"
+                right={<div style={{ width: 200 }}>
+                  <Select value={channel} onChange={onChannel} options={ONLINE.map((c) => ({ value: c, label: CH[c].label }))} />
+                </div>} />
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: SP.gap }}>
         {stages.map((st) => {
           const noData = !loading && (st.value == null || st.value === 0);
-          const dColor = st.delta == null ? DS.textSecondary : st.delta >= 0 ? DS.feedbackSuccess : DS.feedbackError;
           const fillH = st.value != null ? Math.max(4, Math.min(100, st.value)) : 0;
           return (
             <div key={st.k} style={{ flex: 1, minWidth: 0 }}>
@@ -251,16 +349,12 @@ function ChannelFunnel({ channel, onChannel, stages, loading }) {
                 : (
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '3px 0 8px' }}>
                     <span style={{ ...TY.h4, fontFamily: DS.ff, color: noData ? DS.textSecondary : DS.textDefault }}>
-                      {st.value == null ? '0.00' : st.value.toFixed(2)}%
+                      {pct(st.value ?? 0, 2)}
                     </span>
-                    {st.delta != null && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, ...TY.b3, fontFamily: DS.ff, color: dColor, fontWeight: 600 }}>
-                        {st.delta >= 0 ? '▲' : '▼'} {Math.abs(st.delta).toFixed(2)}%
-                      </span>
-                    )}
+                    <DeltaTag value={st.delta} plain />
                   </div>
                 )}
-              {/* fill box — height proportional to the rate; "no activity" when empty */}
+              {/* fill box — height proportional to the rate; "no activity" when empty. Dashed line = benchmark. */}
               <div style={{ height: BOX_H, background: DS.bgSurface, border: `1px solid ${DS.borderDefault}`, borderRadius: 10,
                             position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {loading
@@ -269,7 +363,18 @@ function ChannelFunnel({ channel, onChannel, stages, loading }) {
                     ? <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textPlaceholder }}>no activity</span>
                     : <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: `${fillH}%`,
                                     background: DS.actionPrimary, borderRadius: fillH >= 99 ? 8 : '4px 4px 8px 8px' }} />}
+                {!loading && !noData && st.bench != null && (
+                  <div title={`Benchmark ${pct(st.bench)}`} style={{ position: 'absolute', left: 0, right: 0,
+                              bottom: `${Math.min(100, st.bench)}%`, height: 0, borderTop: `2px dashed ${DS.textSecondary}`, opacity: 0.5 }} />
+                )}
               </div>
+              {!loading && !noData && st.bench != null && (
+                <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
+                  <span style={{ fontWeight: 600, color: st.value >= st.bench ? DS.feedbackSuccess : DS.feedbackError }}>
+                    · {st.value >= st.bench ? 'above' : 'below'}
+                  </span>
+                </div>
+              )}
             </div>
           );
         })}
@@ -278,70 +383,12 @@ function ChannelFunnel({ channel, onChannel, stages, loading }) {
   );
 }
 
-/* ── Attributed revenue by channel (donut) ───────────────────────────────── */
-function ChannelDonut({ composition, total }) {
-  return (
-    <ChartFrame title="Attributed revenue by channel" sub="Selected période" height={240}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: SP.gap, height: '100%' }}>
-        <div style={{ width: 168, height: '100%', position: 'relative' }}>
-          <ResponsiveContainer>
-            <PieChart>
-              <Pie data={composition} dataKey="revenue" nameKey="channel" innerRadius={50} outerRadius={76} paddingAngle={2} stroke="none">
-                {composition.map((e) => <Cell key={e.channel} fill={CHART[e.channel]} />)}
-              </Pie>
-              <RTooltip formatter={(v, n) => [eur(v), n]} contentStyle={{ borderRadius: 8, border: `1px solid ${DS.borderDefault}`, fontFamily: DS.ff, fontSize: 12 }} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-            <span style={{ ...TY.b3, color: DS.textSecondary, fontFamily: DS.ff }}>Total</span>
-            <span style={{ ...TY.h5, color: DS.textDefault, fontFamily: DS.ff }}>{eur(total)}</span>
-          </div>
-        </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {composition.map((e) => (
-            <div key={e.channel} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 3, background: CHART[e.channel], flexShrink: 0 }} />
-              <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault, flex: 1 }}>{e.channel}</span>
-              <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault, fontWeight: 600 }}>{eur(e.revenue)}</span>
-              <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, width: 46, textAlign: 'right' }}>
-                {e.share > 0 && e.share < 0.5 ? '~0%' : `${e.share.toFixed(0)}%`}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </ChartFrame>
-  );
-}
-
-/* ── Revenue over time (revenue only, stacked by channel) ────────────────── */
-function RevenueOverTime({ buckets }) {
-  return (
-    <ChartFrame title="Revenue over time" sub="Attributed revenue · selected période" height={240}>
-      <ResponsiveContainer>
-        <BarChart data={buckets} margin={{ top: 6, right: 8, left: 8, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={DS.borderDefault} vertical={false} />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: DS.textSecondary, fontFamily: DS.ff }} tickLine={false} axisLine={{ stroke: DS.borderDefault }} />
-          <YAxis tick={{ fontSize: 11, fill: DS.textSecondary, fontFamily: DS.ff }} tickLine={false} axisLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
-          <RTooltip formatter={(v, n) => [eur(v), n]} contentStyle={{ borderRadius: 8, border: `1px solid ${DS.borderDefault}`, fontFamily: DS.ff, fontSize: 12 }} />
-          <Legend wrapperStyle={{ fontFamily: DS.ff, fontSize: 12 }} />
-          {ONLINE.map((ch) => <Bar key={ch} dataKey={ch} name={ch} stackId="s" fill={CHART[ch]} maxBarSize={26} radius={[2, 2, 0, 0]} />)}
-        </BarChart>
-      </ResponsiveContainer>
-    </ChartFrame>
-  );
-}
-
 /* ════ Tab 2 — Conversions generated vs. total sales + campaign sends ══════ */
-function ConversionsVsSales({ series, markers, periode }) {
+function ConversionsVsSales({ series, markers, periode, onMarker }) {
+  const [hovered, setHovered] = React.useState(null);
   return (
     <Card style={CARD}>
-      <div style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-        Conversions generated vs. total sales
-      </div>
-      <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, margin: '2px 0 12px' }}>
-        Cumulative over the selected période — campaign sends marked on the timeline below
-      </div>
+      <CardHead title="Conversions generated vs. total sales" sub="Cumulative over the selected period — campaign sends marked on the timeline below" />
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
           <AreaChart data={series} margin={{ top: 6, right: 10, left: 8, bottom: 0 }}>
@@ -376,13 +423,31 @@ function ConversionsVsSales({ series, markers, periode }) {
           <div style={{ position: 'absolute', left: 0, right: 0, top: 18, height: 1, background: DS.borderDefault }} />
           {markers.map((m) => {
             const left = Math.min(99, Math.max(0, ((periode - daysAgo(m.date)) / periode) * 100));
+            const on = hovered === m.id;
             return (
-              <div key={m.id} title={`${m.name} · ${m.channel} · ${eur(m.revenue)}`}
-                   style={{ position: 'absolute', left: `${left}%`, top: 6, transform: 'translateX(-50%)' }}>
+              <div key={m.id} role={onMarker ? 'button' : undefined} onClick={() => onMarker && onMarker(m)}
+                   onMouseEnter={() => setHovered(m.id)} onMouseLeave={() => setHovered(null)}
+                   style={{ position: 'absolute', left: `${left}%`, top: 6, transform: 'translateX(-50%)', cursor: onMarker ? 'pointer' : 'default', zIndex: on ? 60 : 1 }}>
                 <span style={{ width: 26, height: 26, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                               background: DS.bgCard, border: `1.5px solid ${CH[m.channel].color}` }}>
-                  <Ico.Campaigns s={14} c={CH[m.channel].color} />
+                               background: on ? CH[m.channel].color : DS.bgCard, border: `1.5px solid ${CH[m.channel].color}` }}>
+                  <Ico.Campaigns s={14} c={on ? DS.textInverse : CH[m.channel].color} />
                 </span>
+                {on && (
+                  <div style={{ position: 'absolute', bottom: 34, left: '50%', transform: 'translateX(-50%)', width: 220, textAlign: 'left',
+                                background: DS.bgCard, border: `1px solid ${DS.borderDefault}`, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.16)', padding: 12 }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6, ...TY.b3, fontFamily: DS.ff, color: DS.textDefault }}>
+                      {CH[m.channel].icon(14, CHANNEL_TEXT[m.channel] || CH[m.channel].color)}{CH[m.channel].label}
+                    </div>
+                    <div style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault, fontWeight: 600, lineHeight: 1.3,
+                                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{m.name}</div>
+                    <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, margin: '2px 0 8px' }}>Sent {fmtDate(m.date)}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, ...TY.b3, fontFamily: DS.ff }}>
+                      <span style={{ color: DS.textSecondary }}>Contacts</span>
+                      <span style={{ color: DS.textDefault, fontWeight: 600 }}>{m.recipients ? nf.format(m.recipients) : '—'}</span>
+                    </div>
+                    {onMarker && <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.actionPrimary, marginTop: 8 }}>Click to open detail</div>}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -393,61 +458,172 @@ function ConversionsVsSales({ series, markers, periode }) {
 }
 
 /* ── Campaign detail drawer (Modal variant="panel") ──────────────────────── */
-function DetailRow({ label, value }) {
+/* Read-only field — borderless list item: small label above, value below. */
+function InfoField({ label, value, last }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: `1px solid ${DS.borderDefault}` }}>
-      <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>{label}</span>
-      <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault, fontWeight: 500, textAlign: 'right' }}>{value}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '12px 0',
+                  borderBottom: last ? 'none' : `1px solid ${DS.borderDefault}` }}>
+      <span style={{ fontFamily: DS.ff, ...TY.b3, color: DS.textSecondary }}>{label}</span>
+      <span style={{ fontFamily: DS.ff, ...TY.b1, color: DS.textDefault, fontWeight: 500 }}>{value}</span>
     </div>
   );
 }
-function CampaignDrawer({ campaign, rule, onClose }) {
+/* Stats KPI mini-card — eyebrow label + value (compact). */
+function StatCard({ label, value }) {
+  return (
+    <div style={{ background: DS.bgSurface, border: `1px solid ${DS.borderDefault}`, borderRadius: 8, padding: '8px 10px' }}>
+      <div style={{ ...LBL.eyebrow }}>{label}</div>
+      <div style={{ ...TY.h5, fontFamily: DS.ff, color: DS.textDefault, marginTop: 3 }}>{value}</div>
+    </div>
+  );
+}
+/* Funnel stage as a labelled progress bar — value right-aligned, fill ∝ rate. */
+function FunnelBar({ label, value }) {
+  const known = value != null;
+  const w = known ? Math.max(2, Math.min(100, value)) : 0;
+  return (
+    <div style={{ padding: '9px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
+        <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>{label}</span>
+        <span style={{ ...TY.b2, fontFamily: DS.ff, color: known ? DS.textDefault : DS.textPlaceholder, fontWeight: 700 }}>{known ? pct(value) : 'Not tracked'}</span>
+      </div>
+      <div style={{ height: 8, background: DS.bgSurface, borderRadius: 999, overflow: 'hidden' }}>
+        <div style={{ width: `${w}%`, height: '100%', borderRadius: 999, background: DS.actionPrimary }} />
+      </div>
+    </div>
+  );
+}
+function CampaignDrawer({ campaign, onClose, onToast }) {
+  const [tab, setTab] = React.useState('info');
+  const [editing, setEditing] = React.useState(false);
+  const [desc, setDesc] = React.useState('');
+  const campaignId = campaign && campaign.id;
+  // Reset tab + edit mode + description when a different campaign opens (keyed by id).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  React.useEffect(() => { setTab('info'); setEditing(false); setDesc((campaign && campaign.description) || ''); }, [campaignId]);
   if (!campaign) return null;
   const meta = CH[campaign.channel];
-  const appliedRule = rule || campaign.rule;
   const offline = campaign.isManual;
-  const kpis = offline
-    ? [['Reach', nf.format(campaign.recipients)], ['Attributed revenue', eur(campaign.revenue)], ['Cost', eur(campaign.cost)]]
-    : [['Recipients', nf.format(campaign.recipients)], ['Conversion', pct(campaign.conv)], ['Attributed revenue', eur(campaign.revenue)]];
   const stages = offline ? [] : (FUNNEL[campaign.channel] || []);
+  const products = productMix(campaign);
+  const toast = (m) => onToast && onToast(m);
+  const revPerContact = campaign.recipients ? campaign.revenue / campaign.recipients : null;
+  const resetDesc = () => setDesc(campaign.description || '');
+  const handleClose = () => { setEditing(false); resetDesc(); onClose(); };
+
+  const infoRows = [
+    { label: 'Campaign', value: campaign.name },
+    { label: 'Campaign ID', value: `#${campaign.id}` },
+    { label: 'Channel', value: `${meta.label}${offline ? ' · offline' : ''}` },
+    { label: 'Subject', value: campaign.subject },
+    { label: 'Segment', value: campaign.segment },
+    { label: 'Sent on', value: `${fmtDate(campaign.date)} · ${campaign.sendTime}` },
+    { label: 'Recipients', value: campaign.recipients ? nf.format(campaign.recipients) : '—' },
+    { label: 'Send cost', value: campaign.cost != null ? eur(campaign.cost) : '—' },
+  ];
+
+  const statCards = [
+    { label: 'Revenue generated', value: eur(campaign.revenue) },
+    { label: 'Revenue / contact', value: revPerContact != null ? eurCents(revPerContact) : '—' },
+    { label: 'Conversion rate', value: offline ? 'n/a' : pct(campaign.conv) },
+    { label: 'Recipients', value: campaign.recipients ? nf.format(campaign.recipients) : '—' },
+  ];
+
   return (
-    <Modal open onClose={onClose} variant="panel" width={420} title="Campaign detail">
+    <Modal open onClose={handleClose} variant="panel" width={520} title="Campaign detail"
+           headerContent={
+             <TabBar active={tab} onChange={setTab} tone="gradient" tabs={[
+               { value: 'info',  label: 'Information' },
+               { value: 'stats', label: 'Stats' },
+             ]} />
+           }
+           footer={
+             editing ? (
+               <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+                 <Btn type="Secondary" onClick={() => { resetDesc(); setEditing(false); }}>Cancel</Btn>
+                 <Btn type="Primary" iconLeft={<Ico.Check s={16} />}
+                      onClick={() => { setEditing(false); toast('Description saved (prototype)'); }}>Save</Btn>
+               </div>
+             ) : (
+               <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+                 <Btn type="Secondary" iconLeft={<Ico.Edit s={16} />} onClick={() => { setTab('info'); setEditing(true); }}>Edit</Btn>
+                 <Btn type="Primary" onClick={handleClose}>Close</Btn>
+               </div>
+             )
+           }>
       <div style={{ padding: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>{meta.icon(20, meta.color)}<ChannelTag channel={campaign.channel} /></div>
-        <div style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault, marginBottom: 2 }}>{campaign.name}</div>
-        <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginBottom: 18 }}>#{campaign.id} · {fmtDate(campaign.date)} · {campaign.sendTime}</div>
-
-        <div style={{ ...TY.h5, fontFamily: DS.ff, color: DS.textDefault, marginBottom: 6 }}>Dedicated KPIs</div>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
-          {kpis.map(([l, v]) => (
-            <div key={l} style={{ flex: 1, background: DS.bgSurface, border: `1px solid ${DS.borderDefault}`, borderRadius: 10, padding: 12 }}>
-              <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>{l}</div>
-              <div style={{ ...TY.h5, fontFamily: DS.ff, color: DS.actionPrimary, marginTop: 4 }}>{v}</div>
-            </div>
-          ))}
+        {/* Quick actions — top of the page, across both tabs */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 16 }}>
+          <IconBtn icon={<Ico.Form s={16} />} type="Secondary" size="Small" aria-label="Open campaign template"
+                   onClick={() => toast('Opening campaign template (prototype)')} />
+          <IconBtn icon={<Ico.Export s={16} />} type="Secondary" size="Small" aria-label="Open report in another tool"
+                   onClick={() => toast('Opening report in external analytics tool (prototype)')} />
         </div>
-
-        {!offline && (
+        {tab === 'info' ? (
+          /* ── Tab 1 — everything about the campaign, as a borderless field list ── */
+          <div>
+            {infoRows.map((r) => <InfoField key={r.label} label={r.label} value={r.value} />)}
+            {editing ? (
+              <div style={{ paddingTop: 16 }}>
+                <TextArea label="Description" value={desc} onChange={(e) => setDesc(e.target.value)}
+                          placeholder="Add a description for this campaign…" rows={3} />
+              </div>
+            ) : (
+              <InfoField label="Description" value={desc || 'No description'} last />
+            )}
+          </div>
+        ) : (
+          /* ── Tab 2 — Stats: KPIs + funnel + products/events purchased ── */
           <>
-            <div style={{ ...TY.h5, fontFamily: DS.ff, color: DS.textDefault, marginBottom: 2 }}>Funnel</div>
-            {stages.map((s) => {
-              const v = s.k === 'conv' ? campaign.conv : (metricValue(campaign, s.k) ?? s.def);
-              return <DetailRow key={s.k} label={s.label} value={v == null ? 'Not tracked' : pct(v)} />;
-            })}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
+              {statCards.map((s) => <StatCard key={s.label} label={s.label} value={s.value} />)}
+            </div>
+
+            {offline ? (
+              <div style={{ background: DS.feedbackInfoBg, border: `1px solid ${DS.feedbackInfo}`, borderRadius: 10, padding: 12,
+                            ...TY.b3, fontFamily: DS.ff, color: DS.feedbackInfo, display: 'flex', gap: 8 }}>
+                <Ico.Info s={16} c={DS.feedbackInfo} /> Offline campaign — engagement is not tracked. Revenue counts toward the total; rates are excluded from averages.
+              </div>
+            ) : (
+              <>
+                <div style={{ ...TY.h5, fontFamily: DS.ff, color: DS.textDefault, marginBottom: 4 }}>Funnel</div>
+                {stages.map((s) => {
+                  const v = s.k === 'conv' ? campaign.conv : (metricValue(campaign, s.k) ?? s.def);
+                  return <FunnelBar key={s.k} label={s.label} value={v == null ? null : v} />;
+                })}
+              </>
+            )}
+
+            <div style={{ ...TY.h5, fontFamily: DS.ff, color: DS.textDefault, margin: '24px 0 2px' }}>Products & events purchased</div>
+            <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginBottom: 14 }}>Attributed revenue split by what buyers purchased</div>
+            {products.length === 0 ? (
+              <div style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>No attributed purchases for this campaign.</div>
+            ) : (
+              <div style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ width: 160, height: 160, flexShrink: 0 }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie data={products} dataKey="value" nameKey="name" innerRadius={44} outerRadius={70} paddingAngle={2} stroke="none"
+                           label={pieLabel} labelLine={false}>
+                        {products.map((p) => <Cell key={p.name} fill={p.color} />)}
+                      </Pie>
+                      <RTooltip formatter={(v, n) => [eur(v), n]} contentStyle={{ borderRadius: 8, border: `1px solid ${DS.borderDefault}`, fontFamily: DS.ff, fontSize: 12 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{ flex: 1, minWidth: 180, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {products.map((p) => (
+                    <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ flexShrink: 0, width: 10, height: 10, borderRadius: 3, background: p.color }} />
+                      <span style={{ flex: 1, ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }}>{p.name}</span>
+                      <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault, fontWeight: 700 }}>{eur(p.value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
-        {offline && (
-          <div style={{ background: DS.feedbackInfoBg, border: `1px solid ${DS.feedbackInfo}`, borderRadius: 10, padding: 12, marginBottom: 18,
-                        ...TY.b3, fontFamily: DS.ff, color: DS.feedbackInfo, display: 'flex', gap: 8 }}>
-            <Ico.Info s={16} c={DS.feedbackInfo} /> Offline campaign — engagement is not tracked. Revenue counts toward the total; rates are excluded from averages.
-          </div>
-        )}
-
-        <div style={{ ...TY.h5, fontFamily: DS.ff, color: DS.textDefault, margin: '18px 0 2px' }}>Campaign info</div>
-        <DetailRow label="Subject" value={campaign.subject} />
-        <DetailRow label="Segment" value={campaign.segment} />
-        <DetailRow label="Send time" value={campaign.sendTime} />
-        {!offline && <DetailRow label="Conversion rule" value={`${appliedRule.trigger} · within ${appliedRule.range}d`} />}
       </div>
     </Modal>
   );
@@ -510,7 +686,7 @@ function ConversionRulesDialog({ open, onClose, rules, onSave, isAdmin }) {
       footer={<div style={{ display: 'flex', gap: 8, marginLeft: 'auto', alignItems: 'center' }}>
                 {!isAdmin && <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginRight: 'auto' }}>Read-only — admin access required to edit.</span>}
                 <Btn type="Tertiary" onClick={onClose}>Close</Btn>
-                <Btn type="Primary" disabled={!isAdmin} onClick={() => { onSave(draft); onClose(); }} iconLeft={<Ico.Refresh s={16} />}>Save &amp; recompute</Btn>
+                <Btn type="Primary" disabled={!isAdmin} onClick={() => { onSave(draft); onClose(); }} iconLeft={<Ico.Refresh s={16} />}>Save</Btn>
               </div>}>
       <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: SP.section }}>
         {!isAdmin && (
@@ -559,57 +735,371 @@ function ConversionRulesDialog({ open, onClose, rules, onSave, isAdmin }) {
   );
 }
 
-/* ── Shared picker trigger (used by both the quick filter and the range picker) ── */
-function PickerTrigger({ icon, label, onClick }) {
+/* ── Range label helper (presets + custom "since" fallback) ──────────────── */
+function rangeLabel(value) {
+  const current = RANGE_PRESETS.find((p) => p.value === value);
+  return current ? current.label : `Last ${value} days`;
+}
+
+/* ── Filter dialog — manage channel + date range together ─────────────────── */
+function FilterDialog({ open, onClose, channel, periode, onApply }) {
+  const [draftChannel, setDraftChannel] = React.useState(channel);
+  const [draftPeriode, setDraftPeriode] = React.useState(periode);
+  const [since, setSince] = React.useState('');
+  React.useEffect(() => { if (open) { setDraftChannel(channel); setDraftPeriode(periode); setSince(''); } }, [open, channel, periode]);
+
+  const channelOpts = [{ value: 'all', label: 'All channels' }, ...['Email', 'SMS', 'WhatsApp', 'Wallet', 'Manual'].map((c) => ({ value: c, label: CH[c].label }))];
+  const applySince = (v) => { setSince(v); if (v) setDraftPeriode(Math.max(1, daysAgo(new Date(v)))); };
+
   return (
-    <Btn type="Secondary" iconLeft={icon} iconRight={<Ico.ChevDown s={16} />} onClick={onClick}>
-      {label}
-    </Btn>
+    <Modal open={open} onClose={onClose} variant="center" width={540} title="Filter"
+      footer={<div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+                <Btn type="Tertiary" onClick={onClose}>Cancel</Btn>
+                <Btn type="Primary" iconLeft={<Ico.Filter s={16} />} onClick={() => { onApply(draftChannel, draftPeriode); onClose(); }}>Apply filters</Btn>
+              </div>}>
+      <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: SP.section }}>
+        <FormField label="Channel" hint="Limit the analysis to a single channel, or show all.">
+          <Select width="100%" value={draftChannel} options={channelOpts} onChange={setDraftChannel} />
+        </FormField>
+
+        <FormField label="Date range" hint="Period analysed across every chart and the campaign list.">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {RANGE_PRESETS.map((p) => {
+              const on = !since && p.value === draftPeriode;
+              return (
+                <button key={p.value} type="button" onClick={() => { setSince(''); setDraftPeriode(p.value); }}
+                  style={{ cursor: 'pointer', padding: '8px 14px', borderRadius: 8, fontFamily: DS.ff, ...TY.b2,
+                           border: `1px solid ${on ? DS.actionPrimary : DS.borderDefault}`,
+                           background: on ? DS.blue100 : DS.bgCard, color: on ? DS.actionPrimary : DS.textDefault, fontWeight: on ? 600 : 400 }}>
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+        </FormField>
+
+        <FormField label="Since a specific date" hint="Analyse everything from a chosen start date up to today.">
+          <Field type="date" value={since} onChange={(e) => applySince(e.target.value)} />
+        </FormField>
+      </div>
+    </Modal>
   );
 }
 
-/* ── Range picker — calendar trigger + presets + "since a date" ──────────── */
-function RangePicker({ value, onChange }) {
-  const [open, setOpen] = React.useState(false);
-  const [since, setSince] = React.useState('');
-  const ref = React.useRef(null);
-  React.useEffect(() => {
-    const f = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', f);
-    return () => document.removeEventListener('mousedown', f);
-  }, []);
-  const current = RANGE_PRESETS.find((p) => p.value === value);
-  const label = current ? current.label : `Last ${value} days`;
-  const applySince = () => { if (since) { onChange(Math.max(1, daysAgo(new Date(since)))); setOpen(false); } };
+/* ── Recommendations — AI-style auto-generated, prioritized takeaways ─────────── */
+const INSIGHT_TONE = {
+  positive: { bg: DS.feedbackSuccessBg, bd: DS.feedbackSuccess, fg: DS.feedbackSuccess, tag: 'Opportunity', icon: (s, c) => <Ico.TrendUp s={s} c={c} /> },
+  warning:  { bg: DS.feedbackWarningBg, bd: DS.feedbackWarning, fg: DS.feedbackWarning, tag: 'Watch-out',  icon: (s, c) => <Ico.Warn s={s} c={c} /> },
+  neutral:  { bg: DS.bgSurface,         bd: DS.borderDefault,   fg: DS.actionPrimary,   tag: 'Insight',    icon: (s, c) => <Ico.Chart s={s} c={c} /> },
+};
+/* ── Recommendations — a simple list of prioritized takeaways, each with an action ── */
+function ActionRecommendations({ items }) {
+  if (!items.length) return null;
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <PickerTrigger icon={<Ico.Calendar s={16} c={DS.textSecondary} />} label={label} open={open} minWidth={210} onClick={() => setOpen((o) => !o)} />
-      {open && (
-        <div style={{ position: 'absolute', top: 46, right: 0, zIndex: 50, width: 250, background: DS.bgCard,
-                      border: `1px solid ${DS.borderDefault}`, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.14)', padding: 6 }}>
-          {RANGE_PRESETS.map((p) => {
-            const on = p.value === value;
-            return (
-              <div key={p.value} role="button" onClick={() => { onChange(p.value); setOpen(false); }}
-                   onMouseEnter={(e) => (e.currentTarget.style.background = on ? DS.blue100 : DS.actionSecondaryHover)}
-                   onMouseLeave={(e) => (e.currentTarget.style.background = on ? DS.blue100 : 'transparent')}
-                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 6,
-                            cursor: 'pointer', ...TY.b2, fontFamily: DS.ff, color: on ? DS.actionPrimary : DS.textDefault,
-                            fontWeight: on ? 600 : 400, background: on ? DS.blue100 : 'transparent' }}>
-                {p.label}{on && <Ico.Check s={16} c={DS.actionPrimary} />}
+    <Card style={{ ...CARD, flex: 1, minWidth: 340 }}>
+      <CardHead title="Recommendations" sub="Prioritized actions from your data" />
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {items.map((it, i) => {
+          const t = INSIGHT_TONE[it.tone] || INSIGHT_TONE.neutral;
+          return (
+            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 0', borderTop: i === 0 ? 'none' : `1px solid ${DS.borderDefault}` }}>
+              <span style={{ flexShrink: 0, width: 7, height: 7, borderRadius: '50%', background: t.fg, marginTop: 7 }} />
+              <span style={{ flex: 1, minWidth: 0, ...TY.b2, fontFamily: DS.ff, color: DS.textDefault, lineHeight: 1.45 }}>
+                {it.text}
+                {it.cta && (
+                  <button type="button" onClick={it.cta.onClick}
+                          style={{ marginLeft: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                                   ...TY.b2, fontFamily: DS.ff, color: DS.actionPrimary, fontWeight: 600 }}>
+                    {it.cta.label} →
+                  </button>
+                )}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+/* Donut slice label — percentage, drawn inside the ring; hidden for tiny slices. */
+const PIE_RAD = Math.PI / 180;
+function pieLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }) {
+  if (percent < 0.06) return null;
+  const r = innerRadius + (outerRadius - innerRadius) / 2;
+  const x = cx + r * Math.cos(-midAngle * PIE_RAD);
+  const y = cy + r * Math.sin(-midAngle * PIE_RAD);
+  return <text x={x} y={y} fill={DS.textInverse} fontSize={11} fontWeight={600} fontFamily={DS.ff} textAnchor="middle" dominantBaseline="central">{pct(percent * 100, 0)}</text>;
+}
+
+/* ── Channel performance — revenue split (donut) + detailed table, one card ──── */
+function ChannelPerformance({ rows, total, onSelect }) {
+  const pick = (ch) => { if (onSelect && rows.find((r) => r.channel === ch && r.revenue > 0)) onSelect(ch); };
+  const GRID = '1.5fr 1.2fr 0.8fr 1fr 0.9fr';
+  const head = (t, r) => <span style={{ ...LBL.eyebrow, textAlign: r ? 'right' : 'left' }}>{t}</span>;
+  const val = { ...TY.b2, fontFamily: DS.ff, color: DS.textDefault, textAlign: 'right' };
+  return (
+    <ChartFrame title="Channel performance" sub="Revenue split, share, conversion & ROI by channel — click a channel to filter · selected period" height="auto">
+      {rows.length === 0 ? (
+        <div style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>No channel activity for this selection.</div>
+      ) : (
+        <div style={{ display: 'flex', gap: SP.section, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Revenue split donut — total in the centre */}
+          <div style={{ width: 200, height: 200, position: 'relative', flexShrink: 0, margin: '0 auto' }}>
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie data={rows} dataKey="revenue" nameKey="channel" innerRadius={58} outerRadius={88} paddingAngle={2} stroke="none"
+                     label={pieLabel} labelLine={false}
+                     onClick={(e) => e && pick(e.channel || (e.payload && e.payload.channel))} style={{ cursor: onSelect ? 'pointer' : 'default' }}>
+                  {rows.map((r) => <Cell key={r.channel} fill={CHANNEL_TEXT[r.channel] || DS.neutralLGrey} />)}
+                </Pie>
+                <RTooltip formatter={(v, n) => [eur(v), n]} contentStyle={{ borderRadius: 8, border: `1px solid ${DS.borderDefault}`, fontFamily: DS.ff, fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+              <span style={{ ...TY.b3, color: DS.textSecondary, fontFamily: DS.ff }}>Total</span>
+              <span style={{ ...TY.h5, color: DS.textDefault, fontFamily: DS.ff }}>{eur(total)}</span>
+            </div>
+          </div>
+          {/* Detailed table — doubles as the donut legend (matching colours) */}
+          <div style={{ flex: 1, minWidth: 340, overflowX: 'auto' }}>
+            <div style={{ minWidth: 420 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: SP.tight, padding: '0 4px 8px', borderBottom: `1px solid ${DS.borderDefault}` }}>
+                {head('Channel')}{head('Revenue', true)}{head('Share', true)}{head('Conv. rate', true)}{head('Campaigns', true)}
               </div>
-            );
-          })}
-          <div style={{ borderTop: `1px solid ${DS.borderDefault}`, margin: '6px 4px', paddingTop: 10 }}>
-            <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, padding: '0 6px 6px' }}>Since a specific date</div>
-            <div style={{ display: 'flex', gap: 6, padding: '0 6px 4px', alignItems: 'flex-end' }}>
-              <Field type="date" value={since} onChange={(e) => setSince(e.target.value)} style={{ flex: 1 }} />
-              <Btn type="Secondary" size="Small" disabled={!since} onClick={applySince}>Apply</Btn>
+              {rows.map((r) => {
+                const color = CHANNEL_TEXT[r.channel] || DS.textDefault;
+                const clickable = onSelect && r.revenue > 0;
+                return (
+                  <div key={r.channel} role={clickable ? 'button' : undefined} onClick={() => pick(r.channel)}
+                       onMouseEnter={(e) => { if (clickable) e.currentTarget.style.background = DS.actionSecondaryHover; }}
+                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                       style={{ display: 'grid', gridTemplateColumns: GRID, gap: SP.tight, alignItems: 'center', padding: '10px 4px', borderBottom: `1px solid ${DS.borderDefault}`, borderRadius: 6, cursor: clickable ? 'pointer' : 'default' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }}>
+                      {CH[r.channel].icon(15, color)}{CH[r.channel].label}
+                    </span>
+                    <span style={{ ...val, fontWeight: 700 }}>{eur(r.revenue)}</span>
+                    <span style={val}>{pct(r.share, 0)}</span>
+                    <span style={val}>{r.convRate == null ? 'n/a' : pct(r.convRate)}</span>
+                    <span style={val}>{r.count}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
       )}
+    </ChartFrame>
+  );
+}
+
+/* ── Compare palette — YOU vs MARKET. Uses the brand gradient endpoints
+ * (blue → teal, mirroring DS.gradientBlueV) so the analysis reads as part of the
+ * same visual system. ─────────────────────────────────────────────────────────── */
+const GRAD_BLUE = '#017BFE';   // gradient start (blue)
+const GRAD_TEAL = '#34C9AE';   // gradient end (teal)
+const C_YOU = GRAD_BLUE;       // blue — "you"
+const C_MKT = GRAD_TEAL;       // teal — "market / peers"
+
+const eurShort = (v) => {
+  if (v == null) return '—';
+  if (v >= 10000) return Math.round(v / 1000) + ' k€';
+  if (v >= 1000) return (v / 1000).toFixed(1).replace('.', ',') + ' k€';
+  return nf.format(Math.round(v)) + ' €';
+};
+const eurCents = (v) => (v == null ? '—' : v.toFixed(2).replace('.', ',') + ' €');
+
+/* ── Channel pill (text only) — used in the ranked lists ─────────────────────── */
+function MiniTag({ channel }) {
+  return (
+    <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, background: DS.bgSurface,
+                   border: `1px solid ${DS.borderDefault}`, borderRadius: 6, padding: '1px 7px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+      {CH[channel].label}
+    </span>
+  );
+}
+
+/* ── Top banner — two cards: top revenue campaign + top converting campaign,
+ * each with a small mention of the runner-up. ───────────────────────────────── */
+function TopCard({ label, icon, items, valOf, onOpen }) {
+  const first = items[0], second = items[1];
+  return (
+    <Card style={{ ...CARD, padding: 18, paddingLeft: 22, flex: '1 1 300px', minWidth: 300, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, background: `linear-gradient(180deg, ${GRAD_BLUE} 0%, ${GRAD_TEAL} 100%)` }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, ...LBL.eyebrow, marginBottom: 8 }}>
+        {icon} {label}
+      </div>
+      {!first ? (
+        <div style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>No campaigns in this selection.</div>
+      ) : (
+        <>
+          <div role="button" onClick={() => onOpen(first.c)}
+               onMouseEnter={(e) => (e.currentTarget.style.background = DS.actionSecondaryHover)}
+               onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderRadius: 8, cursor: 'pointer' }}>
+            <span style={{ flex: 1, minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ minWidth: 0, ...TY.b1, fontFamily: DS.ff, color: DS.textDefault, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{first.c.name}</span>
+              <MiniTag channel={first.c.channel} />
+            </span>
+            <span style={{ flexShrink: 0, ...TY.h3, fontFamily: DS.ff, color: DS.textDefault }}>{valOf(first)}</span>
+          </div>
+          {second && (
+            <div role="button" onClick={() => onOpen(second.c)}
+                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 6, cursor: 'pointer' }}>
+              <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>2nd · {trunc(second.c.name, 26)}</span>
+              <span style={{ flexShrink: 0, color: DS.textDefault, fontWeight: 600 }}>{valOf(second)}</span>
+            </div>
+          )}
+        </>
+      )}
+    </Card>
+  );
+}
+
+function TopBanner({ byRevenue, byConversion, onOpen }) {
+  return (
+    <div style={{ display: 'flex', gap: SP.gap, flexWrap: 'wrap', alignItems: 'stretch' }}>
+      <TopCard label="Top revenue" icon={<Ico.TrendUp s={14} c={DS.feedbackSuccess} />} items={byRevenue} valOf={(x) => x.main} onOpen={onOpen} />
+      <TopCard label="Top converting" icon={<Ico.Cart s={14} c={DS.actionPrimary} />} items={byConversion} valOf={(x) => `${x.main} · ${x.sub}`} onOpen={onOpen} />
     </div>
+  );
+}
+
+/* ── Diverging "you vs market" comparison — value hugs each bar end ──────────── */
+const CMP_GRID = '128px 1fr 1fr';
+function DivergingRow({ market, you, metric, decimals, scaleMax }) {
+  const fmt = (v) => pct(v, decimals);
+  const w = (v) => `${Math.max(2, Math.min(100, (v / scaleMax) * 100))}%`;
+  const delta = market > 0 ? ((you - market) / market) * 100 : 0;
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: CMP_GRID, alignItems: 'center', gap: 10, padding: '6px 0' }}>
+      <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textDefault }}>{metric}</span>
+      {/* market — value hugging the left end of the bar (bar grows toward the centre) */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, minWidth: 0 }}>
+        <span style={{ flexShrink: 0, ...TY.b3, fontFamily: DS.ff, color: C_MKT, fontWeight: 600 }}>{fmt(market)}</span>
+        <div style={{ flexShrink: 1, minWidth: 0, width: w(market), height: 14, background: C_MKT, borderRadius: '7px 0 0 7px' }} />
+      </div>
+      {/* you — bar from the centre, value + variation chip hugging its right end */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 8, minWidth: 0 }}>
+        <div style={{ flexShrink: 1, minWidth: 0, width: w(you), height: 14, background: C_YOU, borderRadius: '0 7px 7px 0' }} />
+        <span style={{ flexShrink: 0, ...TY.b3, fontFamily: DS.ff, color: C_YOU, fontWeight: 700 }}>{fmt(you)}</span>
+        <span style={{ flexShrink: 0 }}><DeltaTag value={delta} /></span>
+      </div>
+    </div>
+  );
+}
+
+/* ── Market comparison — metric bars + revenue-per-contact (all channels), one card ── */
+function MarketComparison({ rows, rpcCampaigns, rpcMarket }) {
+  const scaleMax = (Math.max(1, ...rows.flatMap((r) => [r.market, r.you])) * 1.6) || 1;
+  const reach = rpcCampaigns.reduce((s, c) => s + (c.recipients || 0), 0);
+  const rev = rpcCampaigns.reduce((s, c) => s + (c.revenue || 0), 0);
+  const you = reach ? rev / reach : 0;
+  const delta = rpcMarket > 0 ? ((you - rpcMarket) / rpcMarket) * 100 : 0;
+  // per-channel revenue per contact
+  const perChannel = ONLINE.map((cn) => {
+    const cs = rpcCampaigns.filter((c) => c.channel === cn);
+    const r = cs.reduce((s, c) => s + (c.recipients || 0), 0);
+    const rv = cs.reduce((s, c) => s + (c.revenue || 0), 0);
+    return { cn, value: r ? rv / r : null, market: MARKET.revPerContact[cn] ?? null };
+  }).filter((x) => x.value != null);
+  return (
+    <Card style={{ ...CARD, padding: 18 }}>
+      <CardHead title="Market comparison" sub="Your rates vs the peer median · this period" />
+      <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap', alignItems: 'stretch' }}>
+        {/* Left — metric bars vs market */}
+        <div style={{ flex: '1 1 300px', minWidth: 300, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: CMP_GRID, gap: 10, marginBottom: 8, ...LBL.eyebrow }}>
+            <span />
+            <span style={{ textAlign: 'right', color: C_MKT }}>MARKET</span>
+            <span style={{ textAlign: 'left', color: C_YOU }}>YOU</span>
+          </div>
+          {rows.length === 0 ? (
+            <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, padding: '10px 0' }}>No comparable metrics for this selection.</div>
+          ) : (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              {rows.map((r) => <DivergingRow key={r.metric} {...r} scaleMax={scaleMax} />)}
+            </div>
+          )}
+        </div>
+        <div style={{ width: 1, alignSelf: 'stretch', background: DS.borderDefault }} />
+        {/* Right — revenue per contact, overall + per channel */}
+        <div style={{ flex: '1 1 300px', minWidth: 300, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ ...LBL.eyebrow, marginBottom: 6 }}>Revenue per contact</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ ...TY.h3, fontFamily: DS.ff, color: C_YOU }}>{eurCents(you)}</span>
+            <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>vs market <span style={{ color: C_MKT, fontWeight: 700 }}>{eurCents(rpcMarket)}</span></span>
+            <DeltaTag value={delta} />
+          </div>
+          <div style={{ borderTop: `1px solid ${DS.borderDefault}`, margin: '14px 0' }} />
+          {perChannel.length === 0 ? (
+            <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>No channel activity.</div>
+          ) : (
+            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 0.8fr', columnGap: 10, alignContent: 'space-between', alignItems: 'center' }}>
+              {perChannel.map((x) => {
+                const cDelta = x.market > 0 ? ((x.value - x.market) / x.market) * 100 : null;
+                return (
+                  <React.Fragment key={x.cn}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }}>
+                      {CH[x.cn].icon(14, CHANNEL_TEXT[x.cn] || DS.textDefault)}{CH[x.cn].label}
+                    </span>
+                    <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault, fontWeight: 700, textAlign: 'right' }}>{eurCents(x.value)}</span>
+                    <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, textAlign: 'right' }}>vs {eurCents(x.market)}</span>
+                    <span style={{ justifySelf: 'end' }}><DeltaTag value={cDelta} /></span>
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+/* ── Distribution bar group — labelled horizontal bars, share hugging each bar end ── */
+function DistGroup({ title, rows }) {
+  const max = Math.max(1, ...rows.map((r) => r.value));
+  return (
+    <div style={{ flex: '1 1 200px', minWidth: 180 }}>
+      <div style={{ ...LBL.eyebrow, marginBottom: 10 }}>{title}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+        {rows.map((r) => {
+          const top = r.value === max;
+          return (
+            <div key={r.label} style={{ display: 'grid', gridTemplateColumns: '78px 1fr 40px', alignItems: 'center', gap: 8 }}>
+              <span style={{ ...TY.b3, fontFamily: DS.ff, color: top ? DS.textDefault : DS.textSecondary, fontWeight: top ? 600 : 400, lineHeight: 1.15 }}>{r.label}</span>
+              <div style={{ height: 12, background: DS.bgSurface, borderRadius: 6, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.max(2, (r.value / max) * 100)}%`, height: '100%', borderRadius: 6,
+                              background: top ? DS.actionPrimary : DS.neutralLGrey }} />
+              </div>
+              <span style={{ ...TY.b3, fontFamily: DS.ff, color: top ? DS.textDefault : DS.textSecondary, fontWeight: top ? 700 : 400, textAlign: 'right' }}>{pct(r.value, 0)}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Buyer profile — the typical customer who converted after a campaign, given the
+ * active channel + period filters. Persona summary + age/gender/location breakdown. ── */
+function BuyerProfile({ profile }) {
+  return (
+    <Card style={{ ...CARD, padding: 18 }}>
+      <CardHead title="Typical buyer profile"
+                sub="Who converted after a campaign — age, gender, location & customer type · current filters" />
+      {!profile || profile.buyers === 0 ? (
+        <div style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>No tracked conversions for this selection.</div>
+      ) : (
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          <DistGroup title="Age" rows={profile.age} />
+          <DistGroup title="Gender" rows={profile.gender} />
+          <DistGroup title="Location" rows={profile.loc} />
+          <DistGroup title="Customer type" rows={profile.tier} />
+        </div>
+      )}
+    </Card>
   );
 }
 
@@ -617,11 +1107,13 @@ function RangePicker({ value, onChange }) {
 export default function PerformanceV3() {
   const [role, setRole] = React.useState('admin');
   const [demo, setDemo] = React.useState('ready');
-  const [tab, setTab] = React.useState('sales');   // 'sales' → "Performances" (default, first), 'performance' → "Campaigns"
+  const [tab, setTab] = React.useState('sales');   // 'sales' → "Performances" (default), 'analysis' → "Analysis"
   const [funnelChannel, setFunnelChannel] = React.useState('Email');
   const [periode, setPeriode] = React.useState(90);
   const [channelFilter, setChannelFilter] = React.useState('all');
-  const [quickOpen, setQuickOpen] = React.useState(false);
+  const [filterOpen, setFilterOpen] = React.useState(false);
+  const [sortKey, setSortKey] = React.useState('date');
+  const [sortDir, setSortDir] = React.useState('desc');
   const [page, setPage] = React.useState(1);
   const [campaigns, setCampaigns] = React.useState(CAMPAIGNS_SEED);
   const [drawer, setDrawer] = React.useState(null);
@@ -636,7 +1128,6 @@ export default function PerformanceV3() {
     WhatsApp: { trigger: 'Read', range: 5 }, Wallet: { trigger: 'Installed', range: 7 },
   });
   const optRef = React.useRef(null);
-  const quickRef = React.useRef(null);
   const isAdmin = role === 'admin';
   const loading = demo === 'loading' || recomputing;
   const errored = demo === 'error';
@@ -645,12 +1136,11 @@ export default function PerformanceV3() {
   React.useEffect(() => {
     const f = (e) => {
       if (optRef.current && !optRef.current.contains(e.target)) setOptionsOpen(false);
-      if (quickRef.current && !quickRef.current.contains(e.target)) setQuickOpen(false);
     };
     document.addEventListener('mousedown', f);
     return () => document.removeEventListener('mousedown', f);
   }, []);
-  React.useEffect(() => { setPage(1); }, [periode, channelFilter, tab]);
+  React.useEffect(() => { setPage(1); }, [periode, channelFilter, tab, sortKey]);
   const fireToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2600); };
 
   /* ── Derived data ── */
@@ -664,6 +1154,21 @@ export default function PerformanceV3() {
 
   const revenue = React.useMemo(() => filtered.reduce((s, c) => s + (c.revenue || 0), 0), [filtered]);
 
+  /* Previous comparable period (same length, immediately before) — drives real deltas. */
+  const prev = React.useMemo(() => {
+    if (forceEmpty) return { revenue: 0, conversions: 0, has: false };
+    const list = campaigns
+      .filter((c) => { const a = daysAgo(c.date); return a > periode && a <= periode * 2; })
+      .filter((c) => channelFilter === 'all' || c.channel === channelFilter);
+    const online = list.filter((c) => !c.isManual);
+    return {
+      revenue: list.reduce((s, c) => s + (c.revenue || 0), 0),
+      conversions: Math.round(online.reduce((s, c) => s + (c.conv != null ? c.recipients * c.conv / 100 : 0), 0)),
+      has: list.length > 0,
+    };
+  }, [campaigns, periode, channelFilter, forceEmpty]);
+  const deltaPct = (cur, was) => (was > 0 ? ((cur - was) / was) * 100 : null);
+
   /* Headline KPI value cards (cross-channel) */
   const kpiValues = React.useMemo(() => {
     const online = filtered.filter((c) => !c.isManual);
@@ -671,12 +1176,13 @@ export default function PerformanceV3() {
     const conversions = Math.round(online.reduce((s, c) => s + (c.conv != null ? c.recipients * c.conv / 100 : 0), 0));
     return {
       revenue,
-      revDelta: filtered.length ? 6.5 : null,
+      revDelta: filtered.length && prev.has ? deltaPct(revenue, prev.revenue) : null,
       conversions,
+      convDelta: filtered.length && prev.has ? deltaPct(conversions, prev.conversions) : null,
       convRate: reach ? (conversions / reach) * 100 : null,
       count: filtered.length,
     };
-  }, [filtered, revenue]);
+  }, [filtered, revenue, prev]);
 
   /* Per-channel funnel stages (Delivery → … → Placed order, channel-aware) */
   const funnelStages = React.useMemo(() => {
@@ -687,30 +1193,11 @@ export default function PerformanceV3() {
       label: st.label,
       value: list.length ? (avg(st.k) ?? st.def ?? 0) : null,   // null → "no activity"
       delta: list.length ? ((FUNNEL_DELTA[funnelChannel] || {})[st.k] ?? null) : null,
+      bench: (BENCHMARKS[funnelChannel] || {})[st.k] ?? null,
     }));
   }, [filtered, funnelChannel]);
 
-  const composition = React.useMemo(() => {
-    const by = {}; let total = 0;
-    ONLINE.forEach((ch) => { by[ch] = 0; });
-    filtered.forEach((c) => { if (!c.isManual && by[c.channel] != null) { by[c.channel] += c.revenue || 0; total += c.revenue || 0; } });
-    return ONLINE.map((ch) => ({ channel: ch, revenue: by[ch], share: total ? (by[ch] / total) * 100 : 0 }));
-  }, [filtered]);
-
-  const buckets = React.useMemo(() => {
-    const weeks = Math.min(13, Math.ceil(periode / 7));
-    const arr = Array.from({ length: weeks }, (_, i) => {
-      const row = { label: `S-${weeks - 1 - i}` }; ONLINE.forEach((ch) => { row[ch] = 0; }); return row;
-    });
-    filtered.forEach((c) => {
-      if (c.isManual) return;
-      const idx = arr.length - 1 - Math.floor(daysAgo(c.date) / 7);
-      if (idx >= 0 && idx < arr.length) arr[idx][c.channel] += c.revenue || 0;
-    });
-    return arr;
-  }, [filtered, periode]);
-
-  /* Tab 2 — cumulative conversions vs total sales over the période */
+  /* Tab 2 — cumulative conversions vs total sales over the period */
   const series = React.useMemo(() => {
     const start = new Date(NOW); start.setDate(NOW.getDate() - periode);
     const days = DAILY_SALES.filter((p) => p.date >= start && p.date <= NOW);
@@ -732,6 +1219,174 @@ export default function PerformanceV3() {
     return full.filter((_, i) => i % step === 0 || i === full.length - 1);
   }, [filtered, periode]);
 
+  /* Impact-map points — online campaigns with tracked conversions; revenue × conversions.
+   * Median lines come from this selection, so quadrants are filter-relative. */
+  const impact = React.useMemo(() => {
+    const pts = filtered
+      .filter((c) => !c.isManual && c.conv != null)
+      .map((c) => ({
+        id: c.id, name: c.name, channel: c.channel, c,
+        x: Math.round((c.recipients || 0) * (c.conv || 0) / 100),  // conversions (count)
+        y: c.revenue || 0,                                          // attributed revenue (€)
+        z: c.recipients || 0,                                       // reach → bubble size
+      }));
+    return { pts, medX: median(pts.map((p) => p.x)), medY: median(pts.map((p) => p.y)) };
+  }, [filtered]);
+
+  /* Top campaigns — top 3 by revenue and top 3 by conversions (placed-order count). */
+  const topCampaigns = React.useMemo(() => {
+    const online = filtered.filter((c) => !c.isManual && c.conv != null);
+    const convCount = (c) => Math.round((c.recipients || 0) * (c.conv || 0) / 100);
+    const byRevenue = [...online].sort((a, b) => (b.revenue || 0) - (a.revenue || 0)).slice(0, 2)
+      .map((c) => ({ c, main: eurShort(c.revenue) }));
+    const byConversion = [...online].sort((a, b) => convCount(b) - convCount(a)).slice(0, 2)
+      .map((c) => ({ c, main: nf.format(convCount(c)), sub: pct(c.conv || 0) }));
+    return { byRevenue, byConversion };
+  }, [filtered]);
+
+  /* "You vs market" rows — reach-weighted you-value vs peer median (BENCHMARKS). */
+  const marketRows = React.useMemo(() => {
+    const online = filtered.filter((c) => !c.isManual);
+    const wavg = (list, key) => {
+      const xs = list.filter((c) => c[key] != null);
+      if (!xs.length) return null;
+      const r = xs.reduce((s, c) => s + (c.recipients || 0), 0);
+      return r ? xs.reduce((s, c) => s + c[key] * (c.recipients || 0), 0) / r
+               : xs.reduce((s, c) => s + c[key], 0) / xs.length;
+    };
+    const email = online.filter((c) => c.channel === 'Email');
+    const sms = online.filter((c) => c.channel === 'SMS');
+    const whatsapp = online.filter((c) => c.channel === 'WhatsApp');
+    const reach = online.reduce((s, c) => s + (c.recipients || 0), 0);
+    const conv = online.reduce((s, c) => s + (c.conv != null ? (c.recipients || 0) * c.conv / 100 : 0), 0);
+    const rows = [
+      { metric: 'Email open rate', you: wavg(email, 'open'), market: BENCHMARKS.Email.open, decimals: 1 },
+      { metric: 'WhatsApp open rate', you: wavg(whatsapp, 'read'), market: BENCHMARKS.WhatsApp.read, decimals: 1 },
+      { metric: 'SMS click rate', you: wavg(sms, 'click'), market: BENCHMARKS.SMS.click, decimals: 1 },
+      { metric: 'Email click rate', you: wavg(email, 'click'), market: BENCHMARKS.Email.click, decimals: 1 },
+      { metric: 'Conversion rate', you: reach ? (conv / reach) * 100 : null, market: MARKET.convRate.med, decimals: 2 },
+    ];
+    return rows.filter((r) => r.you != null);
+  }, [filtered]);
+
+  /* Campaign list — sortable copy of the filtered set. */
+  const listSorted = React.useMemo(() => {
+    const roasOf = (c) => (c.cost > 0 ? (c.revenue || 0) / c.cost : -1);
+    // Base comparators are descending; sortDir flips them.
+    const base = {
+      date: (a, b) => b.date - a.date,
+      revenue: (a, b) => (b.revenue || 0) - (a.revenue || 0),
+      conv: (a, b) => (b.conv || 0) - (a.conv || 0),
+      roas: (a, b) => roasOf(b) - roasOf(a),
+    }[sortKey] || ((a, b) => b.date - a.date);
+    const dir = sortDir === 'asc' ? -1 : 1;
+    return [...filtered].sort((a, b) => dir * base(a, b));
+  }, [filtered, sortKey, sortDir]);
+
+  const onCampaignSort = (key) => {
+    if (key === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortKey(key); setSortDir('desc'); }
+  };
+
+  /* Top / under-performer flags (by revenue) for the list. */
+  const perfFlags = React.useMemo(() => {
+    const flags = {};
+    if (!filtered.length) return flags;
+    const best = filtered.reduce((m, c) => ((c.revenue || 0) > (m.revenue || 0) ? c : m));
+    if ((best.revenue || 0) > 0) flags[best.id] = 'top';
+    filtered.forEach((c) => { if (!c.isManual && (c.revenue || 0) === 0) flags[c.id] = 'low'; });
+    return flags;
+  }, [filtered]);
+
+  /* Per-channel comparison rows (Analysis tab). */
+  const channelStats = React.useMemo(() => {
+    const rows = [...ONLINE, 'Manual'].map((ch) => {
+      const cs = filtered.filter((c) => c.channel === ch);
+      const online = cs.filter((c) => !c.isManual);
+      const revenue = cs.reduce((s, c) => s + (c.revenue || 0), 0);
+      const reach = online.reduce((s, c) => s + (c.recipients || 0), 0);
+      const conv = online.reduce((s, c) => s + (c.recipients || 0) * (c.conv || 0) / 100, 0);
+      return { channel: ch, count: cs.length, revenue, convRate: ch === 'Manual' ? null : (reach ? (conv / reach) * 100 : null) };
+    }).filter((r) => r.count > 0);
+    const tot = rows.reduce((s, r) => s + r.revenue, 0);
+    rows.forEach((r) => { r.share = tot ? (r.revenue / tot) * 100 : 0; });
+    return rows.sort((a, b) => b.revenue - a.revenue);
+  }, [filtered]);
+
+  /* Buyer profile — converters' demographics, aggregated from the filtered online
+   * campaigns and weighted by each campaign's estimated converters. */
+  const buyerProfile = React.useMemo(() => {
+    const age = AGE_BANDS.map(() => 0), gender = GENDERS.map(() => 0), loc = LOCATIONS.map(() => 0), tier = TIERS.map(() => 0);
+    let buyers = 0;
+    filtered.filter((c) => !c.isManual && c.conv).forEach((c) => {
+      const skew = PROFILE[c.channel]; if (!skew) return;
+      const w = (c.recipients || 0) * c.conv / 100;   // estimated converters for this campaign
+      if (w <= 0) return;
+      buyers += w;
+      skew.age.forEach((p, i) => { age[i] += (p / 100) * w; });
+      skew.gender.forEach((p, i) => { gender[i] += (p / 100) * w; });
+      skew.loc.forEach((p, i) => { loc[i] += (p / 100) * w; });
+      skew.tier.forEach((p, i) => { tier[i] += (p / 100) * w; });
+    });
+    if (buyers === 0) return { buyers: 0 };
+    const norm = (arr, labels) => arr.map((v, i) => ({ label: labels[i], value: (v / buyers) * 100 }));
+    const top = (rows) => rows.reduce((a, b) => (b.value > a.value ? b : a)).label;
+    const ageRows = norm(age, AGE_BANDS);          // age stays in natural order
+    const genderRows = norm(gender, GENDERS).sort((a, b) => b.value - a.value);
+    const locRows = norm(loc, LOCATIONS).sort((a, b) => b.value - a.value);
+    const tierRows = norm(tier, TIERS);            // tier stays in lifecycle order (first → regular → promoter)
+    return {
+      buyers: Math.round(buyers),
+      age: ageRows, gender: genderRows, loc: locRows, tier: tierRows,
+      topAge: top(ageRows), topGender: genderRows[0].label, topLoc: locRows[0].label, topTier: top(tierRows),
+    };
+  }, [filtered]);
+
+  /* Smart recommendations — quadrant- & benchmark-driven, ranked by potential impact. */
+  const smartRecs = React.useMemo(() => {
+    if (loading || errored || !filtered.length) return [];
+    const out = [];
+    const { pts, medX, medY } = impact;
+    const online = filtered.filter((c) => !c.isManual);
+
+    // Scale-ups — high conversions, below-median revenue (bottom-right): efficient & under-invested.
+    const scaleUps = pts.filter((p) => p.x >= medX && p.y < medY).sort((a, b) => b.x - a.x);
+    if (scaleUps.length) {
+      const p = scaleUps[0];
+      out.push({ tone: 'positive', tag: 'Scale-up', sort: 90, est: 'high upside',
+        text: `"${trunc(p.name)}" converts strongly (${nf.format(p.x)} orders) yet sits below median revenue — efficient and under-invested. Duplicate it to a larger segment.`,
+        cta: { label: 'Open campaign', onClick: () => setDrawer(p.c) } });
+    }
+    // Volume plays — high revenue, below-median conversions (top-left): broad but inefficient.
+    const volume = pts.filter((p) => p.x < medX && p.y >= medY).sort((a, b) => b.y - a.y);
+    if (volume.length) {
+      const p = volume[0];
+      out.push({ tone: 'warning', tag: 'Refine', sort: 70,
+        text: `"${trunc(p.name)}" drives strong revenue (${eur(p.y)}) but converts below the selection median — tighten targeting or creative to lift efficiency.`,
+        cta: { label: 'Open campaign', onClick: () => setDrawer(p.c) } });
+    }
+    // Benchmark gap vs peers — biggest below-median channel = the market opportunity.
+    let oppCh = null, winCh = null;
+    channelStats.forEach((r) => {
+      if (r.channel === 'Manual' || r.convRate == null) return;
+      const b = MARKET.channelConv[r.channel]; if (!b) return;
+      if (r.convRate < b.med && (!oppCh || (b.med - r.convRate) > oppCh.gap)) oppCh = { ch: r.channel, rate: r.convRate, med: b.med, gap: b.med - r.convRate };
+      if (r.convRate >= b.p75 && (!winCh || r.convRate > winCh.rate)) winCh = { ch: r.channel, rate: r.convRate };
+    });
+    if (oppCh) out.push({ tone: 'warning', tag: 'Below market', sort: 80,
+      text: `${CH[oppCh.ch].label} converts at ${pct(oppCh.rate)} — under the peer median of ${pct(oppCh.med)} for similar clients. Closing the gap is your biggest market opportunity.`,
+      cta: { label: `Filter ${CH[oppCh.ch].label}`, onClick: () => setChannelFilter(oppCh.ch) } });
+    if (winCh) out.push({ tone: 'neutral', tag: 'Ahead of market', sort: 40,
+      text: `${CH[winCh.ch].label} converts at ${pct(winCh.rate)} — in the top 25% of similar clients. Keep the cadence and protect what works.` });
+    // Zero-revenue campaigns.
+    const zero = online.filter((c) => (c.revenue || 0) === 0);
+    if (zero.length) out.push({ tone: 'warning', tag: 'No revenue', sort: 60,
+      text: `${zero.length} campaign${zero.length > 1 ? 's' : ''} generated €0 this period — review targeting or content${zero.length === 1 ? `: "${trunc(zero[0].name)}"` : ''}.`,
+      cta: zero.length === 1 ? { label: 'Open campaign', onClick: () => setDrawer(zero[0]) } : null });
+
+    return out.sort((a, b) => b.sort - a.sort).slice(0, 3);
+  }, [filtered, impact, channelStats, loading, errored]);
+
   /* ── Actions ── */
   function handleLogSave(form) {
     const c = {
@@ -750,36 +1405,70 @@ export default function PerformanceV3() {
   }
   function handleDelete(c) { setCampaigns((s) => s.filter((x) => x.id !== c.id)); setConfirmDel(null); fireToast('Campaign deleted'); }
 
-  /* ── Banner row ── */
-  function campaignBanner(c, compact = false) {
+  // Columns for the campaigns BannerTable (mirrors the Lists table). Compact drops
+  // Date/Contacts/Conv. when the list shares the row with a side panel.
+  const CAMPAIGN_COLUMNS = [
+    { key: 'name',     label: 'Campaign', basis: 'minmax(220px, 2.4fr)', sortable: false },
+    { key: 'channel',  label: 'Channel',  basis: '150px', sortable: false },
+    { key: 'date',     label: 'Date',     basis: '110px' },
+    { key: 'contacts', label: 'Contacts', basis: '110px', sortable: false },
+    { key: 'conv',     label: 'Conv.',    basis: '100px', sortable: false },
+    { key: 'revenue',  label: 'Revenue',  basis: '120px', align: 'right', sortable: false },
+  ];
+  const CAMPAIGN_COLUMNS_COMPACT = [
+    { key: 'name',    label: 'Campaign', basis: 'minmax(180px, 2fr)', sortable: false },
+    { key: 'channel', label: 'Channel',  basis: '140px', sortable: false },
+    { key: 'revenue', label: 'Revenue',  basis: '120px', align: 'right', sortable: false },
+  ];
+
+  const campaignBadge = (c) => {
+    const flag = perfFlags[c.id];
+    if (flag !== 'top' && flag !== 'low') return null;
+    const pill = (bg, fg, Icon, text) => (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 999, ...TY.b3,
+                     fontFamily: DS.ff, fontWeight: 600, background: bg, color: fg }}><Icon s={12} c={fg} />{text}</span>
+    );
+    return flag === 'top'
+      ? pill(DS.feedbackSuccessBg, DS.feedbackSuccess, Ico.TrendUp, 'Top performer')
+      : pill(DS.feedbackWarningBg, DS.feedbackWarning, Ico.Warn, 'No revenue');
+  };
+
+  const campaignCell = (c, key) => {
     const meta = CH[c.channel];
-    // Columns common to every campaign only — channel-specific stats (open/delivery/install) live in the drawer.
-    const cols = compact
-      ? [{ label: 'Date', value: fmtDate(c.date), basis: '90px' }, { label: 'Revenue', value: eur(c.revenue), basis: '110px' }]
-      : [
-          { label: 'Date', value: fmtDate(c.date), basis: '96px' },
-          { label: 'Contacts', value: c.recipients ? nf.format(c.recipients) : '—', basis: '100px' },
-          { label: 'Conv.', value: c.isManual ? 'n/a' : pct(c.conv), basis: '88px' },
-          { label: 'Revenue', value: eur(c.revenue), basis: '116px' },
-        ];
-    const actions = (
-      <ActionMenu items={[
-        { label: 'Open', icon: <Ico.Eye s={16} c={DS.blue500} />, onClick: () => setDrawer(c) },
-        { label: c.isManual ? 'Edit' : 'Edit description', icon: <Ico.Edit s={16} c={DS.textSecondary} />, onClick: () => fireToast(c.isManual ? 'Edit manual campaign (prototype)' : 'Edit description only — tracked metrics locked') },
-        { label: 'Delete', icon: <Ico.Trash s={16} c={DS.feedbackError} />, danger: true, hidden: !c.isManual, onClick: () => setConfirmDel(c) },
-      ]} />
-    );
-    return (
-      <Banner key={c.id} icon={meta.icon(20, meta.color)} iconBg={DS.bgSurface}
-              title={c.name} badge={<ChannelTag channel={c.channel} />}
-              description={`#${c.id} · ${c.subject} · ${c.segment}`}
-              columns={cols} actions={actions} onClick={() => setDrawer(c)} dim={c.isManual} />
-    );
-  }
+    switch (key) {
+      case 'name':
+        return (
+          <BannerIdentity
+            icon={meta.icon(20, meta.color)} iconBg={DS.bgSurface}
+            title={c.name} badge={campaignBadge(c)}
+            description={`#${c.id} · ${c.subject} · ${c.segment}`}
+          />
+        );
+      case 'channel':
+        return (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: DS.textDefault, whiteSpace: 'nowrap' }}>
+            {meta.icon(14, CHANNEL_TEXT[c.channel] || DS.textDefault)}{meta.label}{c.channel === 'Manual' ? ' · offline' : ''}
+          </span>
+        );
+      case 'date':     return <span style={{ color: DS.textSecondary, whiteSpace: 'nowrap' }}>{fmtDate(c.date)}</span>;
+      case 'contacts': return <span style={{ whiteSpace: 'nowrap' }}>{c.recipients ? nf.format(c.recipients) : '—'}</span>;
+      case 'conv':     return <span style={{ whiteSpace: 'nowrap' }}>{c.isManual ? 'n/a' : pct(c.conv)}</span>;
+      case 'revenue':  return <span style={{ fontWeight: 700, color: DS.textDefault, whiteSpace: 'nowrap' }}>{eur(c.revenue)}</span>;
+      default:         return null;
+    }
+  };
+
+  const campaignActions = (c) => (
+    <ActionMenu items={[
+      { label: 'Open', icon: <Ico.Eye s={16} c={DS.actionPrimary} />, onClick: () => setDrawer(c) },
+      { label: c.isManual ? 'Edit' : 'Edit description', icon: <Ico.Edit s={16} c={DS.textSecondary} />, onClick: () => fireToast(c.isManual ? 'Edit manual campaign (prototype)' : 'Edit description only — tracked metrics locked') },
+      { label: 'Delete', icon: <Ico.Trash s={16} c={DS.feedbackError} />, danger: true, hidden: !c.isManual, onClick: () => setConfirmDel(c) },
+    ]} />
+  );
 
   const PER = 20;
-  const pages = Math.max(1, Math.ceil(filtered.length / PER));
-  const pageItems = filtered.slice((page - 1) * PER, page * PER);
+  const pages = Math.max(1, Math.ceil(listSorted.length / PER));
+  const pageItems = listSorted.slice((page - 1) * PER, page * PER);
 
   function listArea(compact) {
     if (loading) return <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{Array.from({ length: 4 }).map((_, i) => (
@@ -790,7 +1479,16 @@ export default function PerformanceV3() {
       sub="Adjust the filters or log a campaign to populate the analysis." cta={<Btn type="Secondary" iconLeft={<Ico.Plus s={16} />} onClick={() => setLogOpen(true)}>Log a campaign</Btn>} />;
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {pageItems.map((c) => campaignBanner(c, compact))}
+        <BannerTable
+          columns={compact ? CAMPAIGN_COLUMNS_COMPACT : CAMPAIGN_COLUMNS}
+          rows={pageItems}
+          rowId={(c) => c.id}
+          sortKey={sortKey} sortDir={sortDir} onSort={onCampaignSort}
+          onRowClick={(c) => setDrawer(c)}
+          dim={(c) => c.isManual}
+          cell={campaignCell}
+          actions={campaignActions}
+        />
         {pages > 1 && <div style={{ marginTop: 6 }}><Pagination page={page} pages={pages} setPage={setPage} /></div>}
       </div>
     );
@@ -809,18 +1507,22 @@ export default function PerformanceV3() {
         title="Performances"
         description="Cross-channel campaign performance & attributed revenue"
         actions={<>
-          <Btn type="Primary" iconLeft={<Ico.Plus s={16} />} onClick={() => setLogOpen(true)}>Create campaign</Btn>
+          <Btn type="Primary" iconLeft={<Ico.Filter s={16} />} onClick={() => setFilterOpen(true)}>Filter</Btn>
           <div ref={optRef} style={{ position: 'relative' }}>
             <Btn type="Secondary" iconRight={<Ico.ChevDown s={16} />} onClick={() => setOptionsOpen((o) => !o)}>Options</Btn>
             {optionsOpen && (
               <div style={{ position: 'absolute', top: 46, right: 0, zIndex: 40, width: 200, background: DS.bgCard,
                             border: `1px solid ${DS.borderDefault}`, borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.12)', padding: 6 }}>
-                {[['Import', <Ico.Download s={16} c={DS.textSecondary} />], ['Synchronise', <Ico.Refresh s={16} c={DS.textSecondary} />]].map(([l, ic]) => (
-                  <div key={l} role="button" onClick={() => { setOptionsOpen(false); fireToast(`${l} (prototype)`); }}
+                {[
+                  { label: 'Create campaign', icon: <Ico.Plus s={16} c={DS.textSecondary} />, onClick: () => setLogOpen(true) },
+                  { label: 'Import', icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => fireToast('Import (prototype)') },
+                  { label: 'Synchronise', icon: <Ico.Refresh s={16} c={DS.textSecondary} />, onClick: () => fireToast('Synchronise (prototype)') },
+                ].map((it) => (
+                  <div key={it.label} role="button" onClick={() => { setOptionsOpen(false); it.onClick(); }}
                        onMouseEnter={(e) => (e.currentTarget.style.background = DS.actionSecondaryHover)}
                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 6, cursor: 'pointer', ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }}>
-                    {ic}{l}
+                    {it.icon}{it.label}
                   </div>
                 ))}
               </div>
@@ -831,43 +1533,19 @@ export default function PerformanceV3() {
         </>}
       />
 
-      {/* ── Controls — quick filter + range, right-aligned ── */}
+      {/* ── Controls — active-filter summary (managed via the Filter dialog) ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: SP.tight, padding: `${SP.card}px ${SP.page}px 0` }}>
         {recomputing && (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...TY.b3, fontFamily: DS.ff, color: DS.feedbackInfo }}>
             <Ico.Refresh s={14} c={DS.feedbackInfo} /> Recomputing…
           </span>
         )}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: SP.tight }}>
-          {/* Quick filter — channel */}
-          <div ref={quickRef} style={{ position: 'relative' }}>
-            <PickerTrigger icon={<Ico.Filter s={16} c={DS.textSecondary} />}
-                           label={channelFilter === 'all' ? 'All channels' : CH[channelFilter].label}
-                           open={quickOpen} minWidth={190} onClick={() => setQuickOpen((o) => !o)} />
-            {quickOpen && (
-              <div style={{ position: 'absolute', top: 46, right: 0, zIndex: 40, width: 200, background: DS.bgCard,
-                            border: `1px solid ${DS.borderDefault}`, borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.12)', padding: 6 }}>
-                {[{ value: 'all', label: 'All channels' }, ...['Email', 'SMS', 'WhatsApp', 'Wallet', 'Manual'].map((c) => ({ value: c, label: CH[c].label }))].map((o) => {
-                  const on = o.value === channelFilter;
-                  return (
-                    <div key={o.value} role="button" onClick={() => { setChannelFilter(o.value); setQuickOpen(false); }}
-                         onMouseEnter={(e) => (e.currentTarget.style.background = DS.actionSecondaryHover)}
-                         onMouseLeave={(e) => (e.currentTarget.style.background = on ? DS.blue100 : 'transparent')}
-                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 10px', borderRadius: 6,
-                                  cursor: 'pointer', ...TY.b2, fontFamily: DS.ff, color: on ? DS.actionPrimary : DS.textDefault,
-                                  fontWeight: on ? 600 : 400, background: on ? DS.blue100 : 'transparent' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                          {o.value !== 'all' && CH[o.value].icon(15, on ? DS.actionPrimary : DS.textSecondary)}{o.label}
-                        </span>
-                        {on && <Ico.Check s={16} c={DS.actionPrimary} />}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          <RangePicker value={periode} onChange={setPeriode} />
-        </div>
+        <button type="button" onClick={() => setFilterOpen(true)}
+          style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                   background: 'none', border: 'none', padding: 0, ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>
+          <Ico.Filter s={14} c={DS.textSecondary} />
+          {channelFilter === 'all' ? 'All channels' : CH[channelFilter].label} · {rangeLabel(periode)}
+        </button>
       </div>
 
       {/* ── Tabs ── */}
@@ -875,51 +1553,67 @@ export default function PerformanceV3() {
         <TabBar active={tab} onChange={setTab}
           tabs={[
             { value: 'sales', label: 'Performances', icon: <Ico.TrendUp s={18} c={tab === 'sales' ? DS.actionPrimary : DS.navText} /> },
-            { value: 'performance', label: 'Campaigns', icon: <Ico.Campaigns s={18} c={tab === 'performance' ? DS.actionPrimary : DS.navText} /> },
+            { value: 'analysis', label: 'Analysis', icon: <Ico.Zap s={18} c={tab === 'analysis' ? DS.actionPrimary : DS.navText} /> },
           ]} />
       </div>
 
       {/* ── Tab content ── */}
       <div style={{ padding: `${SP.section}px ${SP.page}px`, display: 'flex', flexDirection: 'column', gap: SP.section }}>
-        {/* Headline KPI value cards — shared across both tabs */}
+        {/* Headline KPI value cards — shown on Performances & Campaigns, hidden on Analysis */}
+        {tab !== 'analysis' && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: SP.gap }}>
           <KpiCard title="Attributed revenue" loading={loading} accent={DS.textDefault} value={eur(kpiValues.revenue)}
                    icon={<Ico.Chart s={16} c={DS.actionPrimary} />}
-                   sub={kpiValues.revDelta != null ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Delta value={kpiValues.revDelta} /> vs. période préc.</span> : '—'} />
+                   sub={kpiValues.revDelta != null ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><DeltaTag value={kpiValues.revDelta} plain /> vs. previous period</span> : 'No prior period to compare'} />
           <KpiCard title="Conversions" loading={loading} accent={DS.textDefault} value={nf.format(kpiValues.conversions)}
-                   icon={<Ico.Cart s={16} c={DS.actionPrimary} />} sub="orders attributed" />
+                   icon={<Ico.Cart s={16} c={DS.actionPrimary} />}
+                   sub={kpiValues.convDelta != null ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><DeltaTag value={kpiValues.convDelta} plain /> orders vs. previous</span> : 'orders attributed'} />
           <KpiCard title="Conversion rate" loading={loading} accent={DS.textDefault} value={pct(kpiValues.convRate)}
                    icon={<Ico.TrendUp s={16} c={DS.actionPrimary} />} sub="of recipients" />
           <KpiCard title="Campaigns sent" loading={loading} accent={DS.textDefault} value={nf.format(kpiValues.count)}
-                   icon={<Ico.Campaigns s={16} c={DS.actionPrimary} />} sub="in selected période" />
+                   icon={<Ico.Campaigns s={16} c={DS.actionPrimary} />} sub="in selected period" />
         </div>
+        )}
 
-        {tab === 'performance' ? (
+        {tab === 'analysis' ? (
           <>
-            {!errored && !forceEmpty && (
-              <ChannelFunnel channel={funnelChannel} onChannel={setFunnelChannel} stages={funnelStages} loading={loading} />
-            )}
-            {errored && <ErrorState onRetry={() => setDemo('ready')} />}
-
-            <div>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: SP.tight }}>
-                <span style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault }}>Campaigns</span>
-                {!loading && !errored && <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>{filtered.length} campaign{filtered.length > 1 ? 's' : ''} · most recent first</span>}
-              </div>
-              {listArea(false)}
-            </div>
+            {loading ? <Card style={{ padding: SP.card }}><Skeleton w={'50%'} h={18} /><div style={{ height: 12 }} /><Skeleton w={'100%'} h={180} /></Card>
+              : errored ? <ErrorState onRetry={() => setDemo('ready')} />
+              : forceEmpty ? <EmptyState icon={<Ico.Zap s={24} c={DS.textSecondary} />} title="No data to analyse" sub="Adjust the filters or period to generate insights." />
+              : (
+                <>
+                  <TopBanner byRevenue={topCampaigns.byRevenue} byConversion={topCampaigns.byConversion} onOpen={(c) => setDrawer(c)} />
+                  <MarketComparison rows={marketRows} rpcCampaigns={filtered.filter((c) => !c.isManual)} rpcMarket={MARKET.revPerSend.med} />
+                  <ActionRecommendations items={smartRecs} />
+                  <ChannelPerformance rows={channelStats} total={revenue} onSelect={(ch) => setChannelFilter(ch)} />
+                  <ChannelFunnel channel={funnelChannel} onChannel={setFunnelChannel} stages={funnelStages} loading={loading} />
+                  <BuyerProfile profile={buyerProfile} />
+                </>
+              )}
           </>
         ) : (
           <>
             {loading ? <Card style={{ padding: SP.card }}><Skeleton w={'50%'} h={18} /><div style={{ height: 12 }} /><Skeleton w={'100%'} h={260} /></Card>
               : errored ? <ErrorState onRetry={() => setDemo('ready')} />
-              : forceEmpty ? <EmptyState icon={<Ico.TrendUp s={24} c={DS.textSecondary} />} title="No sales data in this period" sub="Adjust the période to see conversions vs. total sales." />
+              : forceEmpty ? <EmptyState icon={<Ico.TrendUp s={24} c={DS.textSecondary} />} title="No sales data in this period" sub="Adjust the period to see conversions vs. total sales." />
               : (
                 <>
-                  <ConversionsVsSales series={series} markers={filtered.filter((c) => !c.isManual)} periode={periode} />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SP.gap }}>
-                    <ChannelDonut composition={composition} total={revenue} />
-                    <RevenueOverTime buckets={buckets} />
+                  <ConversionsVsSales series={series} markers={filtered.filter((c) => !c.isManual)} periode={periode} onMarker={(m) => setDrawer(m)} />
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: SP.tight, marginBottom: SP.tight, flexWrap: 'wrap' }}>
+                      <span style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault, display: 'inline-flex', alignItems: 'baseline', gap: 8 }}>
+                        Campaigns
+                        <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary, fontWeight: 400 }}>{filtered.length}</span>
+                      </span>
+                      <div style={{ width: 180 }}>
+                        <Select header="Sort by" value={sortKey} onChange={setSortKey} options={[
+                          { value: 'date', label: 'Most recent' },
+                          { value: 'revenue', label: 'Revenue' },
+                          { value: 'conv', label: 'Conversion rate' },
+                        ]} />
+                      </div>
+                    </div>
+                    {listArea(false)}
                   </div>
                 </>
               )}
@@ -928,7 +1622,9 @@ export default function PerformanceV3() {
       </div>
 
       {/* ── Overlays ── */}
-      <CampaignDrawer campaign={drawer} rule={drawer && !drawer.isManual ? rules[drawer.channel] : null} onClose={() => setDrawer(null)} />
+      <FilterDialog open={filterOpen} onClose={() => setFilterOpen(false)} channel={channelFilter} periode={periode}
+                    onApply={(ch, per) => { setChannelFilter(ch); setPeriode(per); }} />
+      <CampaignDrawer campaign={drawer} onClose={() => setDrawer(null)} onToast={fireToast} />
       <LogCampaignModal open={logOpen} onClose={() => setLogOpen(false)} onSave={handleLogSave} />
       <ConversionRulesDialog open={rulesOpen} onClose={() => setRulesOpen(false)} rules={rules} onSave={handleRulesSave} isAdmin={isAdmin} />
       {confirmDel && (

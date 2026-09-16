@@ -8,13 +8,15 @@
       "email": "stephanievelez@example.com",
       "age": 64,
       "gender": "Male",
-      "dateOfBirth": "1960-03-14"
+      "dateOfBirth": "1960-03-14",
+      "civility": "Mr."
     },
     "coordinates": {
       "phone": "001-679-879-9900x73533",
       "address": "12 Via Roma",
       "postalCode": "37641",
-      "country": "Italy"
+      "country": "Italy",
+      "city": "Rome"
     },
     "source": {
       "createdAt": "2023-05-10",
@@ -22,79 +24,227 @@
     },
     "structure": "Institute D",
     "loyalty": 34,
-    "lists": ["Loyal audience", "Senior segment"],
+    "lists": [
+      "Loyal audience",
+      "Senior segment"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2023-05-10" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2023-05-10"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": "Marco Rossi" },
-      { "label": "Favorite music genre", "value": "Classical" }
+      {
+        "label": "Favorite athlete",
+        "value": "Marco Rossi"
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Classical"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 163.00, "currency": "EUR", "purchaseCount": 3 },
-      "engagement": { "rate": 0.50, "campaignsOpened": 3, "campaignsTotal": 6 },
-      "lastPurchase": { "date": "2024-11-02", "label": "Billet Concert Rome" }
+      "totalSpending": {
+        "amount": 208.0,
+        "currency": "EUR",
+        "purchaseCount": 5
+      },
+      "engagement": {
+        "rate": 0.5,
+        "campaignsOpened": 3,
+        "campaignsTotal": 6
+      },
+      "lastPurchase": {
+        "date": "2024-11-02",
+        "label": "Billet Concert Rome"
+      }
     },
     "tickets": [
       {
-        "basketId": "BK-DW-001",
         "purchaseDate": "2024-11-02",
         "type": "Concert",
         "event": "Concert Rome Symphony",
         "eventDate": "2024-11-15",
-        "price": 55.00,
+        "price": 55.0,
         "quantity": 2,
-        "total": 110.00,
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "total": 110.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6568659",
+        "purchaseNumber": "PUR-2024-8659",
+        "salesChannel": "Partner",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-11-15T20:30:00",
+        "category": "Category 1"
       },
       {
-        "basketId": "BK-DW-002",
+        "purchaseDate": "2024-11-02",
+        "type": "Concert",
+        "event": "Concert Rome Symphony",
+        "eventDate": "2024-11-15",
+        "price": 33.0,
+        "quantity": 1,
+        "total": 33.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "6568659",
+        "purchaseNumber": "PUR-2024-8659",
+        "salesChannel": "Partner",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Subscriber",
+        "performance": "2024-11-15T20:30:00"
+      },
+      {
         "purchaseDate": "2024-03-20",
         "type": "Exposition",
         "event": "Expo Renaissance",
         "eventDate": "2024-04-01",
-        "price": 18.00,
+        "price": 18.0,
         "quantity": 1,
-        "total": 18.00,
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "total": 18.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5346278",
+        "purchaseNumber": "PUR-2024-6278",
+        "salesChannel": "Mobile app",
+        "venue": "Grand Palais",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2024-04-01T15:00:00",
+        "category": "Category 1"
       },
       {
-        "basketId": "BK-DW-003",
+        "purchaseDate": "2024-03-20",
+        "type": "Merchandising",
+        "event": "Expo Renaissance",
+        "eventDate": "2024-04-01",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "5346278",
+        "purchaseNumber": "PUR-2024-6278",
+        "salesChannel": "Mobile app",
+        "venue": "Venue shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
+      },
+      {
         "purchaseDate": "2023-09-05",
         "type": "Théâtre",
         "event": "Pirandello en scène",
         "eventDate": "2023-09-20",
-        "price": 35.00,
+        "price": 35.0,
         "quantity": 1,
-        "total": 35.00,
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "total": 35.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4123897",
+        "purchaseNumber": "PUR-2023-3897",
+        "salesChannel": "Call centre",
+        "venue": "Comédie-Française",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2023-09-20T15:00:00",
+        "category": "Category 1"
       },
       {
-        "basketId": "BK-DW-004",
         "purchaseDate": "2023-06-12",
         "type": "Concert",
         "event": "Opéra de Bologne",
         "eventDate": "2023-06-25",
-        "price": 34.00,
+        "price": 34.0,
         "quantity": 3,
-        "total": 102.00,
+        "total": 102.0,
         "status": "Cancelled",
-        "buyerStatus": "Buyer"
+        "buyerStatus": "Buyer",
+        "purchaseId": "5901516",
+        "purchaseNumber": "PUR-2023-1516",
+        "salesChannel": "Box office",
+        "venue": "Olympia",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2023-06-25T14:30:00",
+        "category": "Category 1"
       }
     ],
     "campaigns": [
-      { "name": "Newsletter Mai 2023",     "type": "Email", "sentAt": "2023-05-15", "receivedAt": "2023-05-15", "openedAt": "2023-05-16" },
-      { "name": "Promo Automne 2023",      "type": "Email", "sentAt": "2023-10-01", "receivedAt": "2023-10-01", "openedAt": null },
-      { "name": "Newsletter Janvier 2024", "type": "Email", "sentAt": "2024-01-10", "receivedAt": "2024-01-10", "openedAt": "2024-01-11" }
+      {
+        "name": "Newsletter Mai 2023",
+        "type": "Email",
+        "sentAt": "2023-05-15T09:53:00",
+        "receivedAt": "2023-05-15T10:01:00",
+        "openedAt": "2023-05-16T18:39:00",
+        "clickedAt": "2023-05-17T14:31:00"
+      },
+      {
+        "name": "Promo Automne 2023",
+        "type": "Email",
+        "sentAt": "2023-10-01T09:16:00",
+        "receivedAt": "2023-10-01T09:29:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter Janvier 2024",
+        "type": "Email",
+        "sentAt": "2024-01-10T10:32:00",
+        "receivedAt": "2024-01-10T10:34:00",
+        "openedAt": "2024-01-11T17:08:00",
+        "clickedAt": null
+      }
     ],
     "contributions": [
-      { "product": "Abonnement Classique", "category": "Abonnement", "purchaseDate": "2023-06-01", "quantity": 1, "amount": 75.00 }
+      {
+        "product": "Abonnement Classique",
+        "category": "Abonnement",
+        "purchaseDate": "2023-06-01",
+        "quantity": 1,
+        "amount": 75.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre", "structure": "Institute D", "assignedAt": "2023-05-10", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Institute D",
+        "assignedAt": "2023-05-10",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2026-06-03",
+        "origin": "Imported list",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2025-01-12",
+        "origin": "Call centre",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2023-11-01",
+        "origin": "Call centre",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2023-05-10",
+        "origin": "Web form",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -106,13 +256,15 @@
       "email": "james44@example.org",
       "age": 67,
       "gender": "Male",
-      "dateOfBirth": "1957-08-22"
+      "dateOfBirth": "1957-08-22",
+      "civility": "Mr."
     },
     "coordinates": {
       "phone": "324-368-0655x4399",
       "address": "8 Baker Street",
       "postalCode": "81396",
-      "country": "United Kingdom"
+      "country": "United Kingdom",
+      "city": "London"
     },
     "source": {
       "createdAt": "2022-11-03",
@@ -120,145 +272,367 @@
     },
     "structure": "Institute D",
     "loyalty": 47,
-    "lists": ["Loyal fans", "Last-minute ticket buyers for the RCT v UBB match"],
+    "lists": [
+      "Loyal fans",
+      "Last-minute ticket buyers for the RCT v UBB match"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2022-11-03" },
-      { "label": "Consentement VIP",        "grantedSince": "2023-04-15" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2022-11-03"
+      },
+      {
+        "label": "VIP programme",
+        "grantedSince": "2023-04-15"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": "Owen Farrell" },
-      { "label": "Favorite music genre", "value": "Jazz" }
+      {
+        "label": "Favorite athlete",
+        "value": "Owen Farrell"
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Jazz"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 675.00, "currency": "EUR", "purchaseCount": 6 },
-      "engagement": { "rate": 0.83, "campaignsOpened": 5, "campaignsTotal": 6 },
-      "lastPurchase": { "date": "2025-01-18", "label": "Match Premier League" }
+      "totalSpending": {
+        "amount": 676.0,
+        "currency": "EUR",
+        "purchaseCount": 10
+      },
+      "engagement": {
+        "rate": 0.83,
+        "campaignsOpened": 5,
+        "campaignsTotal": 6
+      },
+      "lastPurchase": {
+        "date": "2025-01-18",
+        "label": "Match Premier League"
+      }
     },
     "tickets": [
       {
-        "basketId": "BK-TD-001",
         "purchaseDate": "2025-01-18",
         "type": "Sport",
         "event": "Match Premier League",
         "eventDate": "2025-01-25",
-        "price": 65.00,
+        "price": 65.0,
         "quantity": 2,
-        "total": 130.00,
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "total": 130.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5572887",
+        "purchaseNumber": "PUR-2025-2887",
+        "salesChannel": "Call centre",
+        "venue": "Accor Arena",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2025-01-25T20:30:00",
+        "category": "Category 1"
       },
       {
-        "basketId": "BK-TD-002",
+        "purchaseDate": "2025-01-18",
+        "type": "Sport",
+        "event": "Match Premier League",
+        "eventDate": "2025-01-25",
+        "price": 39.0,
+        "quantity": 1,
+        "total": 39.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "5572887",
+        "purchaseNumber": "PUR-2025-2887",
+        "salesChannel": "Call centre",
+        "venue": "Accor Arena",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2025-01-25T20:30:00"
+      },
+      {
         "purchaseDate": "2024-09-10",
         "type": "Concert",
         "event": "Jazz at Ronnie Scott's",
         "eventDate": "2024-09-20",
-        "price": 45.00,
+        "price": 45.0,
         "quantity": 1,
-        "total": 45.00,
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "total": 45.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4350506",
+        "purchaseNumber": "PUR-2024-0506",
+        "salesChannel": "Box office",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Subscriber",
+        "performance": "2024-09-20T15:00:00",
+        "category": "Category 1"
       },
       {
-        "basketId": "BK-TD-003",
+        "purchaseDate": "2024-09-10",
+        "type": "Merchandising",
+        "event": "Jazz at Ronnie Scott's",
+        "eventDate": "2024-09-20",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "4350506",
+        "purchaseNumber": "PUR-2024-0506",
+        "salesChannel": "Box office",
+        "venue": "Venue shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
+      },
+      {
         "purchaseDate": "2024-04-05",
         "type": "Sport",
         "event": "Rugby Autumn Nations",
         "eventDate": "2024-04-12",
-        "price": 55.00,
+        "price": 55.0,
         "quantity": 2,
-        "total": 110.00,
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "total": 110.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6128125",
+        "purchaseNumber": "PUR-2024-8125",
+        "salesChannel": "Web",
+        "venue": "Roland-Garros",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2024-04-12T18:30:00",
+        "category": "Category 1"
       },
       {
-        "basketId": "BK-TD-003",
         "purchaseDate": "2024-04-05",
         "type": "Merchandising",
         "event": "Rugby Autumn Nations",
         "eventDate": "2024-04-12",
-        "price": 60.00,
+        "price": 60.0,
         "quantity": 1,
-        "total": 60.00,
-        "status": "Vendu",
-        "category": "Maillot collector",
-        "buyerStatus": "Buyer"
+        "total": 60.0,
+        "status": "Sold",
+        "category": "Collector jersey",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6128125",
+        "purchaseNumber": "PUR-2024-8125",
+        "salesChannel": "Web",
+        "venue": "Online shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
       },
       {
-        "basketId": "BK-TD-004",
         "purchaseDate": "2023-12-01",
         "type": "Concert",
         "event": "Christmas Prom",
         "eventDate": "2023-12-20",
-        "price": 40.00,
+        "price": 40.0,
         "quantity": 2,
-        "total": 80.00,
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "total": 80.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5684792",
+        "purchaseNumber": "PUR-2023-4792",
+        "salesChannel": "Call centre",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2023-12-20T14:30:00",
+        "category": "Category 1"
       },
       {
-        "basketId": "BK-TD-005",
         "purchaseDate": "2023-07-14",
         "type": "Théâtre",
         "event": "Shakespeare in the Park",
         "eventDate": "2023-07-21",
-        "price": 30.00,
+        "price": 30.0,
         "quantity": 1,
-        "total": 30.00,
+        "total": 30.0,
         "status": "Cancelled",
-        "buyerStatus": "Buyer"
+        "buyerStatus": "Buyer",
+        "purchaseId": "4462411",
+        "purchaseNumber": "PUR-2023-2411",
+        "salesChannel": "Box office",
+        "venue": "Théâtre de l’Odéon",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2023-07-21T20:30:00",
+        "category": "Category 1"
       },
       {
-        "basketId": "BK-TD-006",
         "purchaseDate": "2023-03-22",
         "type": "Sport",
         "event": "Six Nations Final",
         "eventDate": "2023-03-30",
-        "price": 50.00,
+        "price": 50.0,
         "quantity": 2,
-        "total": 100.00,
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "total": 100.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6240030",
+        "purchaseNumber": "PUR-2023-0030",
+        "salesChannel": "Web",
+        "venue": "Accor Arena",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2023-03-30T14:30:00",
+        "category": "Category 1"
       },
       {
-        "basketId": "BK-TD-006",
         "purchaseDate": "2023-03-22",
         "type": "Sport",
         "event": "Six Nations Final",
         "eventDate": "2023-03-30",
-        "price": 50.00,
+        "price": 50.0,
         "quantity": 1,
-        "total": 50.00,
-        "status": "Vendu",
-        "category": "Tribune VIP",
-        "buyerStatus": "Buyer"
+        "total": 50.0,
+        "status": "Sold",
+        "category": "VIP stand",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6240030",
+        "purchaseNumber": "PUR-2023-0030",
+        "salesChannel": "Web",
+        "venue": "Accor Arena",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2023-03-30T14:30:00"
       },
       {
-        "basketId": "BK-TD-007",
         "purchaseDate": "2022-12-10",
         "type": "Concert",
         "event": "New Year Gala",
         "eventDate": "2022-12-31",
-        "price": 25.00,
+        "price": 25.0,
         "quantity": 2,
-        "total": 50.00,
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "total": 50.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5017649",
+        "purchaseNumber": "PUR-2022-7649",
+        "salesChannel": "Partner",
+        "venue": "Olympia",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2022-12-31T20:30:00",
+        "category": "Category 1"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",           "type": "Email", "sentAt": "2022-11-03", "receivedAt": "2022-11-03", "openedAt": "2022-11-03" },
-      { "name": "Newsletter Mars 2023",    "type": "Email", "sentAt": "2023-03-01", "receivedAt": "2023-03-01", "openedAt": "2023-03-02" },
-      { "name": "Promo Été 2023",          "type": "SMS",   "sentAt": "2023-06-15", "receivedAt": "2023-06-15", "openedAt": null },
-      { "name": "Newsletter Octobre 2023", "type": "Email", "sentAt": "2023-10-10", "receivedAt": "2023-10-10", "openedAt": "2023-10-11" },
-      { "name": "Black Friday 2023",       "type": "Email", "sentAt": "2023-11-24", "receivedAt": "2023-11-24", "openedAt": "2023-11-24" }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2022-11-03T11:07:00",
+        "receivedAt": "2022-11-03T11:19:00",
+        "openedAt": "2022-11-03T21:27:00",
+        "clickedAt": "2022-11-04T18:36:00"
+      },
+      {
+        "name": "Newsletter Mars 2023",
+        "type": "Email",
+        "sentAt": "2023-03-01T11:55:00",
+        "receivedAt": "2023-03-01T12:08:00",
+        "openedAt": "2023-03-02T13:37:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Promo Été 2023",
+        "type": "SMS",
+        "sentAt": "2023-06-15T09:43:00",
+        "receivedAt": "2023-06-15T09:47:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter Octobre 2023",
+        "type": "Email",
+        "sentAt": "2023-10-10T11:16:00",
+        "receivedAt": "2023-10-10T11:20:00",
+        "openedAt": "2023-10-11T16:02:00",
+        "clickedAt": "2023-10-12T11:35:00"
+      },
+      {
+        "name": "Black Friday 2023",
+        "type": "Email",
+        "sentAt": "2023-11-24T11:16:00",
+        "receivedAt": "2023-11-24T11:21:00",
+        "openedAt": "2023-11-24T17:36:00",
+        "clickedAt": null
+      }
     ],
     "contributions": [
-      { "product": "Abonnement Premium", "category": "Abonnement",   "purchaseDate": "2023-01-01", "quantity": 1, "amount": 99.00 },
-      { "product": "Maillot collector",  "category": "Merchandising", "purchaseDate": "2024-04-12", "quantity": 1, "amount": 60.00 }
+      {
+        "product": "Abonnement Premium",
+        "category": "Abonnement",
+        "purchaseDate": "2023-01-01",
+        "quantity": 1,
+        "amount": 99.0
+      },
+      {
+        "product": "Maillot collector",
+        "category": "Merchandising",
+        "purchaseDate": "2024-04-12",
+        "quantity": 1,
+        "amount": 60.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre VIP", "structure": "Institute D", "assignedAt": "2023-04-15", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre VIP",
+        "structure": "Institute D",
+        "assignedAt": "2023-04-15",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2026-02-11",
+        "origin": "Mobile app",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2025-10-07",
+        "origin": "Call centre",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-12-05",
+        "origin": "Box office",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2024-06-14",
+        "origin": "Email link",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2023-07-03",
+        "origin": "Call centre",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2023-04-15",
+        "origin": "Preference centre",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2022-11-03",
+        "origin": "Preference centre",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -270,13 +644,15 @@
       "email": "sarahthomas@example.com",
       "age": 49,
       "gender": "Other",
-      "dateOfBirth": "1975-06-30"
+      "dateOfBirth": "1975-06-30",
+      "civility": "Mx."
     },
     "coordinates": {
       "phone": "985-392-5147x266",
       "address": "24 Oxford Road",
       "postalCode": "82805",
-      "country": "United Kingdom"
+      "country": "United Kingdom",
+      "city": "Manchester"
     },
     "source": {
       "createdAt": "2024-01-08",
@@ -284,80 +660,226 @@
     },
     "structure": "Corporation E",
     "loyalty": 29,
-    "lists": ["Yesterday's buyers"],
+    "lists": [
+      "Yesterday's buyers"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2024-01-08" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2024-01-08"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": null },
-      { "label": "Favorite music genre", "value": "Musical Theatre" }
+      {
+        "label": "Favorite athlete",
+        "value": null
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Musical Theatre"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 118.00, "currency": "EUR", "purchaseCount": 2 },
-      "engagement": { "rate": 0.33, "campaignsOpened": 1, "campaignsTotal": 3 },
-      "lastPurchase": { "date": "2024-10-05", "label": "Exposition Art Contemporain" }
+      "totalSpending": {
+        "amount": 179.2,
+        "currency": "EUR",
+        "purchaseCount": 4
+      },
+      "engagement": {
+        "rate": 0.33,
+        "campaignsOpened": 1,
+        "campaignsTotal": 3
+      },
+      "lastPurchase": {
+        "date": "2024-10-05",
+        "label": "Exposition Art Contemporain"
+      }
     },
     "tickets": [
       {
-        "basketId": "BK-SM-001",
         "purchaseDate": "2024-10-05",
         "type": "Exposition",
         "event": "Art Contemporain London",
         "eventDate": "2024-10-15",
-        "price": 22.00,
+        "price": 22.0,
         "quantity": 1,
-        "total": 22.00,
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "total": 22.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6734622",
+        "purchaseNumber": "PUR-2024-4622",
+        "salesChannel": "Call centre",
+        "venue": "Grand Palais",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2024-10-15T15:00:00",
+        "category": "Category 1"
       },
       {
-        "basketId": "BK-SM-002",
+        "purchaseDate": "2024-10-05",
+        "type": "Exposition",
+        "event": "Art Contemporain London",
+        "eventDate": "2024-10-15",
+        "price": 13.2,
+        "quantity": 1,
+        "total": 13.2,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "6734622",
+        "purchaseNumber": "PUR-2024-4622",
+        "salesChannel": "Call centre",
+        "venue": "Grand Palais",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2024-10-15T15:00:00"
+      },
+      {
         "purchaseDate": "2024-05-18",
         "type": "Théâtre",
         "event": "West End Musical",
         "eventDate": "2024-05-25",
-        "price": 48.00,
+        "price": 48.0,
         "quantity": 2,
-        "total": 96.00,
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "total": 96.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4957003",
+        "purchaseNumber": "PUR-2024-7003",
+        "salesChannel": "Mobile app",
+        "venue": "Comédie-Française",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-05-25T15:00:00",
+        "category": "Category 1"
       },
       {
-        "basketId": "BK-SM-002",
         "purchaseDate": "2024-05-18",
         "type": "Théâtre",
         "event": "West End Musical",
         "eventDate": "2024-05-26",
-        "price": 48.00,
+        "price": 48.0,
         "quantity": 1,
-        "total": 48.00,
-        "status": "Vendu",
-        "category": "Carnet de programme",
-        "buyerStatus": "Buyer"
+        "total": 48.0,
+        "status": "Sold",
+        "category": "Programme booklet",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4957003",
+        "purchaseNumber": "PUR-2024-7003",
+        "salesChannel": "Mobile app",
+        "venue": "Comédie-Française",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-05-26T15:00:00"
       },
       {
-        "basketId": "BK-SM-003",
         "purchaseDate": "2024-02-14",
         "type": "Concert",
         "event": "Valentine's Jazz Night",
         "eventDate": "2024-02-14",
-        "price": 28.00,
+        "price": 28.0,
         "quantity": 1,
-        "total": 28.00,
+        "total": 28.0,
         "status": "Cancelled",
-        "buyerStatus": "Buyer"
+        "buyerStatus": "Buyer",
+        "purchaseId": "6179384",
+        "purchaseNumber": "PUR-2024-9384",
+        "salesChannel": "Partner",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2024-02-14T19:00:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2024-02-14",
+        "type": "Merchandising",
+        "event": "Valentine's Jazz Night",
+        "eventDate": "2024-02-14",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Cancelled",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "6179384",
+        "purchaseNumber": "PUR-2024-9384",
+        "salesChannel": "Partner",
+        "venue": "Online shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",        "type": "Email", "sentAt": "2024-01-08", "receivedAt": "2024-01-08", "openedAt": "2024-01-09" },
-      { "name": "Newsletter Mars 2024", "type": "Email", "sentAt": "2024-03-01", "receivedAt": "2024-03-01", "openedAt": null },
-      { "name": "Promo Automne 2024",   "type": "Email", "sentAt": "2024-09-15", "receivedAt": "2024-09-15", "openedAt": null }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2024-01-08T11:18:00",
+        "receivedAt": "2024-01-08T11:23:00",
+        "openedAt": "2024-01-09T10:39:00",
+        "clickedAt": "2024-01-10T13:54:00"
+      },
+      {
+        "name": "Newsletter Mars 2024",
+        "type": "Email",
+        "sentAt": "2024-03-01T10:45:00",
+        "receivedAt": "2024-03-01T10:54:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Promo Automne 2024",
+        "type": "Email",
+        "sentAt": "2024-09-15T10:52:00",
+        "receivedAt": "2024-09-15T10:53:00",
+        "openedAt": null,
+        "clickedAt": null
+      }
     ],
     "contributions": [
-      { "product": "Pass journée", "category": "Billetterie", "purchaseDate": "2024-02-14", "quantity": 2, "amount": 56.00 }
+      {
+        "product": "Pass journée",
+        "category": "Billetterie",
+        "purchaseDate": "2024-02-14",
+        "quantity": 2,
+        "amount": 56.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre", "structure": "Corporation E", "assignedAt": "2024-01-08", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Corporation E",
+        "assignedAt": "2024-01-08",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2026-01-06",
+        "origin": "Web form",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-09-06",
+        "origin": "Web form",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-05-09",
+        "origin": "Mobile app",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-01-08",
+        "origin": "Box office",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -369,13 +891,15 @@
       "email": "gabriel71@example.org",
       "age": 23,
       "gender": "Male",
-      "dateOfBirth": "2001-11-05"
+      "dateOfBirth": "2001-11-05",
+      "civility": "Mr."
     },
     "coordinates": {
       "phone": "281-928-9932",
       "address": "3 Rue de la Paix",
       "postalCode": "68375",
-      "country": "France"
+      "country": "France",
+      "city": "Paris"
     },
     "source": {
       "createdAt": "2024-09-01",
@@ -383,77 +907,245 @@
     },
     "structure": "Organization B",
     "loyalty": 38,
-    "lists": ["Loyal audience", "Senior segment"],
+    "lists": [
+      "Loyal audience",
+      "Senior segment"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2024-09-01" },
-      { "label": "Consentement activités",  "grantedSince": "2024-09-01" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2024-09-01"
+      },
+      {
+        "label": "Activities",
+        "grantedSince": "2024-09-01"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": "Kylian Mbappé" },
-      { "label": "Favorite music genre", "value": "Electronic" }
+      {
+        "label": "Favorite athlete",
+        "value": "Kylian Mbappé"
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Electronic"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 88.00, "currency": "EUR", "purchaseCount": 3 },
-      "engagement": { "rate": 0.75, "campaignsOpened": 3, "campaignsTotal": 4 },
-      "lastPurchase": { "date": "2025-02-10", "label": "Soirée Électro" }
+      "totalSpending": {
+        "amount": 112.0,
+        "currency": "EUR",
+        "purchaseCount": 5
+      },
+      "engagement": {
+        "rate": 0.75,
+        "campaignsOpened": 3,
+        "campaignsTotal": 4
+      },
+      "lastPurchase": {
+        "date": "2025-02-10",
+        "label": "Soirée Électro"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2025-02-10", 
-        "type": "Concert",    
-        "event": "Soirée Électro Paris",   
-        "eventDate": "2025-02-22", 
-        "price": 20.00, 
-        "quantity": 1, 
-        "total": 20.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2025-02-10",
+        "type": "Concert",
+        "event": "Soirée Électro Paris",
+        "eventDate": "2025-02-22",
+        "price": 20.0,
+        "quantity": 1,
+        "total": 20.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5151421",
+        "purchaseNumber": "PUR-2025-1421",
+        "salesChannel": "Box office",
+        "venue": "Olympia",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2025-02-22T20:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-12-15", 
-        "type": "Concert",    
-        "event": "Nouvel An Électro",      
-        "eventDate": "2024-12-31", 
-        "price": 25.00, 
-        "quantity": 2, 
-        "total": 50.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2025-02-10",
+        "type": "Concert",
+        "event": "Soirée Électro Paris",
+        "eventDate": "2025-02-22",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "5151421",
+        "purchaseNumber": "PUR-2025-1421",
+        "salesChannel": "Box office",
+        "venue": "Olympia",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2025-02-22T20:30:00"
       },
-      { 
-        "purchaseDate": "2024-10-20", 
-        "type": "Sport",      
-        "event": "Match Ligue 1",          
-        "eventDate": "2024-10-27", 
-        "price": 18.00, 
-        "quantity": 1, 
-        "total": 18.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-12-15",
+        "type": "Concert",
+        "event": "Nouvel An Électro",
+        "eventDate": "2024-12-31",
+        "price": 25.0,
+        "quantity": 2,
+        "total": 50.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5818564",
+        "purchaseNumber": "PUR-2024-8564",
+        "salesChannel": "Partner",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2024-12-31T15:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-09-15", 
-        "type": "Exposition", 
-        "event": "Expo Photo Urbaine",     
-        "eventDate": "2024-09-22", 
-        "price": 13.00, 
-        "quantity": 3, 
-        "total": 39.00, 
-        "status": "Annulé",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-12-15",
+        "type": "Merchandising",
+        "event": "Nouvel An Électro",
+        "eventDate": "2024-12-31",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "5818564",
+        "purchaseNumber": "PUR-2024-8564",
+        "salesChannel": "Partner",
+        "venue": "Venue shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
+      },
+      {
+        "purchaseDate": "2024-10-20",
+        "type": "Sport",
+        "event": "Match Ligue 1",
+        "eventDate": "2024-10-27",
+        "price": 18.0,
+        "quantity": 1,
+        "total": 18.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4596183",
+        "purchaseNumber": "PUR-2024-6183",
+        "salesChannel": "Mobile app",
+        "venue": "Accor Arena",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2024-10-27T15:00:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2024-09-15",
+        "type": "Exposition",
+        "event": "Expo Photo Urbaine",
+        "eventDate": "2024-09-22",
+        "price": 13.0,
+        "quantity": 3,
+        "total": 39.0,
+        "status": "Cancelled",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5263326",
+        "purchaseNumber": "PUR-2024-3326",
+        "salesChannel": "Box office",
+        "venue": "Musée d’Orsay",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2024-09-22T20:30:00",
+        "category": "Category 1"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",          "type": "Email", "sentAt": "2024-09-01", "receivedAt": "2024-09-01", "openedAt": "2024-09-01" },
-      { "name": "Promo Automne 2024",     "type": "SMS",   "sentAt": "2024-09-15", "receivedAt": "2024-09-15", "openedAt": "2024-09-15" },
-      { "name": "Newsletter Octobre 2024","type": "Email", "sentAt": "2024-10-10", "receivedAt": "2024-10-10", "openedAt": "2024-10-12" },
-      { "name": "Black Friday 2024",      "type": "Email", "sentAt": "2024-11-29", "receivedAt": "2024-11-29", "openedAt": null }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2024-09-01T10:33:00",
+        "receivedAt": "2024-09-01T10:40:00",
+        "openedAt": "2024-09-01T11:22:00",
+        "clickedAt": "2024-09-02T15:18:00"
+      },
+      {
+        "name": "Promo Automne 2024",
+        "type": "SMS",
+        "sentAt": "2024-09-15T11:08:00",
+        "receivedAt": "2024-09-15T11:11:00",
+        "openedAt": "2024-09-15T19:05:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter Octobre 2024",
+        "type": "Email",
+        "sentAt": "2024-10-10T10:12:00",
+        "receivedAt": "2024-10-10T10:26:00",
+        "openedAt": "2024-10-12T08:52:00",
+        "clickedAt": "2024-10-13T09:58:00"
+      },
+      {
+        "name": "Black Friday 2024",
+        "type": "Email",
+        "sentAt": "2024-11-29T09:26:00",
+        "receivedAt": "2024-11-29T09:39:00",
+        "openedAt": null,
+        "clickedAt": null
+      }
     ],
     "contributions": [
-      { "product": "Pass étudiant annuel", "category": "Abonnement", "purchaseDate": "2024-09-01", "quantity": 1, "amount": 49.00 }
+      {
+        "product": "Pass étudiant annuel",
+        "category": "Abonnement",
+        "purchaseDate": "2024-09-01",
+        "quantity": 1,
+        "amount": 49.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre", "structure": "Organization B", "assignedAt": "2024-09-01", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Organization B",
+        "assignedAt": "2024-09-01",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Activities",
+        "date": "2026-03-17",
+        "origin": "Box office",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Activities",
+        "date": "2025-07-23",
+        "origin": "Imported list",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2025-07-03",
+        "origin": "Web form",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-09-01",
+        "origin": "Mobile app",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Activities",
+        "date": "2024-09-01",
+        "origin": "Call centre",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -465,13 +1157,15 @@
       "email": "pearsoncheryl@example.org",
       "age": 57,
       "gender": "Female",
-      "dateOfBirth": "1967-04-18"
+      "dateOfBirth": "1967-04-18",
+      "civility": "Ms."
     },
     "coordinates": {
       "phone": "211-870-5830",
       "address": "Hauptstraße 45",
       "postalCode": "41179",
-      "country": "Germany"
+      "country": "Germany",
+      "city": "Berlin"
     },
     "source": {
       "createdAt": "2023-02-14",
@@ -479,89 +1173,268 @@
     },
     "structure": "Company A",
     "loyalty": 32,
-    "lists": ["Public around"],
+    "lists": [
+      "Public around"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2023-02-14" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2023-02-14"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": null },
-      { "label": "Favorite music genre", "value": "Classical" }
+      {
+        "label": "Favorite athlete",
+        "value": null
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Classical"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 270.00, "currency": "EUR", "purchaseCount": 4 },
-      "engagement": { "rate": 0.60, "campaignsOpened": 3, "campaignsTotal": 5 },
-      "lastPurchase": { "date": "2024-08-30", "label": "Concert Classique Berlin" }
+      "totalSpending": {
+        "amount": 324.0,
+        "currency": "EUR",
+        "purchaseCount": 6
+      },
+      "engagement": {
+        "rate": 0.6,
+        "campaignsOpened": 3,
+        "campaignsTotal": 5
+      },
+      "lastPurchase": {
+        "date": "2024-08-30",
+        "label": "Concert Classique Berlin"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2024-08-30", 
-        "type": "Concert",    
-        "event": "Berlin Philharmoniker",   
-        "eventDate": "2024-09-10", 
-        "price": 70.00, 
-        "quantity": 1, 
-        "total": 70.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-08-30",
+        "type": "Concert",
+        "event": "Berlin Philharmoniker",
+        "eventDate": "2024-09-10",
+        "price": 70.0,
+        "quantity": 1,
+        "total": 70.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6892750",
+        "purchaseNumber": "PUR-2024-2750",
+        "salesChannel": "Web",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2024-09-10T19:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-03-12", 
-        "type": "Théâtre",    
-        "event": "Berliner Ensemble",       
-        "eventDate": "2024-03-20", 
-        "price": 40.00, 
-        "quantity": 2, 
-        "total": 80.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-08-30",
+        "type": "Concert",
+        "event": "Berlin Philharmoniker",
+        "eventDate": "2024-09-10",
+        "price": 42.0,
+        "quantity": 1,
+        "total": 42.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "6892750",
+        "purchaseNumber": "PUR-2024-2750",
+        "salesChannel": "Web",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-09-10T19:00:00"
       },
-      { 
-        "purchaseDate": "2023-11-05", 
-        "type": "Exposition", 
-        "event": "Expo Bauhaus",            
-        "eventDate": "2023-11-12", 
-        "price": 15.00, 
-        "quantity": 1, 
-        "total": 15.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-03-12",
+        "type": "Théâtre",
+        "event": "Berliner Ensemble",
+        "eventDate": "2024-03-20",
+        "price": 40.0,
+        "quantity": 2,
+        "total": 80.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5115131",
+        "purchaseNumber": "PUR-2024-5131",
+        "salesChannel": "Box office",
+        "venue": "Théâtre de l’Odéon",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2024-03-20T20:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2023-06-18", 
-        "type": "Concert",    
-        "event": "Lollapalooza Berlin",     
-        "eventDate": "2023-06-24", 
-        "price": 35.00, 
-        "quantity": 3, 
-        "total": 105.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-03-12",
+        "type": "Merchandising",
+        "event": "Berliner Ensemble",
+        "eventDate": "2024-03-20",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "5115131",
+        "purchaseNumber": "PUR-2024-5131",
+        "salesChannel": "Box office",
+        "venue": "Venue shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
       },
-      { 
-        "purchaseDate": "2023-03-01", 
-        "type": "Sport",      
-        "event": "Bundesliga - Hertha BSC", 
-        "eventDate": "2023-03-08", 
-        "price": 25.00, 
-        "quantity": 1, 
-        "total": 25.00, 
+      {
+        "purchaseDate": "2023-11-05",
+        "type": "Exposition",
+        "event": "Expo Bauhaus",
+        "eventDate": "2023-11-12",
+        "price": 15.0,
+        "quantity": 1,
+        "total": 15.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6337512",
+        "purchaseNumber": "PUR-2023-7512",
+        "salesChannel": "Call centre",
+        "venue": "Musée d’Orsay",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2023-11-12T18:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2023-06-18",
+        "type": "Concert",
+        "event": "Lollapalooza Berlin",
+        "eventDate": "2023-06-24",
+        "price": 35.0,
+        "quantity": 3,
+        "total": 105.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6780845",
+        "purchaseNumber": "PUR-2023-0845",
+        "salesChannel": "Web",
+        "venue": "Olympia",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2023-06-24T14:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2023-03-01",
+        "type": "Sport",
+        "event": "Bundesliga - Hertha BSC",
+        "eventDate": "2023-03-08",
+        "price": 25.0,
+        "quantity": 1,
+        "total": 25.0,
         "status": "Cancelled",
-        "buyerStatus": "Buyer"
+        "buyerStatus": "Buyer",
+        "purchaseId": "5003226",
+        "purchaseNumber": "PUR-2023-3226",
+        "salesChannel": "Box office",
+        "venue": "Stade de France",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2023-03-08T18:30:00",
+        "category": "Category 1"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",        "type": "Email", "sentAt": "2023-02-14", "receivedAt": "2023-02-14", "openedAt": "2023-02-14" },
-      { "name": "Newsletter Juin 2023", "type": "Email", "sentAt": "2023-06-01", "receivedAt": "2023-06-01", "openedAt": "2023-06-03" },
-      { "name": "Promo Été 2023",       "type": "SMS",   "sentAt": "2023-07-01", "receivedAt": "2023-07-01", "openedAt": null },
-      { "name": "Black Friday 2023",    "type": "Email", "sentAt": "2023-11-24", "receivedAt": "2023-11-24", "openedAt": "2023-11-25" },
-      { "name": "Newsletter Avril 2024","type": "Email", "sentAt": "2024-04-01", "receivedAt": "2024-04-01", "openedAt": null }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2023-02-14T10:24:00",
+        "receivedAt": "2023-02-14T10:35:00",
+        "openedAt": "2023-02-14T15:48:00",
+        "clickedAt": "2023-02-15T10:10:00"
+      },
+      {
+        "name": "Newsletter Juin 2023",
+        "type": "Email",
+        "sentAt": "2023-06-01T09:11:00",
+        "receivedAt": "2023-06-01T09:13:00",
+        "openedAt": "2023-06-03T11:38:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Promo Été 2023",
+        "type": "SMS",
+        "sentAt": "2023-07-01T11:38:00",
+        "receivedAt": "2023-07-01T11:51:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Black Friday 2023",
+        "type": "Email",
+        "sentAt": "2023-11-24T10:34:00",
+        "receivedAt": "2023-11-24T10:47:00",
+        "openedAt": "2023-11-25T13:16:00",
+        "clickedAt": "2023-11-26T16:38:00"
+      },
+      {
+        "name": "Newsletter Avril 2024",
+        "type": "Email",
+        "sentAt": "2024-04-01T11:51:00",
+        "receivedAt": "2024-04-01T12:05:00",
+        "openedAt": null,
+        "clickedAt": null
+      }
     ],
     "contributions": [
-      { "product": "Abonnement Classique", "category": "Abonnement",   "purchaseDate": "2023-02-14", "quantity": 1, "amount": 75.00 },
-      { "product": "Programme collector", "category": "Merchandising",  "purchaseDate": "2024-09-10", "quantity": 1, "amount": 12.00 }
+      {
+        "product": "Abonnement Classique",
+        "category": "Abonnement",
+        "purchaseDate": "2023-02-14",
+        "quantity": 1,
+        "amount": 75.0
+      },
+      {
+        "product": "Programme collector",
+        "category": "Merchandising",
+        "purchaseDate": "2024-09-10",
+        "quantity": 1,
+        "amount": 12.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre", "structure": "Company A", "assignedAt": "2023-02-14", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Company A",
+        "assignedAt": "2023-02-14",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2025-09-05",
+        "origin": "Email link",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-10-09",
+        "origin": "Preference centre",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-05-21",
+        "origin": "Call centre",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2023-02-14",
+        "origin": "Call centre",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -573,13 +1446,15 @@
       "email": "christopherhenry@example.net",
       "age": 38,
       "gender": "Male",
-      "dateOfBirth": "1986-09-12"
+      "dateOfBirth": "1986-09-12",
+      "civility": "Mr."
     },
     "coordinates": {
       "phone": "9597436844",
       "address": "Calle Mayor 7",
       "postalCode": "16204",
-      "country": "Spain"
+      "country": "Spain",
+      "city": "Madrid"
     },
     "source": {
       "createdAt": "2024-06-20",
@@ -587,50 +1462,166 @@
     },
     "structure": "Firm C",
     "loyalty": 14,
-    "lists": ["Yesterday's buyers"],
+    "lists": [
+      "Yesterday's buyers"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2024-06-20" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2024-06-20"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": null },
-      { "label": "Favorite music genre", "value": "Flamenco" }
+      {
+        "label": "Favorite athlete",
+        "value": null
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Flamenco"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 32.00, "currency": "EUR", "purchaseCount": 1 },
-      "engagement": { "rate": 0.50, "campaignsOpened": 1, "campaignsTotal": 2 },
-      "lastPurchase": { "date": "2024-11-18", "label": "Flamenco Show Madrid" }
+      "totalSpending": {
+        "amount": 51.2,
+        "currency": "EUR",
+        "purchaseCount": 2
+      },
+      "engagement": {
+        "rate": 0.5,
+        "campaignsOpened": 1,
+        "campaignsTotal": 2
+      },
+      "lastPurchase": {
+        "date": "2024-11-18",
+        "label": "Flamenco Show Madrid"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2024-11-18", 
-        "type": "Concert",    
-        "event": "Flamenco Show Madrid", 
-        "eventDate": "2024-11-25", 
-        "price": 32.00, 
-        "quantity": 1, 
-        "total": 32.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-11-18",
+        "type": "Concert",
+        "event": "Flamenco Show Madrid",
+        "eventDate": "2024-11-25",
+        "price": 32.0,
+        "quantity": 1,
+        "total": 32.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4319965",
+        "purchaseNumber": "PUR-2024-9965",
+        "salesChannel": "Web",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-11-25T18:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-07-04", 
-        "type": "Exposition", 
-        "event": "Expo Dalí Barcelona",  
-        "eventDate": "2024-07-10", 
-        "price": 20.00, 
-        "quantity": 2, 
-        "total": 40.00, 
-        "status": "Annulé",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-11-18",
+        "type": "Concert",
+        "event": "Flamenco Show Madrid",
+        "eventDate": "2024-11-25",
+        "price": 19.2,
+        "quantity": 1,
+        "total": 19.2,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "4319965",
+        "purchaseNumber": "PUR-2024-9965",
+        "salesChannel": "Web",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Subscriber",
+        "performance": "2024-11-25T18:30:00"
+      },
+      {
+        "purchaseDate": "2024-07-04",
+        "type": "Exposition",
+        "event": "Expo Dalí Barcelona",
+        "eventDate": "2024-07-10",
+        "price": 20.0,
+        "quantity": 2,
+        "total": 40.0,
+        "status": "Cancelled",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4987108",
+        "purchaseNumber": "PUR-2024-7108",
+        "salesChannel": "Mobile app",
+        "venue": "Musée d’Orsay",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-07-10T18:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2024-07-04",
+        "type": "Merchandising",
+        "event": "Expo Dalí Barcelona",
+        "eventDate": "2024-07-10",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Cancelled",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "4987108",
+        "purchaseNumber": "PUR-2024-7108",
+        "salesChannel": "Mobile app",
+        "venue": "Online shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",       "type": "Email", "sentAt": "2024-06-20", "receivedAt": "2024-06-20", "openedAt": "2024-06-21" },
-      { "name": "Newsletter Août 2024","type": "Email", "sentAt": "2024-08-01", "receivedAt": "2024-08-01", "openedAt": null }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2024-06-20T10:33:00",
+        "receivedAt": "2024-06-20T10:34:00",
+        "openedAt": "2024-06-21T12:44:00",
+        "clickedAt": "2024-06-22T13:19:00"
+      },
+      {
+        "name": "Newsletter Août 2024",
+        "type": "Email",
+        "sentAt": "2024-08-01T09:06:00",
+        "receivedAt": "2024-08-01T09:19:00",
+        "openedAt": null,
+        "clickedAt": null
+      }
     ],
     "contributions": [],
     "accessControls": [
-      { "role": "Membre", "structure": "Firm C", "assignedAt": "2024-06-20", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Firm C",
+        "assignedAt": "2024-06-20",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2026-05-27",
+        "origin": "Box office",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2025-01-19",
+        "origin": "Imported list",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-06-20",
+        "origin": "Box office",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -642,13 +1633,15 @@
       "email": "davidjackson@example.com",
       "age": 30,
       "gender": "Other",
-      "dateOfBirth": "1994-12-03"
+      "dateOfBirth": "1994-12-03",
+      "civility": "Mx."
     },
     "coordinates": {
       "phone": "433-808-9367",
       "address": "Musterweg 12",
       "postalCode": "16448",
-      "country": "Germany"
+      "country": "Germany",
+      "city": "Munich"
     },
     "source": {
       "createdAt": "2023-08-15",
@@ -656,89 +1649,284 @@
     },
     "structure": "Organization B",
     "loyalty": 39,
-    "lists": ["Loyal audience", "Senior segment"],
+    "lists": [
+      "Loyal audience",
+      "Senior segment"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2023-08-15" },
-      { "label": "Consentement activités",  "grantedSince": "2024-01-10" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2023-08-15"
+      },
+      {
+        "label": "Activities",
+        "grantedSince": "2024-01-10"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": "Manuel Neuer" },
-      { "label": "Favorite music genre", "value": "Electronic" }
+      {
+        "label": "Favorite athlete",
+        "value": "Manuel Neuer"
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Electronic"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 201.00, "currency": "EUR", "purchaseCount": 4 },
-      "engagement": { "rate": 0.80, "campaignsOpened": 4, "campaignsTotal": 5 },
-      "lastPurchase": { "date": "2025-01-05", "label": "Nouvel An Électro Hamburg" }
+      "totalSpending": {
+        "amount": 231.0,
+        "currency": "EUR",
+        "purchaseCount": 6
+      },
+      "engagement": {
+        "rate": 0.8,
+        "campaignsOpened": 4,
+        "campaignsTotal": 5
+      },
+      "lastPurchase": {
+        "date": "2025-01-05",
+        "label": "Nouvel An Électro Hamburg"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2025-01-05", 
-        "type": "Concert",    
+      {
+        "purchaseDate": "2025-01-05",
+        "type": "Concert",
         "event": "Nouvel An Électro Hamburg",
-        "eventDate": "2025-01-10", 
-        "price": 30.00, 
-        "quantity": 2, 
-        "total": 60.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+        "eventDate": "2025-01-10",
+        "price": 30.0,
+        "quantity": 2,
+        "total": 60.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6672283",
+        "purchaseNumber": "PUR-2025-2283",
+        "salesChannel": "Mobile app",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2025-01-10T15:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-08-22", 
-        "type": "Concert",    
-        "event": "Lollapalooza Berlin",      
-        "eventDate": "2024-08-28", 
-        "price": 45.00, 
-        "quantity": 1, 
-        "total": 45.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2025-01-05",
+        "type": "Concert",
+        "event": "Nouvel An Électro Hamburg",
+        "eventDate": "2025-01-10",
+        "price": 18.0,
+        "quantity": 1,
+        "total": 18.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "6672283",
+        "purchaseNumber": "PUR-2025-2283",
+        "salesChannel": "Mobile app",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Subscriber",
+        "performance": "2025-01-10T15:00:00"
       },
-      { 
-        "purchaseDate": "2024-04-14", 
-        "type": "Théâtre",    
-        "event": "Schauspielhaus Hamburg",   
-        "eventDate": "2024-04-20", 
-        "price": 38.00, 
-        "quantity": 2, 
-        "total": 76.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-08-22",
+        "type": "Concert",
+        "event": "Lollapalooza Berlin",
+        "eventDate": "2024-08-28",
+        "price": 45.0,
+        "quantity": 1,
+        "total": 45.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5449902",
+        "purchaseNumber": "PUR-2024-9902",
+        "salesChannel": "Call centre",
+        "venue": "Olympia",
+        "productType": "Ticket",
+        "priceFormula": "Subscriber",
+        "performance": "2024-08-28T14:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2023-12-20", 
-        "type": "Exposition", 
-        "event": "Expo Design Munich",       
-        "eventDate": "2023-12-27", 
-        "price": 20.00, 
-        "quantity": 1, 
-        "total": 20.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-08-22",
+        "type": "Merchandising",
+        "event": "Lollapalooza Berlin",
+        "eventDate": "2024-08-28",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "5449902",
+        "purchaseNumber": "PUR-2024-9902",
+        "salesChannel": "Call centre",
+        "venue": "Venue shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
       },
-      { 
-        "purchaseDate": "2023-09-01", 
-        "type": "Concert",    
-        "event": "Festival Reeperbahn",      
-        "eventDate": "2023-09-08", 
-        "price": 30.00, 
-        "quantity": 3, 
-        "total": 90.00, 
+      {
+        "purchaseDate": "2024-04-14",
+        "type": "Théâtre",
+        "event": "Schauspielhaus Hamburg",
+        "eventDate": "2024-04-20",
+        "price": 38.0,
+        "quantity": 2,
+        "total": 76.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4227521",
+        "purchaseNumber": "PUR-2024-7521",
+        "salesChannel": "Box office",
+        "venue": "Théâtre de l’Odéon",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2024-04-20T20:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2023-12-20",
+        "type": "Exposition",
+        "event": "Expo Design Munich",
+        "eventDate": "2023-12-27",
+        "price": 20.0,
+        "quantity": 1,
+        "total": 20.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6005140",
+        "purchaseNumber": "PUR-2023-5140",
+        "salesChannel": "Web",
+        "venue": "Grand Palais",
+        "productType": "Ticket",
+        "priceFormula": "Subscriber",
+        "performance": "2023-12-27T15:00:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2023-09-01",
+        "type": "Concert",
+        "event": "Festival Reeperbahn",
+        "eventDate": "2023-09-08",
+        "price": 30.0,
+        "quantity": 3,
+        "total": 90.0,
         "status": "Cancelled",
-        "buyerStatus": "Buyer"
+        "buyerStatus": "Buyer",
+        "purchaseId": "4782759",
+        "purchaseNumber": "PUR-2023-2759",
+        "salesChannel": "Partner",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2023-09-08T14:30:00",
+        "category": "Category 1"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",           "type": "Email", "sentAt": "2023-08-15", "receivedAt": "2023-08-15", "openedAt": "2023-08-15" },
-      { "name": "Newsletter Octobre 2023", "type": "Email", "sentAt": "2023-10-10", "receivedAt": "2023-10-10", "openedAt": "2023-10-11" },
-      { "name": "Black Friday 2023",       "type": "Email", "sentAt": "2023-11-24", "receivedAt": "2023-11-24", "openedAt": "2023-11-24" },
-      { "name": "Newsletter Mars 2024",    "type": "Email", "sentAt": "2024-03-01", "receivedAt": "2024-03-01", "openedAt": "2024-03-02" },
-      { "name": "Promo Été 2024",          "type": "SMS",   "sentAt": "2024-06-15", "receivedAt": "2024-06-15", "openedAt": null }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2023-08-15T10:41:00",
+        "receivedAt": "2023-08-15T10:54:00",
+        "openedAt": "2023-08-15T20:37:00",
+        "clickedAt": "2023-08-16T16:05:00"
+      },
+      {
+        "name": "Newsletter Octobre 2023",
+        "type": "Email",
+        "sentAt": "2023-10-10T11:12:00",
+        "receivedAt": "2023-10-10T11:25:00",
+        "openedAt": "2023-10-11T10:21:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Black Friday 2023",
+        "type": "Email",
+        "sentAt": "2023-11-24T10:24:00",
+        "receivedAt": "2023-11-24T10:28:00",
+        "openedAt": "2023-11-24T20:32:00",
+        "clickedAt": "2023-11-25T18:49:00"
+      },
+      {
+        "name": "Newsletter Mars 2024",
+        "type": "Email",
+        "sentAt": "2024-03-01T09:26:00",
+        "receivedAt": "2024-03-01T09:27:00",
+        "openedAt": "2024-03-02T07:29:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Promo Été 2024",
+        "type": "SMS",
+        "sentAt": "2024-06-15T09:58:00",
+        "receivedAt": "2024-06-15T10:10:00",
+        "openedAt": null,
+        "clickedAt": null
+      }
     ],
     "contributions": [
-      { "product": "Pass annuel jeune", "category": "Abonnement", "purchaseDate": "2023-09-01", "quantity": 1, "amount": 59.00 }
+      {
+        "product": "Pass annuel jeune",
+        "category": "Abonnement",
+        "purchaseDate": "2023-09-01",
+        "quantity": 1,
+        "amount": 59.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre", "structure": "Organization B", "assignedAt": "2023-08-15", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Organization B",
+        "assignedAt": "2023-08-15",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Activities",
+        "date": "2025-11-20",
+        "origin": "Box office",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2025-10-28",
+        "origin": "Web form",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Activities",
+        "date": "2025-03-21",
+        "origin": "Box office",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2025-01-09",
+        "origin": "Preference centre",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-01-17",
+        "origin": "Preference centre",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Activities",
+        "date": "2024-01-10",
+        "origin": "Web form",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2023-08-15",
+        "origin": "Preference centre",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -750,13 +1938,15 @@
       "email": "jennifer42@example.org",
       "age": 34,
       "gender": "Female",
-      "dateOfBirth": "1990-07-28"
+      "dateOfBirth": "1990-07-28",
+      "civility": "Ms."
     },
     "coordinates": {
       "phone": "001-339-779-2652x777",
       "address": "15 Rue Gambetta",
       "postalCode": "73932",
-      "country": "France"
+      "country": "France",
+      "city": "Lyon"
     },
     "source": {
       "createdAt": "2023-11-20",
@@ -764,66 +1954,217 @@
     },
     "structure": "Institute D",
     "loyalty": 21,
-    "lists": ["Yesterday's buyers"],
+    "lists": [
+      "Yesterday's buyers"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2023-11-20" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2023-11-20"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": "Alexandre Lacazette" },
-      { "label": "Favorite music genre", "value": "Pop" }
+      {
+        "label": "Favorite athlete",
+        "value": "Alexandre Lacazette"
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Pop"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 118.00, "currency": "EUR", "purchaseCount": 3 },
-      "engagement": { "rate": 0.40, "campaignsOpened": 2, "campaignsTotal": 5 },
-      "lastPurchase": { "date": "2024-12-05", "label": "Match Ligue 1" }
+      "totalSpending": {
+        "amount": 148.0,
+        "currency": "EUR",
+        "purchaseCount": 5
+      },
+      "engagement": {
+        "rate": 0.4,
+        "campaignsOpened": 2,
+        "campaignsTotal": 5
+      },
+      "lastPurchase": {
+        "date": "2024-12-05",
+        "label": "Match Ligue 1"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2024-12-05", 
-        "type": "Sport",   
-        "event": "Match Ligue 1 - Lyon",   
-        "eventDate": "2024-12-12", 
-        "price": 30.00, 
-        "quantity": 2, 
-        "total": 60.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-12-05",
+        "type": "Sport",
+        "event": "Match Ligue 1 - Lyon",
+        "eventDate": "2024-12-12",
+        "price": 30.0,
+        "quantity": 2,
+        "total": 60.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6703964",
+        "purchaseNumber": "PUR-2024-3964",
+        "salesChannel": "Partner",
+        "venue": "Roland-Garros",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2024-12-12T19:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-06-10", 
-        "type": "Concert", 
-        "event": "Fête de la Musique Lyon", 
-        "eventDate": "2024-06-21", 
-        "price": 0.00, 
-        "quantity": 4, 
-        "total": 0.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-12-05",
+        "type": "Sport",
+        "event": "Match Ligue 1 - Lyon",
+        "eventDate": "2024-12-12",
+        "price": 18.0,
+        "quantity": 1,
+        "total": 18.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "6703964",
+        "purchaseNumber": "PUR-2024-3964",
+        "salesChannel": "Partner",
+        "venue": "Roland-Garros",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-12-12T19:00:00"
       },
-      { 
-        "purchaseDate": "2024-01-15", 
-        "type": "Théâtre", 
-        "event": "Comédie de Lyon",         
-        "eventDate": "2024-01-22", 
-        "price": 58.00, 
-        "quantity": 1, 
-        "total": 58.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-06-10",
+        "type": "Concert",
+        "event": "Fête de la Musique Lyon",
+        "eventDate": "2024-06-21",
+        "price": 0.0,
+        "quantity": 4,
+        "total": 0.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6036821",
+        "purchaseNumber": "PUR-2024-6821",
+        "salesChannel": "Box office",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2024-06-21T20:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2024-06-10",
+        "type": "Merchandising",
+        "event": "Fête de la Musique Lyon",
+        "eventDate": "2024-06-21",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "6036821",
+        "purchaseNumber": "PUR-2024-6821",
+        "salesChannel": "Box office",
+        "venue": "Venue shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
+      },
+      {
+        "purchaseDate": "2024-01-15",
+        "type": "Théâtre",
+        "event": "Comédie de Lyon",
+        "eventDate": "2024-01-22",
+        "price": 58.0,
+        "quantity": 1,
+        "total": 58.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4259202",
+        "purchaseNumber": "PUR-2024-9202",
+        "salesChannel": "Call centre",
+        "venue": "Théâtre du Rond-Point",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2024-01-22T19:00:00",
+        "category": "Category 1"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",           "type": "Email", "sentAt": "2023-11-20", "receivedAt": "2023-11-20", "openedAt": "2023-11-21" },
-      { "name": "Black Friday 2023",       "type": "Email", "sentAt": "2023-11-24", "receivedAt": "2023-11-24", "openedAt": "2023-11-24" },
-      { "name": "Newsletter Janvier 2024", "type": "Email", "sentAt": "2024-01-10", "receivedAt": "2024-01-10", "openedAt": null },
-      { "name": "Promo Été 2024",          "type": "SMS",   "sentAt": "2024-06-15", "receivedAt": "2024-06-15", "openedAt": null },
-      { "name": "Newsletter Octobre 2024", "type": "Email", "sentAt": "2024-10-10", "receivedAt": "2024-10-10", "openedAt": "2024-10-11" }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2023-11-20T09:01:00",
+        "receivedAt": "2023-11-20T09:09:00",
+        "openedAt": "2023-11-21T16:44:00",
+        "clickedAt": "2023-11-22T08:45:00"
+      },
+      {
+        "name": "Black Friday 2023",
+        "type": "Email",
+        "sentAt": "2023-11-24T11:01:00",
+        "receivedAt": "2023-11-24T11:15:00",
+        "openedAt": "2023-11-24T17:24:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter Janvier 2024",
+        "type": "Email",
+        "sentAt": "2024-01-10T11:27:00",
+        "receivedAt": "2024-01-10T11:31:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Promo Été 2024",
+        "type": "SMS",
+        "sentAt": "2024-06-15T09:59:00",
+        "receivedAt": "2024-06-15T10:11:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter Octobre 2024",
+        "type": "Email",
+        "sentAt": "2024-10-10T09:10:00",
+        "receivedAt": "2024-10-10T09:15:00",
+        "openedAt": "2024-10-11T19:51:00",
+        "clickedAt": "2024-10-12T13:15:00"
+      }
     ],
     "contributions": [
-      { "product": "Abonnement Classique", "category": "Abonnement", "purchaseDate": "2024-01-01", "quantity": 1, "amount": 75.00 }
+      {
+        "product": "Abonnement Classique",
+        "category": "Abonnement",
+        "purchaseDate": "2024-01-01",
+        "quantity": 1,
+        "amount": 75.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre", "structure": "Institute D", "assignedAt": "2023-11-20", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Institute D",
+        "assignedAt": "2023-11-20",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2025-08-04",
+        "origin": "Imported list",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-08-29",
+        "origin": "Mobile app",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2023-11-20",
+        "origin": "Mobile app",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -835,13 +2176,15 @@
       "email": "jennifer74@example.org",
       "age": 58,
       "gender": "Female",
-      "dateOfBirth": "1966-02-09"
+      "dateOfBirth": "1966-02-09",
+      "civility": "Ms."
     },
     "coordinates": {
       "phone": "001-691-477-0864x468",
       "address": "Berliner Allee 88",
       "postalCode": "33333",
-      "country": "Germany"
+      "country": "Germany",
+      "city": "Hamburg"
     },
     "source": {
       "createdAt": "2022-07-01",
@@ -849,102 +2192,324 @@
     },
     "structure": "Firm C",
     "loyalty": 42,
-    "lists": ["Loyal fans", "Last-minute ticket buyers for the RCT v UBB match"],
+    "lists": [
+      "Loyal fans",
+      "Last-minute ticket buyers for the RCT v UBB match"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2022-07-01" },
-      { "label": "Consentement VIP",        "grantedSince": "2023-01-15" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2022-07-01"
+      },
+      {
+        "label": "VIP programme",
+        "grantedSince": "2023-01-15"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": "Erling Haaland" },
-      { "label": "Favorite music genre", "value": "Opera" }
+      {
+        "label": "Favorite athlete",
+        "value": "Erling Haaland"
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Opera"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 348.00, "currency": "EUR", "purchaseCount": 5 },
-      "engagement": { "rate": 0.67, "campaignsOpened": 4, "campaignsTotal": 6 },
-      "lastPurchase": { "date": "2025-01-20", "label": "Opéra de Francfort" }
+      "totalSpending": {
+        "amount": 408.0,
+        "currency": "EUR",
+        "purchaseCount": 7
+      },
+      "engagement": {
+        "rate": 0.67,
+        "campaignsOpened": 4,
+        "campaignsTotal": 6
+      },
+      "lastPurchase": {
+        "date": "2025-01-20",
+        "label": "Opéra de Francfort"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2025-01-20", 
-        "type": "Concert",    
-        "event": "Opéra de Francfort",    
-        "eventDate": "2025-02-01", 
-        "price": 80.00, 
-        "quantity": 2, 
-        "total": 160.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2025-01-20",
+        "type": "Concert",
+        "event": "Opéra de Francfort",
+        "eventDate": "2025-02-01",
+        "price": 80.0,
+        "quantity": 2,
+        "total": 160.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4334473",
+        "purchaseNumber": "PUR-2025-4473",
+        "salesChannel": "Mobile app",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2025-02-01T20:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-07-15", 
-        "type": "Exposition", 
-        "event": "documenta Kassel",       
-        "eventDate": "2024-07-22", 
-        "price": 22.00, 
-        "quantity": 1, 
-        "total": 22.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2025-01-20",
+        "type": "Concert",
+        "event": "Opéra de Francfort",
+        "eventDate": "2025-02-01",
+        "price": 48.0,
+        "quantity": 1,
+        "total": 48.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "4334473",
+        "purchaseNumber": "PUR-2025-4473",
+        "salesChannel": "Mobile app",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Subscriber",
+        "performance": "2025-02-01T20:00:00"
       },
-      { 
-        "purchaseDate": "2024-02-10", 
-        "type": "Concert",    
-        "event": "Kölner Philharmonie",    
-        "eventDate": "2024-02-18", 
-        "price": 55.00, 
-        "quantity": 1, 
-        "total": 55.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-07-15",
+        "type": "Exposition",
+        "event": "documenta Kassel",
+        "eventDate": "2024-07-22",
+        "price": 22.0,
+        "quantity": 1,
+        "total": 22.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5001616",
+        "purchaseNumber": "PUR-2024-1616",
+        "salesChannel": "Box office",
+        "venue": "Grand Palais",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2024-07-22T20:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2023-09-14", 
-        "type": "Théâtre",    
-        "event": "Schauspiel Köln",        
-        "eventDate": "2023-09-21", 
-        "price": 42.00, 
-        "quantity": 2, 
-        "total": 84.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-07-15",
+        "type": "Merchandising",
+        "event": "documenta Kassel",
+        "eventDate": "2024-07-22",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "5001616",
+        "purchaseNumber": "PUR-2024-1616",
+        "salesChannel": "Box office",
+        "venue": "Online shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
       },
-      { 
-        "purchaseDate": "2023-04-05", 
-        "type": "Sport",      
-        "event": "Bundesliga - Dortmund",  
-        "eventDate": "2023-04-12", 
-        "price": 38.00, 
-        "quantity": 3, 
-        "total": 114.00, 
-        "status": "Annulé",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-02-10",
+        "type": "Concert",
+        "event": "Kölner Philharmonie",
+        "eventDate": "2024-02-18",
+        "price": 55.0,
+        "quantity": 1,
+        "total": 55.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6779235",
+        "purchaseNumber": "PUR-2024-9235",
+        "salesChannel": "Web",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2024-02-18T15:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2022-12-15", 
-        "type": "Concert",    
-        "event": "Weihnachtskonzert",      
-        "eventDate": "2022-12-22", 
-        "price": 27.00, 
-        "quantity": 1, 
-        "total": 27.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2023-09-14",
+        "type": "Théâtre",
+        "event": "Schauspiel Köln",
+        "eventDate": "2023-09-21",
+        "price": 42.0,
+        "quantity": 2,
+        "total": 84.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6667330",
+        "purchaseNumber": "PUR-2023-7330",
+        "salesChannel": "Web",
+        "venue": "Comédie-Française",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2023-09-21T15:00:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2023-04-05",
+        "type": "Sport",
+        "event": "Bundesliga - Dortmund",
+        "eventDate": "2023-04-12",
+        "price": 38.0,
+        "quantity": 3,
+        "total": 114.0,
+        "status": "Cancelled",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5444949",
+        "purchaseNumber": "PUR-2023-4949",
+        "salesChannel": "Partner",
+        "venue": "Parc des Princes",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2023-04-12T20:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2022-12-15",
+        "type": "Concert",
+        "event": "Weihnachtskonzert",
+        "eventDate": "2022-12-22",
+        "price": 27.0,
+        "quantity": 1,
+        "total": 27.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6112092",
+        "purchaseNumber": "PUR-2022-2092",
+        "salesChannel": "Call centre",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2022-12-22T18:30:00",
+        "category": "Category 1"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",           "type": "Email", "sentAt": "2022-07-01", "receivedAt": "2022-07-01", "openedAt": "2022-07-02" },
-      { "name": "Newsletter Janvier 2023", "type": "Email", "sentAt": "2023-01-10", "receivedAt": "2023-01-10", "openedAt": "2023-01-11" },
-      { "name": "Promo Printemps 2023",    "type": "SMS",   "sentAt": "2023-04-01", "receivedAt": "2023-04-01", "openedAt": null },
-      { "name": "Black Friday 2023",       "type": "Email", "sentAt": "2023-11-24", "receivedAt": "2023-11-24", "openedAt": "2023-11-24" },
-      { "name": "Newsletter Juin 2024",    "type": "Email", "sentAt": "2024-06-01", "receivedAt": "2024-06-01", "openedAt": "2024-06-02" },
-      { "name": "Promo Noël 2024",         "type": "Email", "sentAt": "2024-12-01", "receivedAt": "2024-12-01", "openedAt": "2024-12-03" }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2022-07-01T10:15:00",
+        "receivedAt": "2022-07-01T10:24:00",
+        "openedAt": "2022-07-02T19:59:00",
+        "clickedAt": "2022-07-03T16:01:00"
+      },
+      {
+        "name": "Newsletter Janvier 2023",
+        "type": "Email",
+        "sentAt": "2023-01-10T09:09:00",
+        "receivedAt": "2023-01-10T09:19:00",
+        "openedAt": "2023-01-11T17:16:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Promo Printemps 2023",
+        "type": "SMS",
+        "sentAt": "2023-04-01T10:55:00",
+        "receivedAt": "2023-04-01T11:00:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Black Friday 2023",
+        "type": "Email",
+        "sentAt": "2023-11-24T10:53:00",
+        "receivedAt": "2023-11-24T11:07:00",
+        "openedAt": "2023-11-24T12:10:00",
+        "clickedAt": "2023-11-25T18:52:00"
+      },
+      {
+        "name": "Newsletter Juin 2024",
+        "type": "Email",
+        "sentAt": "2024-06-01T11:20:00",
+        "receivedAt": "2024-06-01T11:22:00",
+        "openedAt": "2024-06-02T12:22:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Promo Noël 2024",
+        "type": "Email",
+        "sentAt": "2024-12-01T11:11:00",
+        "receivedAt": "2024-12-01T11:15:00",
+        "openedAt": "2024-12-03T13:54:00",
+        "clickedAt": "2024-12-04T18:15:00"
+      }
     ],
     "contributions": [
-      { "product": "Abonnement Premium", "category": "Abonnement",   "purchaseDate": "2023-01-01", "quantity": 1, "amount": 99.00 },
-      { "product": "Livre programme",    "category": "Merchandising", "purchaseDate": "2024-02-18", "quantity": 1, "amount": 18.00 }
+      {
+        "product": "Abonnement Premium",
+        "category": "Abonnement",
+        "purchaseDate": "2023-01-01",
+        "quantity": 1,
+        "amount": 99.0
+      },
+      {
+        "product": "Livre programme",
+        "category": "Merchandising",
+        "purchaseDate": "2024-02-18",
+        "quantity": 1,
+        "amount": 18.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre VIP", "structure": "Firm C", "assignedAt": "2023-01-15", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre VIP",
+        "structure": "Firm C",
+        "assignedAt": "2023-01-15",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2025-08-04",
+        "origin": "Box office",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2025-03-16",
+        "origin": "Mobile app",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2024-08-05",
+        "origin": "Box office",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2024-04-04",
+        "origin": "Preference centre",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2023-12-12",
+        "origin": "Web form",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2023-10-06",
+        "origin": "Box office",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2023-01-15",
+        "origin": "Web form",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2022-07-01",
+        "origin": "Box office",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -956,13 +2521,15 @@
       "email": "jennifer83@example.org",
       "age": 53,
       "gender": "Female",
-      "dateOfBirth": "1971-10-17"
+      "dateOfBirth": "1971-10-17",
+      "civility": "Ms."
     },
     "coordinates": {
       "phone": "001-897-731-9012x56661",
       "address": "Calle Alcalá 22",
       "postalCode": "77227",
-      "country": "Spain"
+      "country": "Spain",
+      "city": "Barcelona"
     },
     "source": {
       "createdAt": "2024-03-05",
@@ -970,52 +2537,182 @@
     },
     "structure": "Institute D",
     "loyalty": 19,
-    "lists": ["Public around"],
+    "lists": [
+      "Public around"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2024-03-05" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2024-03-05"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": null },
-      { "label": "Favorite music genre", "value": "Alternative" }
+      {
+        "label": "Favorite athlete",
+        "value": null
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Alternative"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 45.00, "currency": "EUR", "purchaseCount": 1 },
-      "engagement": { "rate": 0.25, "campaignsOpened": 1, "campaignsTotal": 4 },
-      "lastPurchase": { "date": "2024-09-14", "label": "Festival Primavera Sound" }
+      "totalSpending": {
+        "amount": 72.0,
+        "currency": "EUR",
+        "purchaseCount": 2
+      },
+      "engagement": {
+        "rate": 0.25,
+        "campaignsOpened": 1,
+        "campaignsTotal": 4
+      },
+      "lastPurchase": {
+        "date": "2024-09-14",
+        "label": "Festival Primavera Sound"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2024-09-14", 
-        "type": "Concert",    
-        "event": "Festival Primavera Sound", 
-        "eventDate": "2024-09-20", 
-        "price": 45.00, 
-        "quantity": 1, 
-        "total": 45.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-09-14",
+        "type": "Concert",
+        "event": "Festival Primavera Sound",
+        "eventDate": "2024-09-20",
+        "price": 45.0,
+        "quantity": 1,
+        "total": 45.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4425805",
+        "purchaseNumber": "PUR-2024-5805",
+        "salesChannel": "Web",
+        "venue": "Olympia",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2024-09-20T15:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-04-20", 
-        "type": "Exposition", 
-        "event": "Expo Picasso Madrid",      
-        "eventDate": "2024-04-27", 
-        "price": 20.00, 
-        "quantity": 2, 
-        "total": 40.00, 
+      {
+        "purchaseDate": "2024-09-14",
+        "type": "Concert",
+        "event": "Festival Primavera Sound",
+        "eventDate": "2024-09-20",
+        "price": 27.0,
+        "quantity": 1,
+        "total": 27.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "4425805",
+        "purchaseNumber": "PUR-2024-5805",
+        "salesChannel": "Web",
+        "venue": "Olympia",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-09-20T15:00:00"
+      },
+      {
+        "purchaseDate": "2024-04-20",
+        "type": "Exposition",
+        "event": "Expo Picasso Madrid",
+        "eventDate": "2024-04-27",
+        "price": 20.0,
+        "quantity": 2,
+        "total": 40.0,
         "status": "Cancelled",
-        "buyerStatus": "Buyer"
+        "buyerStatus": "Buyer",
+        "purchaseId": "5092948",
+        "purchaseNumber": "PUR-2024-2948",
+        "salesChannel": "Mobile app",
+        "venue": "Grand Palais",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2024-04-27T20:00:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2024-04-20",
+        "type": "Merchandising",
+        "event": "Expo Picasso Madrid",
+        "eventDate": "2024-04-27",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Cancelled",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "5092948",
+        "purchaseNumber": "PUR-2024-2948",
+        "salesChannel": "Mobile app",
+        "venue": "Online shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",           "type": "Email", "sentAt": "2024-03-05", "receivedAt": "2024-03-05", "openedAt": "2024-03-06" },
-      { "name": "Newsletter Avril 2024",   "type": "Email", "sentAt": "2024-04-01", "receivedAt": "2024-04-01", "openedAt": null },
-      { "name": "Promo Été 2024",          "type": "SMS",   "sentAt": "2024-06-15", "receivedAt": "2024-06-15", "openedAt": null },
-      { "name": "Newsletter Octobre 2024", "type": "Email", "sentAt": "2024-10-10", "receivedAt": "2024-10-10", "openedAt": null }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2024-03-05T10:56:00",
+        "receivedAt": "2024-03-05T11:00:00",
+        "openedAt": "2024-03-06T12:24:00",
+        "clickedAt": "2024-03-07T10:17:00"
+      },
+      {
+        "name": "Newsletter Avril 2024",
+        "type": "Email",
+        "sentAt": "2024-04-01T10:08:00",
+        "receivedAt": "2024-04-01T10:13:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Promo Été 2024",
+        "type": "SMS",
+        "sentAt": "2024-06-15T10:51:00",
+        "receivedAt": "2024-06-15T10:55:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter Octobre 2024",
+        "type": "Email",
+        "sentAt": "2024-10-10T09:58:00",
+        "receivedAt": "2024-10-10T10:00:00",
+        "openedAt": null,
+        "clickedAt": null
+      }
     ],
     "contributions": [],
     "accessControls": [
-      { "role": "Membre", "structure": "Institute D", "assignedAt": "2024-03-05", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Institute D",
+        "assignedAt": "2024-03-05",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2025-04-08",
+        "origin": "Imported list",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-09-17",
+        "origin": "Call centre",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-03-05",
+        "origin": "Box office",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -1027,13 +2724,15 @@
       "email": "qmartin@example.com",
       "age": 40,
       "gender": "Other",
-      "dateOfBirth": "1984-05-23"
+      "dateOfBirth": "1984-05-23",
+      "civility": "Mx."
     },
     "coordinates": {
       "phone": "514-547-1477x7365",
       "address": "47 Avenue Foch",
       "postalCode": "06427",
-      "country": "France"
+      "country": "France",
+      "city": "Bordeaux"
     },
     "source": {
       "createdAt": "2022-09-12",
@@ -1041,138 +2740,413 @@
     },
     "structure": "Corporation E",
     "loyalty": 46,
-    "lists": ["Loyal fans", "Last-minute ticket buyers for the RCT v UBB match", "Public proche"],
+    "lists": [
+      "Loyal fans",
+      "Last-minute ticket buyers for the RCT v UBB match",
+      "Public proche"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2022-09-12" },
-      { "label": "Consentement VIP",        "grantedSince": "2023-02-01" },
-      { "label": "Consentement activités",  "grantedSince": "2023-06-15" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2022-09-12"
+      },
+      {
+        "label": "VIP programme",
+        "grantedSince": "2023-02-01"
+      },
+      {
+        "label": "Activities",
+        "grantedSince": "2023-06-15"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": "Antoine Dupont" },
-      { "label": "Favorite music genre", "value": "Jazz" }
+      {
+        "label": "Favorite athlete",
+        "value": "Antoine Dupont"
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Jazz"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 577.00, "currency": "EUR", "purchaseCount": 8 },
-      "engagement": { "rate": 0.86, "campaignsOpened": 6, "campaignsTotal": 7 },
-      "lastPurchase": { "date": "2025-02-05", "label": "Match Top 14" }
+      "totalSpending": {
+        "amount": 546.0,
+        "currency": "EUR",
+        "purchaseCount": 10
+      },
+      "engagement": {
+        "rate": 0.86,
+        "campaignsOpened": 6,
+        "campaignsTotal": 7
+      },
+      "lastPurchase": {
+        "date": "2025-02-05",
+        "label": "Match Top 14"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2025-02-05", 
-        "type": "Sport",      
-        "event": "Match Top 14 - Toulon",     
-        "eventDate": "2025-02-12", 
-        "price": 45.00, 
-        "quantity": 2, 
-        "total": 90.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2025-02-05",
+        "type": "Sport",
+        "event": "Match Top 14 - Toulon",
+        "eventDate": "2025-02-12",
+        "price": 45.0,
+        "quantity": 2,
+        "total": 90.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6821041",
+        "purchaseNumber": "PUR-2025-1041",
+        "salesChannel": "Box office",
+        "venue": "Roland-Garros",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2025-02-12T18:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-11-10", 
-        "type": "Concert",    
-        "event": "Jazz à Juan",               
-        "eventDate": "2024-11-17", 
-        "price": 55.00, 
-        "quantity": 1, 
-        "total": 55.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2025-02-05",
+        "type": "Sport",
+        "event": "Match Top 14 - Toulon",
+        "eventDate": "2025-02-12",
+        "price": 27.0,
+        "quantity": 1,
+        "total": 27.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "6821041",
+        "purchaseNumber": "PUR-2025-1041",
+        "salesChannel": "Box office",
+        "venue": "Roland-Garros",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2025-02-12T18:30:00"
       },
-      { 
-        "purchaseDate": "2024-07-20", 
-        "type": "Exposition", 
-        "event": "Expo Matisse Nice",         
-        "eventDate": "2024-07-27", 
-        "price": 18.00, 
-        "quantity": 3, 
-        "total": 54.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-11-10",
+        "type": "Concert",
+        "event": "Jazz à Juan",
+        "eventDate": "2024-11-17",
+        "price": 55.0,
+        "quantity": 1,
+        "total": 55.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4488184",
+        "purchaseNumber": "PUR-2024-8184",
+        "salesChannel": "Partner",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2024-11-17T19:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-03-08", 
-        "type": "Sport",      
-        "event": "Match Top 14 - Clermont",   
-        "eventDate": "2024-03-15", 
-        "price": 40.00, 
-        "quantity": 2, 
-        "total": 80.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-11-10",
+        "type": "Merchandising",
+        "event": "Jazz à Juan",
+        "eventDate": "2024-11-17",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "4488184",
+        "purchaseNumber": "PUR-2024-8184",
+        "salesChannel": "Partner",
+        "venue": "Online shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
       },
-      { 
-        "purchaseDate": "2023-10-22", 
-        "type": "Concert",    
-        "event": "Nice Jazz Festival",        
-        "eventDate": "2023-10-29", 
-        "price": 50.00, 
-        "quantity": 1, 
-        "total": 50.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-07-20",
+        "type": "Exposition",
+        "event": "Expo Matisse Nice",
+        "eventDate": "2024-07-27",
+        "price": 18.0,
+        "quantity": 3,
+        "total": 54.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6265803",
+        "purchaseNumber": "PUR-2024-5803",
+        "salesChannel": "Mobile app",
+        "venue": "Fondation Louis Vuitton",
+        "productType": "Ticket",
+        "priceFormula": "Subscriber",
+        "performance": "2024-07-27T19:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2023-05-14", 
-        "type": "Théâtre",    
-        "event": "Théâtre de Nice",           
-        "eventDate": "2023-05-21", 
-        "price": 35.00, 
-        "quantity": 2, 
-        "total": 70.00, 
-        "status": "Annulé",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-03-08",
+        "type": "Sport",
+        "event": "Match Top 14 - Clermont",
+        "eventDate": "2024-03-15",
+        "price": 40.0,
+        "quantity": 2,
+        "total": 80.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6153898",
+        "purchaseNumber": "PUR-2024-3898",
+        "salesChannel": "Mobile app",
+        "venue": "Parc des Princes",
+        "productType": "Ticket",
+        "priceFormula": "Subscriber",
+        "performance": "2024-03-15T14:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2023-01-28", 
-        "type": "Sport",      
-        "event": "Coupe de France - Toulon",  
-        "eventDate": "2023-02-04", 
-        "price": 38.00, 
-        "quantity": 1, 
-        "total": 38.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2023-10-22",
+        "type": "Concert",
+        "event": "Nice Jazz Festival",
+        "eventDate": "2023-10-29",
+        "price": 50.0,
+        "quantity": 1,
+        "total": 50.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4931517",
+        "purchaseNumber": "PUR-2023-1517",
+        "salesChannel": "Call centre",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2023-10-29T20:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2022-11-05", 
-        "type": "Concert",    
-        "event": "Festival Côte d'Azur",      
-        "eventDate": "2022-11-12", 
-        "price": 42.00, 
-        "quantity": 3, 
-        "total": 126.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2023-05-14",
+        "type": "Théâtre",
+        "event": "Théâtre de Nice",
+        "eventDate": "2023-05-21",
+        "price": 35.0,
+        "quantity": 2,
+        "total": 70.0,
+        "status": "Cancelled",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5598660",
+        "purchaseNumber": "PUR-2023-8660",
+        "salesChannel": "Web",
+        "venue": "Théâtre du Rond-Point",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2023-05-21T14:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2022-09-20", 
-        "type": "Exposition", 
-        "event": "Biennale de la Photo Nice", 
-        "eventDate": "2022-09-27", 
-        "price": 14.00, 
-        "quantity": 1, 
-        "total": 14.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2023-01-28",
+        "type": "Sport",
+        "event": "Coupe de France - Toulon",
+        "eventDate": "2023-02-04",
+        "price": 38.0,
+        "quantity": 1,
+        "total": 38.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4376279",
+        "purchaseNumber": "PUR-2023-6279",
+        "salesChannel": "Partner",
+        "venue": "Parc des Princes",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2023-02-04T20:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2022-11-05",
+        "type": "Concert",
+        "event": "Festival Côte d'Azur",
+        "eventDate": "2022-11-12",
+        "price": 42.0,
+        "quantity": 3,
+        "total": 126.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5822470",
+        "purchaseNumber": "PUR-2022-2470",
+        "salesChannel": "Web",
+        "venue": "Théâtre du Châtelet",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2022-11-12T18:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2022-09-20",
+        "type": "Exposition",
+        "event": "Biennale de la Photo Nice",
+        "eventDate": "2022-09-27",
+        "price": 14.0,
+        "quantity": 1,
+        "total": 14.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4600089",
+        "purchaseNumber": "PUR-2022-0089",
+        "salesChannel": "Partner",
+        "venue": "Fondation Louis Vuitton",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2022-09-27T19:00:00",
+        "category": "Category 1"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",           "type": "Email", "sentAt": "2022-09-12", "receivedAt": "2022-09-12", "openedAt": "2022-09-12" },
-      { "name": "Newsletter Janvier 2023", "type": "Email", "sentAt": "2023-01-10", "receivedAt": "2023-01-10", "openedAt": "2023-01-11" },
-      { "name": "Promo Printemps 2023",    "type": "SMS",   "sentAt": "2023-04-01", "receivedAt": "2023-04-01", "openedAt": "2023-04-01" },
-      { "name": "Newsletter Juin 2023",    "type": "Email", "sentAt": "2023-06-01", "receivedAt": "2023-06-01", "openedAt": "2023-06-02" },
-      { "name": "Black Friday 2023",       "type": "Email", "sentAt": "2023-11-24", "receivedAt": "2023-11-24", "openedAt": "2023-11-24" },
-      { "name": "Newsletter Juin 2024",    "type": "Email", "sentAt": "2024-06-01", "receivedAt": "2024-06-01", "openedAt": "2024-06-01" },
-      { "name": "Promo Noël 2024",         "type": "Email", "sentAt": "2024-12-01", "receivedAt": "2024-12-01", "openedAt": "2024-12-02" }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2022-09-12T10:11:00",
+        "receivedAt": "2022-09-12T10:23:00",
+        "openedAt": "2022-09-12T15:23:00",
+        "clickedAt": "2022-09-13T19:32:00"
+      },
+      {
+        "name": "Newsletter Janvier 2023",
+        "type": "Email",
+        "sentAt": "2023-01-10T09:37:00",
+        "receivedAt": "2023-01-10T09:43:00",
+        "openedAt": "2023-01-11T07:14:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Promo Printemps 2023",
+        "type": "SMS",
+        "sentAt": "2023-04-01T09:15:00",
+        "receivedAt": "2023-04-01T09:26:00",
+        "openedAt": "2023-04-01T10:39:00",
+        "clickedAt": "2023-04-02T11:10:00"
+      },
+      {
+        "name": "Newsletter Juin 2023",
+        "type": "Email",
+        "sentAt": "2023-06-01T09:52:00",
+        "receivedAt": "2023-06-01T10:04:00",
+        "openedAt": "2023-06-02T07:06:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Black Friday 2023",
+        "type": "Email",
+        "sentAt": "2023-11-24T11:40:00",
+        "receivedAt": "2023-11-24T11:53:00",
+        "openedAt": "2023-11-24T21:31:00",
+        "clickedAt": "2023-11-25T11:29:00"
+      },
+      {
+        "name": "Newsletter Juin 2024",
+        "type": "Email",
+        "sentAt": "2024-06-01T10:39:00",
+        "receivedAt": "2024-06-01T10:48:00",
+        "openedAt": "2024-06-01T19:02:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Promo Noël 2024",
+        "type": "Email",
+        "sentAt": "2024-12-01T11:46:00",
+        "receivedAt": "2024-12-01T11:57:00",
+        "openedAt": "2024-12-02T11:14:00",
+        "clickedAt": "2024-12-03T17:40:00"
+      }
     ],
     "contributions": [
-      { "product": "Abonnement Premium",  "category": "Abonnement",   "purchaseDate": "2023-01-01", "quantity": 1, "amount": 99.00 },
-      { "product": "Pack 5 billets",      "category": "Billetterie",  "purchaseDate": "2023-05-14", "quantity": 1, "amount": 120.00 },
-      { "product": "Écharpe collector",   "category": "Merchandising","purchaseDate": "2024-03-15", "quantity": 2, "amount": 30.00 }
+      {
+        "product": "Abonnement Premium",
+        "category": "Abonnement",
+        "purchaseDate": "2023-01-01",
+        "quantity": 1,
+        "amount": 99.0
+      },
+      {
+        "product": "Pack 5 billets",
+        "category": "Billetterie",
+        "purchaseDate": "2023-05-14",
+        "quantity": 1,
+        "amount": 120.0
+      },
+      {
+        "product": "Écharpe collector",
+        "category": "Merchandising",
+        "purchaseDate": "2024-03-15",
+        "quantity": 2,
+        "amount": 30.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre VIP", "structure": "Corporation E", "assignedAt": "2023-02-01", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre VIP",
+        "structure": "Corporation E",
+        "assignedAt": "2023-02-01",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Activities",
+        "date": "2026-04-12",
+        "origin": "Box office",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2025-07-26",
+        "origin": "Preference centre",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-11-27",
+        "origin": "Box office",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Activities",
+        "date": "2024-10-22",
+        "origin": "Box office",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-05-04",
+        "origin": "Imported list",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2024-02-13",
+        "origin": "Email link",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2023-08-14",
+        "origin": "Imported list",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Activities",
+        "date": "2023-06-15",
+        "origin": "Mobile app",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2023-02-01",
+        "origin": "Mobile app",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2022-09-12",
+        "origin": "Mobile app",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -1184,13 +3158,15 @@
       "email": "josehawkins@example.net",
       "age": 69,
       "gender": "Other",
-      "dateOfBirth": "1955-11-30"
+      "dateOfBirth": "1955-11-30",
+      "civility": "Mx."
     },
     "coordinates": {
       "phone": "540.660.2641x4062",
       "address": "Via Veneto 33",
       "postalCode": "68217",
-      "country": "Italy"
+      "country": "Italy",
+      "city": "Milan"
     },
     "source": {
       "createdAt": "2023-03-18",
@@ -1198,88 +3174,262 @@
     },
     "structure": "Institute D",
     "loyalty": 33,
-    "lists": ["Loyal audience", "Senior segment"],
+    "lists": [
+      "Loyal audience",
+      "Senior segment"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2023-03-18" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2023-03-18"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": null },
-      { "label": "Favorite music genre", "value": "Opera" }
+      {
+        "label": "Favorite athlete",
+        "value": null
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Opera"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 191.00, "currency": "EUR", "purchaseCount": 4 },
-      "engagement": { "rate": 0.60, "campaignsOpened": 3, "campaignsTotal": 5 },
-      "lastPurchase": { "date": "2024-10-22", "label": "Opera di Roma" }
+      "totalSpending": {
+        "amount": 222.0,
+        "currency": "EUR",
+        "purchaseCount": 6
+      },
+      "engagement": {
+        "rate": 0.6,
+        "campaignsOpened": 3,
+        "campaignsTotal": 5
+      },
+      "lastPurchase": {
+        "date": "2024-10-22",
+        "label": "Opera di Roma"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2024-10-22", 
-        "type": "Concert",    
-        "event": "Opera di Roma",         
-        "eventDate": "2024-11-02", 
-        "price": 65.00, 
-        "quantity": 1, 
-        "total": 65.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-10-22",
+        "type": "Concert",
+        "event": "Opera di Roma",
+        "eventDate": "2024-11-02",
+        "price": 65.0,
+        "quantity": 1,
+        "total": 65.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6512791",
+        "purchaseNumber": "PUR-2024-2791",
+        "salesChannel": "Box office",
+        "venue": "Théâtre du Châtelet",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2024-11-02T18:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-05-10", 
-        "type": "Exposition", 
-        "event": "Expo Vatican Museums",  
-        "eventDate": "2024-05-17", 
-        "price": 25.00, 
-        "quantity": 2, 
-        "total": 50.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-10-22",
+        "type": "Concert",
+        "event": "Opera di Roma",
+        "eventDate": "2024-11-02",
+        "price": 39.0,
+        "quantity": 1,
+        "total": 39.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "6512791",
+        "purchaseNumber": "PUR-2024-2791",
+        "salesChannel": "Box office",
+        "venue": "Théâtre du Châtelet",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-11-02T18:30:00"
       },
-      { 
-        "purchaseDate": "2023-12-08", 
-        "type": "Concert",    
-        "event": "Concerto di Natale",    
-        "eventDate": "2023-12-20", 
-        "price": 40.00, 
-        "quantity": 1, 
-        "total": 40.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-05-10",
+        "type": "Exposition",
+        "event": "Expo Vatican Museums",
+        "eventDate": "2024-05-17",
+        "price": 25.0,
+        "quantity": 2,
+        "total": 50.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5290410",
+        "purchaseNumber": "PUR-2024-0410",
+        "salesChannel": "Web",
+        "venue": "Grand Palais",
+        "productType": "Ticket",
+        "priceFormula": "Subscriber",
+        "performance": "2024-05-17T20:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2023-07-15", 
-        "type": "Théâtre",    
-        "event": "Teatro dell'Opera",     
-        "eventDate": "2023-07-22", 
-        "price": 32.00, 
-        "quantity": 2, 
-        "total": 64.00, 
+      {
+        "purchaseDate": "2024-05-10",
+        "type": "Merchandising",
+        "event": "Expo Vatican Museums",
+        "eventDate": "2024-05-17",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "5290410",
+        "purchaseNumber": "PUR-2024-0410",
+        "salesChannel": "Web",
+        "venue": "Online shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
+      },
+      {
+        "purchaseDate": "2023-12-08",
+        "type": "Concert",
+        "event": "Concerto di Natale",
+        "eventDate": "2023-12-20",
+        "price": 40.0,
+        "quantity": 1,
+        "total": 40.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4068029",
+        "purchaseNumber": "PUR-2023-8029",
+        "salesChannel": "Partner",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2023-12-20T18:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2023-07-15",
+        "type": "Théâtre",
+        "event": "Teatro dell'Opera",
+        "eventDate": "2023-07-22",
+        "price": 32.0,
+        "quantity": 2,
+        "total": 64.0,
         "status": "Cancelled",
-        "buyerStatus": "Buyer"
+        "buyerStatus": "Buyer",
+        "purchaseId": "6624696",
+        "purchaseNumber": "PUR-2023-4696",
+        "salesChannel": "Box office",
+        "venue": "Théâtre de l’Odéon",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2023-07-22T20:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2023-04-02", 
-        "type": "Exposition", 
-        "event": "Expo Borghese Gallery", 
-        "eventDate": "2023-04-09", 
-        "price": 16.00, 
-        "quantity": 1, 
-        "total": 16.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2023-04-02",
+        "type": "Exposition",
+        "event": "Expo Borghese Gallery",
+        "eventDate": "2023-04-09",
+        "price": 16.0,
+        "quantity": 1,
+        "total": 16.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5402315",
+        "purchaseNumber": "PUR-2023-2315",
+        "salesChannel": "Web",
+        "venue": "Fondation Louis Vuitton",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2023-04-09T19:00:00",
+        "category": "Category 1"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",           "type": "Email", "sentAt": "2023-03-18", "receivedAt": "2023-03-18", "openedAt": "2023-03-19" },
-      { "name": "Newsletter Juin 2023",    "type": "Email", "sentAt": "2023-06-01", "receivedAt": "2023-06-01", "openedAt": "2023-06-03" },
-      { "name": "Black Friday 2023",       "type": "Email", "sentAt": "2023-11-24", "receivedAt": "2023-11-24", "openedAt": null },
-      { "name": "Newsletter Avril 2024",   "type": "Email", "sentAt": "2024-04-01", "receivedAt": "2024-04-01", "openedAt": "2024-04-02" },
-      { "name": "Newsletter Octobre 2024", "type": "Email", "sentAt": "2024-10-10", "receivedAt": "2024-10-10", "openedAt": null }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2023-03-18T11:46:00",
+        "receivedAt": "2023-03-18T11:55:00",
+        "openedAt": "2023-03-19T09:46:00",
+        "clickedAt": "2023-03-20T18:17:00"
+      },
+      {
+        "name": "Newsletter Juin 2023",
+        "type": "Email",
+        "sentAt": "2023-06-01T09:05:00",
+        "receivedAt": "2023-06-01T09:12:00",
+        "openedAt": "2023-06-03T17:53:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Black Friday 2023",
+        "type": "Email",
+        "sentAt": "2023-11-24T11:15:00",
+        "receivedAt": "2023-11-24T11:22:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter Avril 2024",
+        "type": "Email",
+        "sentAt": "2024-04-01T09:32:00",
+        "receivedAt": "2024-04-01T09:46:00",
+        "openedAt": "2024-04-02T12:27:00",
+        "clickedAt": "2024-04-03T16:50:00"
+      },
+      {
+        "name": "Newsletter Octobre 2024",
+        "type": "Email",
+        "sentAt": "2024-10-10T09:49:00",
+        "receivedAt": "2024-10-10T09:51:00",
+        "openedAt": null,
+        "clickedAt": null
+      }
     ],
     "contributions": [
-      { "product": "Abonnement Classique", "category": "Abonnement", "purchaseDate": "2023-04-01", "quantity": 1, "amount": 75.00 }
+      {
+        "product": "Abonnement Classique",
+        "category": "Abonnement",
+        "purchaseDate": "2023-04-01",
+        "quantity": 1,
+        "amount": 75.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre", "structure": "Institute D", "assignedAt": "2023-03-18", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Institute D",
+        "assignedAt": "2023-03-18",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2024-10-30",
+        "origin": "Email link",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-03-19",
+        "origin": "Box office",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2023-11-13",
+        "origin": "Box office",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2023-03-18",
+        "origin": "Web form",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -1291,13 +3441,15 @@
       "email": "nmaldonado@example.org",
       "age": 61,
       "gender": "Other",
-      "dateOfBirth": "1963-08-19"
+      "dateOfBirth": "1963-08-19",
+      "civility": "Mx."
     },
     "coordinates": {
       "phone": "337.552.4850",
       "address": "12 Boulevard Haussmann",
       "postalCode": "23708",
-      "country": "France"
+      "country": "France",
+      "city": "Nantes"
     },
     "source": {
       "createdAt": "2024-07-14",
@@ -1305,39 +3457,128 @@
     },
     "structure": "Firm C",
     "loyalty": 12,
-    "lists": ["Yesterday's buyers"],
+    "lists": [
+      "Yesterday's buyers"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2024-07-14" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2024-07-14"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": null },
-      { "label": "Favorite music genre", "value": null }
+      {
+        "label": "Favorite athlete",
+        "value": null
+      },
+      {
+        "label": "Favorite music genre",
+        "value": null
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 38.00, "currency": "EUR", "purchaseCount": 1 },
-      "engagement": { "rate": 0.50, "campaignsOpened": 1, "campaignsTotal": 2 },
-      "lastPurchase": { "date": "2024-09-28", "label": "Exposition Grand Palais" }
+      "totalSpending": {
+        "amount": 60.8,
+        "currency": "EUR",
+        "purchaseCount": 2
+      },
+      "engagement": {
+        "rate": 0.5,
+        "campaignsOpened": 1,
+        "campaignsTotal": 2
+      },
+      "lastPurchase": {
+        "date": "2024-09-28",
+        "label": "Exposition Grand Palais"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2024-09-28", 
-        "type": "Exposition", 
-        "event": "Exposition Grand Palais", 
-        "eventDate": "2024-10-05", 
-        "price": 38.00, 
-        "quantity": 1, 
-        "total": 38.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-09-28",
+        "type": "Exposition",
+        "event": "Exposition Grand Palais",
+        "eventDate": "2024-10-05",
+        "price": 38.0,
+        "quantity": 1,
+        "total": 38.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4386567",
+        "purchaseNumber": "PUR-2024-6567",
+        "salesChannel": "Call centre",
+        "venue": "Musée d’Orsay",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2024-10-05T20:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2024-09-28",
+        "type": "Exposition",
+        "event": "Exposition Grand Palais",
+        "eventDate": "2024-10-05",
+        "price": 22.8,
+        "quantity": 1,
+        "total": 22.8,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "4386567",
+        "purchaseNumber": "PUR-2024-6567",
+        "salesChannel": "Call centre",
+        "venue": "Musée d’Orsay",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2024-10-05T20:30:00"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",       "type": "Email", "sentAt": "2024-07-14", "receivedAt": "2024-07-14", "openedAt": "2024-07-15" },
-      { "name": "Newsletter Août 2024","type": "Email", "sentAt": "2024-08-01", "receivedAt": "2024-08-01", "openedAt": null }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2024-07-14T10:54:00",
+        "receivedAt": "2024-07-14T11:00:00",
+        "openedAt": "2024-07-15T09:11:00",
+        "clickedAt": "2024-07-16T09:58:00"
+      },
+      {
+        "name": "Newsletter Août 2024",
+        "type": "Email",
+        "sentAt": "2024-08-01T09:47:00",
+        "receivedAt": "2024-08-01T09:54:00",
+        "openedAt": null,
+        "clickedAt": null
+      }
     ],
     "contributions": [],
     "accessControls": [
-      { "role": "Membre", "structure": "Firm C", "assignedAt": "2024-07-14", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Firm C",
+        "assignedAt": "2024-07-14",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2026-02-02",
+        "origin": "Imported list",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2025-04-21",
+        "origin": "Preference centre",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-07-14",
+        "origin": "Box office",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -1349,13 +3590,15 @@
       "email": "mcphersonjoshua@example.net",
       "age": 44,
       "gender": "Male",
-      "dateOfBirth": "1980-01-07"
+      "dateOfBirth": "1980-01-07",
+      "civility": "Mr."
     },
     "coordinates": {
       "phone": "554.688.3966x046",
       "address": "Via Garibaldi 5",
       "postalCode": "93855",
-      "country": "Italy"
+      "country": "Italy",
+      "city": "Florence"
     },
     "source": {
       "createdAt": "2023-10-01",
@@ -1363,51 +3606,181 @@
     },
     "structure": "Firm C",
     "loyalty": 16,
-    "lists": ["Loyal audience", "Senior segment"],
+    "lists": [
+      "Loyal audience",
+      "Senior segment"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2023-10-01" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2023-10-01"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": null },
-      { "label": "Favorite music genre", "value": "World Music" }
+      {
+        "label": "Favorite athlete",
+        "value": null
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "World Music"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 50.00, "currency": "EUR", "purchaseCount": 1 },
-      "engagement": { "rate": 0.33, "campaignsOpened": 1, "campaignsTotal": 3 },
-      "lastPurchase": { "date": "2024-06-18", "label": "Festival Taormina" }
+      "totalSpending": {
+        "amount": 80.0,
+        "currency": "EUR",
+        "purchaseCount": 2
+      },
+      "engagement": {
+        "rate": 0.33,
+        "campaignsOpened": 1,
+        "campaignsTotal": 3
+      },
+      "lastPurchase": {
+        "date": "2024-06-18",
+        "label": "Festival Taormina"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2024-06-18", 
-        "type": "Concert",    
-        "event": "Festival Taormina",    
-        "eventDate": "2024-06-25", 
-        "price": 50.00, 
-        "quantity": 1, 
-        "total": 50.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-06-18",
+        "type": "Concert",
+        "event": "Festival Taormina",
+        "eventDate": "2024-06-25",
+        "price": 50.0,
+        "quantity": 1,
+        "total": 50.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4286189",
+        "purchaseNumber": "PUR-2024-6189",
+        "salesChannel": "Partner",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2024-06-25T19:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2023-12-10", 
-        "type": "Exposition", 
+      {
+        "purchaseDate": "2024-06-18",
+        "type": "Concert",
+        "event": "Festival Taormina",
+        "eventDate": "2024-06-25",
+        "price": 30.0,
+        "quantity": 1,
+        "total": 30.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "4286189",
+        "purchaseNumber": "PUR-2024-6189",
+        "salesChannel": "Partner",
+        "venue": "Philharmonie de Paris",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2024-06-25T19:00:00"
+      },
+      {
+        "purchaseDate": "2023-12-10",
+        "type": "Exposition",
         "event": "Expo Archéologie Palerme",
-        "eventDate": "2023-12-17", 
-        "price": 22.00, 
-        "quantity": 3, 
-        "total": 66.00, 
-        "status": "Annulé",
-        "buyerStatus": "Buyer"
+        "eventDate": "2023-12-17",
+        "price": 22.0,
+        "quantity": 3,
+        "total": 66.0,
+        "status": "Cancelled",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4953332",
+        "purchaseNumber": "PUR-2023-3332",
+        "salesChannel": "Call centre",
+        "venue": "Grand Palais",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2023-12-17T15:00:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2023-12-10",
+        "type": "Merchandising",
+        "event": "Expo Archéologie Palerme",
+        "eventDate": "2023-12-17",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Cancelled",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "4953332",
+        "purchaseNumber": "PUR-2023-3332",
+        "salesChannel": "Call centre",
+        "venue": "Venue shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",           "type": "Email", "sentAt": "2023-10-01", "receivedAt": "2023-10-01", "openedAt": "2023-10-02" },
-      { "name": "Black Friday 2023",       "type": "Email", "sentAt": "2023-11-24", "receivedAt": "2023-11-24", "openedAt": null },
-      { "name": "Newsletter Avril 2024",   "type": "Email", "sentAt": "2024-04-01", "receivedAt": "2024-04-01", "openedAt": null }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2023-10-01T10:02:00",
+        "receivedAt": "2023-10-01T10:04:00",
+        "openedAt": "2023-10-02T08:02:00",
+        "clickedAt": "2023-10-03T10:12:00"
+      },
+      {
+        "name": "Black Friday 2023",
+        "type": "Email",
+        "sentAt": "2023-11-24T10:18:00",
+        "receivedAt": "2023-11-24T10:28:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter Avril 2024",
+        "type": "Email",
+        "sentAt": "2024-04-01T09:19:00",
+        "receivedAt": "2024-04-01T09:25:00",
+        "openedAt": null,
+        "clickedAt": null
+      }
     ],
     "contributions": [],
     "accessControls": [
-      { "role": "Membre", "structure": "Firm C", "assignedAt": "2023-10-01", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Firm C",
+        "assignedAt": "2023-10-01",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2026-05-24",
+        "origin": "Imported list",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2025-07-17",
+        "origin": "Email link",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-11-16",
+        "origin": "Mobile app",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2023-10-01",
+        "origin": "Imported list",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -1419,13 +3792,15 @@
       "email": "yolandadawson@example.net",
       "age": 51,
       "gender": "Male",
-      "dateOfBirth": "1973-04-11"
+      "dateOfBirth": "1973-04-11",
+      "civility": "Mr."
     },
     "coordinates": {
       "phone": "716-369-3441",
       "address": "Corso Italia 18",
       "postalCode": "76791",
-      "country": "Italy"
+      "country": "Italy",
+      "city": "Naples"
     },
     "source": {
       "createdAt": "2024-10-08",
@@ -1435,36 +3810,116 @@
     "loyalty": 6,
     "lists": [],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2024-10-08" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2024-10-08"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": null },
-      { "label": "Favorite music genre", "value": null }
+      {
+        "label": "Favorite athlete",
+        "value": null
+      },
+      {
+        "label": "Favorite music genre",
+        "value": null
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 28.00, "currency": "EUR", "purchaseCount": 1 },
-      "engagement": { "rate": 1.00, "campaignsOpened": 1, "campaignsTotal": 1 },
-      "lastPurchase": { "date": "2024-11-30", "label": "Expo Arte Moderna Milan" }
+      "totalSpending": {
+        "amount": 44.8,
+        "currency": "EUR",
+        "purchaseCount": 2
+      },
+      "engagement": {
+        "rate": 1.0,
+        "campaignsOpened": 1,
+        "campaignsTotal": 1
+      },
+      "lastPurchase": {
+        "date": "2024-11-30",
+        "label": "Expo Arte Moderna Milan"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2024-11-30", 
-        "type": "Exposition", 
-        "event": "Expo Arte Moderna Milan", 
-        "eventDate": "2024-12-07", 
-        "price": 28.00, 
-        "quantity": 1, 
-        "total": 28.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-11-30",
+        "type": "Exposition",
+        "event": "Expo Arte Moderna Milan",
+        "eventDate": "2024-12-07",
+        "price": 28.0,
+        "quantity": 1,
+        "total": 28.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5948872",
+        "purchaseNumber": "PUR-2024-8872",
+        "salesChannel": "Call centre",
+        "venue": "Fondation Louis Vuitton",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-12-07T19:00:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2024-11-30",
+        "type": "Exposition",
+        "event": "Expo Arte Moderna Milan",
+        "eventDate": "2024-12-07",
+        "price": 16.8,
+        "quantity": 1,
+        "total": 16.8,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "5948872",
+        "purchaseNumber": "PUR-2024-8872",
+        "salesChannel": "Call centre",
+        "venue": "Fondation Louis Vuitton",
+        "productType": "Ticket",
+        "priceFormula": "Group",
+        "performance": "2024-12-07T19:00:00"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email", "type": "Email", "sentAt": "2024-10-08", "receivedAt": "2024-10-08", "openedAt": "2024-10-08" }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2024-10-08T10:17:00",
+        "receivedAt": "2024-10-08T10:28:00",
+        "openedAt": "2024-10-08T19:47:00",
+        "clickedAt": "2024-10-09T12:56:00"
+      }
     ],
     "contributions": [],
     "accessControls": [
-      { "role": "Membre", "structure": "Organization B", "assignedAt": "2024-10-08", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Organization B",
+        "assignedAt": "2024-10-08",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2026-02-19",
+        "origin": "Web form",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2025-07-25",
+        "origin": "Imported list",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-10-08",
+        "origin": "Box office",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -1476,13 +3931,15 @@
       "email": "igarrett@example.com",
       "age": 40,
       "gender": "Other",
-      "dateOfBirth": "1984-03-25"
+      "dateOfBirth": "1984-03-25",
+      "civility": "Mx."
     },
     "coordinates": {
       "phone": "001-900-381-3456x8473",
       "address": "Schillerstraße 9",
       "postalCode": "38001",
-      "country": "Germany"
+      "country": "Germany",
+      "city": "Cologne"
     },
     "source": {
       "createdAt": "2022-12-05",
@@ -1490,116 +3947,386 @@
     },
     "structure": "Organization B",
     "loyalty": 45,
-    "lists": ["Loyal fans", "Last-minute ticket buyers for the RCT v UBB match"],
+    "lists": [
+      "Loyal fans",
+      "Last-minute ticket buyers for the RCT v UBB match"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2022-12-05" },
-      { "label": "Consentement VIP",        "grantedSince": "2023-05-20" },
-      { "label": "Consentement activités",  "grantedSince": "2023-05-20" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2022-12-05"
+      },
+      {
+        "label": "VIP programme",
+        "grantedSince": "2023-05-20"
+      },
+      {
+        "label": "Activities",
+        "grantedSince": "2023-05-20"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": "Thomas Müller" },
-      { "label": "Favorite music genre", "value": "Rock" }
+      {
+        "label": "Favorite athlete",
+        "value": "Thomas Müller"
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Rock"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 541.00, "currency": "EUR", "purchaseCount": 6 },
-      "engagement": { "rate": 0.71, "campaignsOpened": 5, "campaignsTotal": 7 },
-      "lastPurchase": { "date": "2025-01-30", "label": "Bundesliga - Bayern Munich" }
+      "totalSpending": {
+        "amount": 586.0,
+        "currency": "EUR",
+        "purchaseCount": 8
+      },
+      "engagement": {
+        "rate": 0.71,
+        "campaignsOpened": 5,
+        "campaignsTotal": 7
+      },
+      "lastPurchase": {
+        "date": "2025-01-30",
+        "label": "Bundesliga - Bayern Munich"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2025-01-30", 
-        "type": "Sport",      
-        "event": "Bundesliga - Bayern Munich",  
-        "eventDate": "2025-02-08", 
-        "price": 55.00, 
-        "quantity": 2, 
-        "total": 110.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2025-01-30",
+        "type": "Sport",
+        "event": "Bundesliga - Bayern Munich",
+        "eventDate": "2025-02-08",
+        "price": 55.0,
+        "quantity": 2,
+        "total": 110.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6565230",
+        "purchaseNumber": "PUR-2025-5230",
+        "salesChannel": "Web",
+        "venue": "Accor Arena",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2025-02-08T20:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-10-05", 
-        "type": "Concert",    
-        "event": "Rock am Ring",               
-        "eventDate": "2024-10-12", 
-        "price": 60.00, 
-        "quantity": 1, 
-        "total": 60.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2025-01-30",
+        "type": "Sport",
+        "event": "Bundesliga - Bayern Munich",
+        "eventDate": "2025-02-08",
+        "price": 33.0,
+        "quantity": 1,
+        "total": 33.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "6565230",
+        "purchaseNumber": "PUR-2025-5230",
+        "salesChannel": "Web",
+        "venue": "Accor Arena",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2025-02-08T20:30:00"
       },
-      { 
-        "purchaseDate": "2024-05-18", 
-        "type": "Théâtre",    
-        "event": "Deutsches Theater München",  
-        "eventDate": "2024-05-25", 
-        "price": 38.00, 
-        "quantity": 2, 
-        "total": 76.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-10-05",
+        "type": "Concert",
+        "event": "Rock am Ring",
+        "eventDate": "2024-10-12",
+        "price": 60.0,
+        "quantity": 1,
+        "total": 60.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4787611",
+        "purchaseNumber": "PUR-2024-7611",
+        "salesChannel": "Box office",
+        "venue": "Théâtre du Châtelet",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2024-10-12T20:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2023-11-12", 
-        "type": "Exposition", 
-        "event": "Expo Technisches Museum",    
-        "eventDate": "2023-11-19", 
-        "price": 18.00, 
-        "quantity": 1, 
-        "total": 18.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-10-05",
+        "type": "Merchandising",
+        "event": "Rock am Ring",
+        "eventDate": "2024-10-12",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "4787611",
+        "purchaseNumber": "PUR-2024-7611",
+        "salesChannel": "Box office",
+        "venue": "Online shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
       },
-      { 
-        "purchaseDate": "2023-06-10", 
-        "type": "Sport",      
-        "event": "DFB-Pokal Finale",           
-        "eventDate": "2023-06-17", 
-        "price": 60.00, 
-        "quantity": 4, 
-        "total": 240.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-05-18",
+        "type": "Théâtre",
+        "event": "Deutsches Theater München",
+        "eventDate": "2024-05-25",
+        "price": 38.0,
+        "quantity": 2,
+        "total": 76.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6009992",
+        "purchaseNumber": "PUR-2024-9992",
+        "salesChannel": "Call centre",
+        "venue": "Théâtre du Rond-Point",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2024-05-25T14:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2023-02-25", 
-        "type": "Concert",    
-        "event": "Fasching Festival München",  
-        "eventDate": "2023-03-04", 
-        "price": 30.00, 
-        "quantity": 1, 
-        "total": 30.00, 
-        "status": "Annulé",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2023-11-12",
+        "type": "Exposition",
+        "event": "Expo Technisches Museum",
+        "eventDate": "2023-11-19",
+        "price": 18.0,
+        "quantity": 1,
+        "total": 18.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6453325",
+        "purchaseNumber": "PUR-2023-3325",
+        "salesChannel": "Web",
+        "venue": "Musée d’Orsay",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2023-11-19T18:30:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2022-12-20", 
-        "type": "Concert",    
-        "event": "Weihnachtsmarkt Konzert",    
-        "eventDate": "2022-12-24", 
-        "price": 37.00, 
-        "quantity": 1, 
-        "total": 37.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2023-06-10",
+        "type": "Sport",
+        "event": "DFB-Pokal Finale",
+        "eventDate": "2023-06-17",
+        "price": 60.0,
+        "quantity": 4,
+        "total": 240.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4675706",
+        "purchaseNumber": "PUR-2023-5706",
+        "salesChannel": "Box office",
+        "venue": "Stade de France",
+        "productType": "Ticket",
+        "priceFormula": "Full price",
+        "performance": "2023-06-17T18:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2023-02-25",
+        "type": "Concert",
+        "event": "Fasching Festival München",
+        "eventDate": "2023-03-04",
+        "price": 30.0,
+        "quantity": 1,
+        "total": 30.0,
+        "status": "Cancelled",
+        "buyerStatus": "Buyer",
+        "purchaseId": "5898087",
+        "purchaseNumber": "PUR-2023-8087",
+        "salesChannel": "Call centre",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2023-03-04T20:30:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2022-12-20",
+        "type": "Concert",
+        "event": "Weihnachtsmarkt Konzert",
+        "eventDate": "2022-12-24",
+        "price": 37.0,
+        "quantity": 1,
+        "total": 37.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4120468",
+        "purchaseNumber": "PUR-2022-0468",
+        "salesChannel": "Mobile app",
+        "venue": "Olympia",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2022-12-24T20:30:00",
+        "category": "Category 1"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",           "type": "Email", "sentAt": "2022-12-05", "receivedAt": "2022-12-05", "openedAt": "2022-12-05" },
-      { "name": "Newsletter Mars 2023",    "type": "Email", "sentAt": "2023-03-01", "receivedAt": "2023-03-01", "openedAt": "2023-03-02" },
-      { "name": "Promo Été 2023",          "type": "SMS",   "sentAt": "2023-06-15", "receivedAt": "2023-06-15", "openedAt": "2023-06-15" },
-      { "name": "Black Friday 2023",       "type": "Email", "sentAt": "2023-11-24", "receivedAt": "2023-11-24", "openedAt": "2023-11-24" },
-      { "name": "Newsletter Juin 2024",    "type": "Email", "sentAt": "2024-06-01", "receivedAt": "2024-06-01", "openedAt": null },
-      { "name": "Newsletter Octobre 2024", "type": "Email", "sentAt": "2024-10-10", "receivedAt": "2024-10-10", "openedAt": "2024-10-11" },
-      { "name": "Promo Noël 2024",         "type": "Email", "sentAt": "2024-12-01", "receivedAt": "2024-12-01", "openedAt": "2024-12-02" }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2022-12-05T10:38:00",
+        "receivedAt": "2022-12-05T10:47:00",
+        "openedAt": "2022-12-05T18:14:00",
+        "clickedAt": "2022-12-06T19:16:00"
+      },
+      {
+        "name": "Newsletter Mars 2023",
+        "type": "Email",
+        "sentAt": "2023-03-01T10:20:00",
+        "receivedAt": "2023-03-01T10:31:00",
+        "openedAt": "2023-03-02T08:28:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Promo Été 2023",
+        "type": "SMS",
+        "sentAt": "2023-06-15T09:16:00",
+        "receivedAt": "2023-06-15T09:21:00",
+        "openedAt": "2023-06-15T11:01:00",
+        "clickedAt": "2023-06-16T14:07:00"
+      },
+      {
+        "name": "Black Friday 2023",
+        "type": "Email",
+        "sentAt": "2023-11-24T09:40:00",
+        "receivedAt": "2023-11-24T09:41:00",
+        "openedAt": "2023-11-24T16:52:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter Juin 2024",
+        "type": "Email",
+        "sentAt": "2024-06-01T10:39:00",
+        "receivedAt": "2024-06-01T10:41:00",
+        "openedAt": null,
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter Octobre 2024",
+        "type": "Email",
+        "sentAt": "2024-10-10T11:14:00",
+        "receivedAt": "2024-10-10T11:15:00",
+        "openedAt": "2024-10-11T15:59:00",
+        "clickedAt": "2024-10-12T10:46:00"
+      },
+      {
+        "name": "Promo Noël 2024",
+        "type": "Email",
+        "sentAt": "2024-12-01T11:19:00",
+        "receivedAt": "2024-12-01T11:22:00",
+        "openedAt": "2024-12-02T09:52:00",
+        "clickedAt": null
+      }
     ],
     "contributions": [
-      { "product": "Abonnement Premium",   "category": "Abonnement",   "purchaseDate": "2023-01-01", "quantity": 1, "amount": 99.00 },
-      { "product": "Pack 5 billets",       "category": "Billetterie",  "purchaseDate": "2023-06-17", "quantity": 1, "amount": 120.00 },
-      { "product": "Maillot Bayern",       "category": "Merchandising","purchaseDate": "2024-10-12", "quantity": 1, "amount": 55.00 }
+      {
+        "product": "Abonnement Premium",
+        "category": "Abonnement",
+        "purchaseDate": "2023-01-01",
+        "quantity": 1,
+        "amount": 99.0
+      },
+      {
+        "product": "Pack 5 billets",
+        "category": "Billetterie",
+        "purchaseDate": "2023-06-17",
+        "quantity": 1,
+        "amount": 120.0
+      },
+      {
+        "product": "Maillot Bayern",
+        "category": "Merchandising",
+        "purchaseDate": "2024-10-12",
+        "quantity": 1,
+        "amount": 55.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre VIP", "structure": "Organization B", "assignedAt": "2023-05-20", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre VIP",
+        "structure": "Organization B",
+        "assignedAt": "2023-05-20",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "VIP programme",
+        "date": "2026-05-23",
+        "origin": "Preference centre",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Activities",
+        "date": "2026-03-05",
+        "origin": "Box office",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2026-02-01",
+        "origin": "Preference centre",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2024-12-17",
+        "origin": "Call centre",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Activities",
+        "date": "2024-11-22",
+        "origin": "Call centre",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-09-01",
+        "origin": "Mobile app",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Activities",
+        "date": "2024-03-30",
+        "origin": "Call centre",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2024-03-29",
+        "origin": "Mobile app",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-02-22",
+        "origin": "Mobile app",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "VIP programme",
+        "date": "2023-05-20",
+        "origin": "Mobile app",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Activities",
+        "date": "2023-05-20",
+        "origin": "Mobile app",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2022-12-05",
+        "origin": "Box office",
+        "action": "Opt-in"
+      }
     ]
   },
   {
@@ -1611,13 +4338,15 @@
       "email": "zpatterson@example.org",
       "age": 27,
       "gender": "Male",
-      "dateOfBirth": "1997-02-16"
+      "dateOfBirth": "1997-02-16",
+      "civility": "Mr."
     },
     "coordinates": {
       "phone": "680.545.7852",
       "address": "Calle Serrano 44",
       "postalCode": "23419",
-      "country": "Spain"
+      "country": "Spain",
+      "city": "Valencia"
     },
     "source": {
       "createdAt": "2024-04-22",
@@ -1625,77 +4354,251 @@
     },
     "structure": "Corporation E",
     "loyalty": 38,
-    "lists": ["Student segment (under 26)", "List of yesterday's buyers"],
+    "lists": [
+      "Student segment (under 26)",
+      "List of yesterday's buyers"
+    ],
     "consents": [
-      { "label": "Consentement newsletter", "grantedSince": "2024-04-22" },
-      { "label": "Consentement activités",  "grantedSince": "2024-04-22" }
+      {
+        "label": "Newsletter",
+        "grantedSince": "2024-04-22"
+      },
+      {
+        "label": "Activities",
+        "grantedSince": "2024-04-22"
+      }
     ],
     "preferences": [
-      { "label": "Favorite athlete", "value": "Pedri" },
-      { "label": "Favorite music genre", "value": "Electronic" }
+      {
+        "label": "Favorite athlete",
+        "value": "Pedri"
+      },
+      {
+        "label": "Favorite music genre",
+        "value": "Electronic"
+      }
     ],
     "stats": {
-      "totalSpending": { "amount": 130.00, "currency": "EUR", "purchaseCount": 3 },
-      "engagement": { "rate": 0.75, "campaignsOpened": 3, "campaignsTotal": 4 },
-      "lastPurchase": { "date": "2025-01-12", "label": "Festival Sónar Barcelona" }
+      "totalSpending": {
+        "amount": 166.0,
+        "currency": "EUR",
+        "purchaseCount": 5
+      },
+      "engagement": {
+        "rate": 0.75,
+        "campaignsOpened": 3,
+        "campaignsTotal": 4
+      },
+      "lastPurchase": {
+        "date": "2025-01-12",
+        "label": "Festival Sónar Barcelona"
+      }
     },
     "tickets": [
-      { 
-        "purchaseDate": "2025-01-12", 
-        "type": "Concert",    
-        "event": "Festival Sónar Barcelona", 
-        "eventDate": "2025-01-20", 
-        "price": 40.00, 
-        "quantity": 1, 
-        "total": 40.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2025-01-12",
+        "type": "Concert",
+        "event": "Festival Sónar Barcelona",
+        "eventDate": "2025-01-20",
+        "price": 40.0,
+        "quantity": 1,
+        "total": 40.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4174721",
+        "purchaseNumber": "PUR-2025-4721",
+        "salesChannel": "Box office",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2025-01-20T15:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-09-08", 
-        "type": "Sport",      
-        "event": "La Liga - FC Barcelona",  
-        "eventDate": "2024-09-15", 
-        "price": 35.00, 
-        "quantity": 2, 
-        "total": 70.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2025-01-12",
+        "type": "Concert",
+        "event": "Festival Sónar Barcelona",
+        "eventDate": "2025-01-20",
+        "price": 24.0,
+        "quantity": 1,
+        "total": 24.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Category 2",
+        "purchaseId": "4174721",
+        "purchaseNumber": "PUR-2025-4721",
+        "salesChannel": "Box office",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2025-01-20T15:00:00"
       },
-      { 
-        "purchaseDate": "2024-06-21", 
-        "type": "Concert",    
-        "event": "Primavera Sound",          
-        "eventDate": "2024-06-28", 
-        "price": 30.00, 
-        "quantity": 1, 
-        "total": 30.00, 
+      {
+        "purchaseDate": "2024-09-08",
+        "type": "Sport",
+        "event": "La Liga - FC Barcelona",
+        "eventDate": "2024-09-15",
+        "price": 35.0,
+        "quantity": 2,
+        "total": 70.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "4841864",
+        "purchaseNumber": "PUR-2024-1864",
+        "salesChannel": "Partner",
+        "venue": "Stade de France",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-09-15T19:00:00",
+        "category": "Category 1"
+      },
+      {
+        "purchaseDate": "2024-09-08",
+        "type": "Merchandising",
+        "event": "La Liga - FC Barcelona",
+        "eventDate": "2024-09-15",
+        "price": 12.0,
+        "quantity": 1,
+        "total": 12.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "category": "Official programme",
+        "purchaseId": "4841864",
+        "purchaseNumber": "PUR-2024-1864",
+        "salesChannel": "Partner",
+        "venue": "Online shop",
+        "productType": "Merchandising",
+        "priceFormula": "—",
+        "performance": null
+      },
+      {
+        "purchaseDate": "2024-06-21",
+        "type": "Concert",
+        "event": "Primavera Sound",
+        "eventDate": "2024-06-28",
+        "price": 30.0,
+        "quantity": 1,
+        "total": 30.0,
         "status": "Cancelled",
-        "buyerStatus": "Buyer"
+        "buyerStatus": "Buyer",
+        "purchaseId": "6619483",
+        "purchaseNumber": "PUR-2024-9483",
+        "salesChannel": "Mobile app",
+        "venue": "Zénith",
+        "productType": "Ticket",
+        "priceFormula": "Youth",
+        "performance": "2024-06-28T15:00:00",
+        "category": "Category 1"
       },
-      { 
-        "purchaseDate": "2024-05-04", 
-        "type": "Exposition", 
-        "event": "Expo Gaudí BCN",          
-        "eventDate": "2024-05-11", 
-        "price": 10.00, 
-        "quantity": 2, 
-        "total": 20.00, 
-        "status": "Vendu",
-        "buyerStatus": "Buyer"
+      {
+        "purchaseDate": "2024-05-04",
+        "type": "Exposition",
+        "event": "Expo Gaudí BCN",
+        "eventDate": "2024-05-11",
+        "price": 10.0,
+        "quantity": 2,
+        "total": 20.0,
+        "status": "Sold",
+        "buyerStatus": "Buyer",
+        "purchaseId": "6507578",
+        "purchaseNumber": "PUR-2024-7578",
+        "salesChannel": "Mobile app",
+        "venue": "Fondation Louis Vuitton",
+        "productType": "Ticket",
+        "priceFormula": "Reduced",
+        "performance": "2024-05-11T19:00:00",
+        "category": "Category 1"
       }
     ],
     "campaigns": [
-      { "name": "Welcome Email",           "type": "Email", "sentAt": "2024-04-22", "receivedAt": "2024-04-22", "openedAt": "2024-04-22" },
-      { "name": "Promo Été 2024",          "type": "SMS",   "sentAt": "2024-06-15", "receivedAt": "2024-06-15", "openedAt": "2024-06-15" },
-      { "name": "Newsletter Octobre 2024", "type": "Email", "sentAt": "2024-10-10", "receivedAt": "2024-10-10", "openedAt": "2024-10-11" },
-      { "name": "Promo Noël 2024",         "type": "Email", "sentAt": "2024-12-01", "receivedAt": "2024-12-01", "openedAt": null }
+      {
+        "name": "Welcome Email",
+        "type": "Email",
+        "sentAt": "2024-04-22T09:31:00",
+        "receivedAt": "2024-04-22T09:34:00",
+        "openedAt": "2024-04-22T17:00:00",
+        "clickedAt": "2024-04-23T18:26:00"
+      },
+      {
+        "name": "Promo Été 2024",
+        "type": "SMS",
+        "sentAt": "2024-06-15T11:43:00",
+        "receivedAt": "2024-06-15T11:53:00",
+        "openedAt": "2024-06-15T16:42:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter Octobre 2024",
+        "type": "Email",
+        "sentAt": "2024-10-10T11:02:00",
+        "receivedAt": "2024-10-10T11:08:00",
+        "openedAt": "2024-10-11T18:19:00",
+        "clickedAt": "2024-10-12T13:52:00"
+      },
+      {
+        "name": "Promo Noël 2024",
+        "type": "Email",
+        "sentAt": "2024-12-01T11:25:00",
+        "receivedAt": "2024-12-01T11:32:00",
+        "openedAt": null,
+        "clickedAt": null
+      }
     ],
     "contributions": [
-      { "product": "Pass étudiant annuel", "category": "Abonnement", "purchaseDate": "2024-05-01", "quantity": 1, "amount": 49.00 }
+      {
+        "product": "Pass étudiant annuel",
+        "category": "Abonnement",
+        "purchaseDate": "2024-05-01",
+        "quantity": 1,
+        "amount": 49.0
+      }
     ],
     "accessControls": [
-      { "role": "Membre", "structure": "Corporation E", "assignedAt": "2024-04-22", "assignedBy": "Admin", "status": "Actif" }
+      {
+        "role": "Membre",
+        "structure": "Corporation E",
+        "assignedAt": "2024-04-22",
+        "assignedBy": "Admin",
+        "status": "Actif"
+      }
+    ],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2026-05-05",
+        "origin": "Preference centre",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Activities",
+        "date": "2025-12-21",
+        "origin": "Imported list",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Activities",
+        "date": "2025-05-20",
+        "origin": "Preference centre",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2025-03-10",
+        "origin": "Call centre",
+        "action": "Opt-out"
+      },
+      {
+        "consent": "Newsletter",
+        "date": "2024-04-22",
+        "origin": "Imported list",
+        "action": "Opt-in"
+      },
+      {
+        "consent": "Activities",
+        "date": "2024-04-22",
+        "origin": "Preference centre",
+        "action": "Opt-in"
+      }
     ]
   }
 ]

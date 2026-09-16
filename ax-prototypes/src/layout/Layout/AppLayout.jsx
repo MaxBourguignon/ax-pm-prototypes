@@ -5,7 +5,7 @@ function AppLayout() {
     return (
         <div style={{ minWidth: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <NavBar />
-            <div style={{ flex: 1, background: '#F3F4F6' }}>
+            <div style={{ flex: 1, background: '#F4F9FF' }}>
                 <Outlet />
             </div>
         </div>

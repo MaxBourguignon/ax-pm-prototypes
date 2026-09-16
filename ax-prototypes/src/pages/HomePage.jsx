@@ -7,6 +7,8 @@ const MODULES = [
   { icon: "🏆", label: "Performances page V3", desc: "New performances page with performances management", bg: "#EFF6FF", link: "/performances-v3" },
   { icon: "⚗️", label: "ArenaForm", desc: "Exhaustive form builder the foster engagement and acquisition", bg: "#EFF6FF", link: "/arenaform" },
   { icon: "📋", label: "Lists page V3", desc: "New contact lists page to segment and manage your CRM audiences", bg: "#EFF6FF", link: "/lists-v3" },
+  { icon: "📱", label: "SMS Management", desc: "Build, send and analyze SMS campaigns directly from your CRM segments", bg: "#EFF6FF", link: "/sms" },
+  { icon: "📈", label: "Acquisition", desc: "See where your CRM contacts come from — by source type, source name, and over time", bg: "#EFF6FF", link: "/acquisition" },
 ];
 
 
