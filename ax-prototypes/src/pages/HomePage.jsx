@@ -9,6 +9,7 @@ const MODULES = [
   { icon: "📋", label: "Lists page V3", desc: "New contact lists page to segment and manage your CRM audiences", bg: "#EFF6FF", link: "/lists-v3" },
   { icon: "📱", label: "SMS Management", desc: "Build, send and analyze SMS campaigns directly from your CRM segments", bg: "#EFF6FF", link: "/sms" },
   { icon: "📈", label: "Acquisition", desc: "See where your CRM contacts come from — by source type, source name, and over time", bg: "#EFF6FF", link: "/acquisition" },
+  { icon: "🤖", label: "Analytics builder", desc: "Describe a report in plain language and an agent builds it — saved as a card, refreshed every night", bg: "#EFF6FF", link: "/sales/analytics-builder" },
 ];
 
 

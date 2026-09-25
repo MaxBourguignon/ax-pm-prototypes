@@ -9,7 +9,6 @@ function AppLayoutSidebar() {
         <div style={{ display: 'flex', height: '100vh', background: `linear-gradient(to bottom, ${DS.surfaceCanvas} 72px, ${DS.bgPage} 72px)` }}>
             <div style={{ position: 'sticky', top: 0, height: '100vh', flexShrink: 0, zIndex: 40 }}>
                 <Sidebar />
-                {/* <NewSideBar /> */}
             </div>
 
             <div style={{ flex: 1, overflowY: 'auto', background: DS.surfaceAppBackground }}>

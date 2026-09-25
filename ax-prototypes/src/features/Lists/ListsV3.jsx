@@ -15,8 +15,8 @@
  *     shadowSm — same shell as PageHeader and Table
  *   - the local tab strip is gone: the record uses the shared DS `Tabs`
  *   - the chart palette is sourced from DS primitives, no raw hexes
- * Local-only, no DS counterpart (flagged, not silently DS-badged): TypeBadge
- * (a DS Badge plus a leading type icon), FolderMenu, OptionsMenu, and the
+ * Local-only, no DS counterpart (flagged, not silently DS-badged): OptionsMenu
+ * and the
  * dataviz atoms (Donut / BarList / ReachRow / TrendChart).
  */
 import { useState, useRef, useEffect } from 'react';
@@ -25,15 +25,14 @@ import { DS, TY } from '../../utils/designSystem';
 import Ico from '../../utils/icons';
 import { Btn } from '../../components/Btn';
 import { IconBtn } from '../../components/Iconbtn';
-import { Field, TextArea, SearchField } from '../../components/Field';
-import { StatusBadge, Avatar, Badge } from '../../components/Tag';
+import { Field, TextArea } from '../../components/Field';
+import { Badge } from '../../components/Tag';
 import { Modal } from '../../components/Modal';
 import StatePreview from '../../components/StatePreview';
 import Skel from '../../components/Skeleton';
 import PageHeader from '../../components/PageHeader';
 import Select from '../../components/Select';
-import Pagination from '../../components/Pagination';
-import BannerTable, { BannerIdentity } from '../../components/BannerTable';
+import Table from '../../components/Table';
 import NameModal from '../../components/NameModal';
 import ActionMenu from '../../components/ActionMenu';
 import Tabs from '../../components/Tabs';
@@ -43,7 +42,7 @@ import { EmptyState, ErrorState, ConfirmDialog } from '../../components/Feedback
 /* ── Helpers ────────────────────────────────────────────────────────────────── */
 const TODAY = new Date('2026-06-05T00:00:00');
 const d = (s) => new Date(s + 'T00:00:00');
-const fmtDate = (dt) => dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+const fmtDate = (dt) => dt.toLocaleDateString('en-GB'); // dd/mm/yyyy
 const num = (n) => (n == null ? '—' : new Intl.NumberFormat('en-US').format(n));
 
 /* ── Mock data ──────────────────────────────────────────────────────────────── */
@@ -65,7 +64,7 @@ function buildLists() {
     { id: 'l6', name: 'CSV import — March (to clean up)', description: 'Manual import, duplicates to review.', type: 'import', folder: 'Imports', contacts: 0, owner: 'Hugo Martin', created: '2026-03-02', updated: '2026-03-02', status: 'active', tags: ['Import'], criteria: [] },
     { id: 'l7', name: 'Loyalty program members', description: 'Loyalty card holders.', type: 'dynamic', folder: 'Loyalty & VIP', contacts: 52310, owner: 'Léa Dubois', created: '2025-07-22', updated: '2026-06-01', status: 'active', tags: ['Loyalty', 'Wallet'], criteria: [{ field: 'Tags', op: 'contains', value: 'Loyalty card' }] },
     { id: 'l8', name: 'VIP — private evening invitations', description: 'Manual selection for the June 20 event.', type: 'static', folder: 'Events', contacts: 180, owner: 'Camille Rey', created: '2026-05-15', updated: '2026-06-04', status: 'active', tags: ['Event', 'VIP'], criteria: [] },
-    { id: 'l9', name: 'Black Friday 2025 buyers', description: 'Contacts who ordered during the sale.', type: 'static', folder: 'Campaigns', contacts: 6420, owner: 'Yanis Benali', created: '2025-12-01', updated: '2026-02-10', status: 'archived', tags: ['Promo'], criteria: [] },
+    { id: 'l9', name: 'Black Friday 2025 buyers', description: 'Contacts who ordered during the sale.', type: 'static', folder: 'Campaigns', contacts: 6420, owner: 'Yanis Benali', created: '2025-12-01', updated: '2026-02-10', status: 'active', tags: ['Promo'], criteria: [] },
     { id: 'l10', name: 'SMS — mobile opt-in', description: 'Contacts who consented to the SMS channel.', type: 'dynamic', folder: 'Compliance', contacts: 14200, owner: 'Hugo Martin', created: '2025-10-03', updated: '2026-05-20', status: 'active', tags: ['SMS', 'Consent'], criteria: [{ field: 'Preferred channel', op: 'is', value: 'SMS' }] },
     { id: 'l11', name: 'Birthdays of the month', description: 'Auto-updated every month.', type: 'dynamic', folder: 'Campaigns', contacts: 2310, owner: 'Léa Dubois', created: '2026-02-28', updated: '2026-06-01', status: 'active', tags: ['Automation'], criteria: [{ field: 'Tags', op: 'contains', value: 'June birthday' }] },
     { id: 'l12', name: 'Key B2B accounts', description: 'Organizations with more than 50 attached contacts.', type: 'dynamic', folder: 'B2B', contacts: 96, owner: 'Yanis Benali', created: '2025-08-30', updated: '2026-04-25', status: 'active', tags: ['B2B'], criteria: [{ field: 'Tags', op: 'contains', value: 'Key account' }] },
@@ -177,80 +176,105 @@ function buildProfile(l) {
    no DS tone — the DS Badge ships 5 colours, none neutral — so it borrows the
    surface/subtle + text/secondary pair rather than misusing `warning`. */
 const TYPES = {
-  dynamic: { label: 'Dynamic',       long: 'Dynamic (auto)',       bg: DS.feedbackSuccessBg,  fg: DS.feedbackSuccess, icon: Ico.Zap },
-  static:  { label: 'Static',        long: 'Static (manual)',      bg: DS.brandPrimarySubtle, fg: DS.brandOnSurface,  icon: Ico.List },
-  import:  { label: 'Manual import', long: 'Manual import (file)', bg: DS.surfaceSubtle,      fg: DS.textSecondary,   icon: Ico.Download },
+  dynamic: { label: 'Dynamic',       long: 'Dynamic (auto)',       tone: 'success' },
+  static:  { label: 'Static',        long: 'Static (manual)',      tone: 'primary' },
+  import:  { label: 'Manual import', long: 'Manual import (file)', tone: 'neutral' },
 };
-/* DS Atoms/Badge (523:73) geometry — px8/py2, radiusPill, Label/Medium — with a
-   leading 12px type icon. The icon is a local extension: the DS Badge has no
-   icon slot, but the type is the row's primary qualifier and reads faster with
-   one. Everything else matches the atom exactly. */
+/* The list type is a plain qualifier, so it renders as the DS Atoms/Badge
+   (523:73) and nothing else — no leading icon. The icon was a local extension
+   on top of the atom; dropping it leaves the chips uniform with every other
+   badge in the app. `neutral` is a tone this file added to Badge (see Tag.jsx). */
 function TypeBadge({ type }) {
   const t = TYPES[type] || TYPES.static;
-  const I = t.icon;
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: DS.radiusPill, padding: '2px 8px', background: t.bg, color: t.fg, ...TY.labelMd, fontFamily: DS.ff, whiteSpace: 'nowrap' }}>
-      <I s={12} c={t.fg} />{t.label}
-    </span>
-  );
+  return <Badge tone={t.tone}>{t.label}</Badge>;
 }
 
-/* ── Lists table — the shared BannerTable (header strip + grid banner rows) ──── */
+/* ── Lists table — the shared DS Table ────────────────────────────────────────
+   Was the BannerTable (free-standing card rows). Now Molecules/Cell composed by
+   components/Table.jsx, i.e. the Figma `Table / Contacts` template (2052:38194):
+   one bordered shell, a TableToolbar on top and a PaginationBar underneath —
+   the same chrome the Contacts table already uses.
+   The name column is a plain text cell: the DS gives the first column weight 500
+   (Label/Large), which is the identity emphasis BannerIdentity was after. The
+   description line under the name is gone — it lives on the list record. */
 const clip = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 const LIST_COLUMNS = [
-  { key: 'name',     label: 'Name',          basis: 'minmax(200px, 2.4fr)' },
-  { key: 'type',     label: 'Type',          basis: '132px' },
-  { key: 'created',  label: 'Creation date', basis: '120px' },
-  { key: 'folder',   label: 'Folder',        basis: '150px' },
-  { key: 'owner',    label: 'Owner',         basis: '170px' },
-  { key: 'contacts', label: 'Contacts',      basis: '110px', align: 'right' },
+  // The name column is capped rather than flexible: left to flex it swallowed
+  // every spare pixel and pushed the other columns to the far right.
+  { key: 'name',     label: 'Name',          width: 360 },
+  { key: 'type',     label: 'Type' },
+  { key: 'created',  label: 'Creation date' },
+  { key: 'folder',   label: 'Folder' },
+  { key: 'owner',    label: 'Owner' },
+  // Count over its share of the base, in the DS two-line cell, right-aligned.
+  { key: 'contacts', label: 'Contacts',      type: 'titleDescription', width: 170, align: 'right' },
 ];
 
-function ListsBanners({ data, sortKey, sortDir, onSort, canManage, onOpen, onEdit, onDuplicate, onDelete, onToast }) {
-  const cell = (l, key) => {
-    switch (key) {
-      case 'name':
-        return (
-          <BannerIdentity
-            title={l.name}
-            badge={l.status === 'archived' ? <StatusBadge status="warning">Archived</StatusBadge> : null}
-            description={l.description || 'No description'}
-          />
-        );
-      case 'type':     return <TypeBadge type={l.type} />;
-      case 'created':  return <span style={{ color: DS.textSecondary, whiteSpace: 'nowrap' }}>{fmtDate(d(l.created))}</span>;
-      case 'folder':   return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-          <Ico.Inbox s={14} c={DS.textSecondary} /><span style={clip}>{l.folder}</span>
-        </span>
-      );
-      case 'owner':    return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          <Avatar name={l.owner} size={22} /><span style={clip}>{l.owner}</span>
-        </span>
-      );
-      case 'contacts': return <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{num(l.contacts)}</span>;
-      default:         return null;
-    }
-  };
+const pctOfBase = (n) => `${((n / BASE_TOTAL) * 100).toFixed(2)}% of the database`;
+
+/* Folders are plain names in the mock data, so a folder identifier is derived
+   from the name — stable across reloads, and shaped like the list ids. */
+const folderId = (name) => `fld_${hashSeed(name).toString(36)}`;
+
+/* Clipboard access throws in an insecure context and is absent in some
+   embedded webviews, so the toast reports what actually happened. */
+async function copyId(value, label, onToast) {
+  try {
+    await navigator.clipboard.writeText(value);
+    onToast(`${label} copied — ${value}`);
+  } catch {
+    onToast(`Could not reach the clipboard. ${label}: ${value}`);
+  }
+}
+
+function listCell(l, key) {
+  switch (key) {
+    case 'name':     return <span style={clip}>{l.name}</span>;
+    case 'type':     return <TypeBadge type={l.type} />;
+    case 'created':  return fmtDate(d(l.created));
+    case 'folder':   return <span style={clip}>{l.folder}</span>;
+    case 'owner':    return <span style={clip}>{l.owner}</span>;
+    case 'contacts': return { title: num(l.contacts), description: pctOfBase(l.contacts) };
+    default:         return null;
+  }
+}
+
+/* Loading keeps the table shell — toolbar, headers and pager stay put while the
+   rows fill in, instead of the page swapping to a stack of floating skeletons. */
+const SKELETON_ROWS = [0, 1, 2, 3, 4, 5].map((i) => ({ id: `skel-${i}` }));
+const skeletonCell = (_row, key) => {
+  if (key === 'name')     return <Skel w={180} h={12} />;
+  if (key === 'contacts') return { title: <Skel w={54} h={12} />, description: <Skel w={90} h={9} /> };
+  return <Skel w={90} h={12} />;
+};
+
+function ListsTable({
+  data, sortKey, sortDir, onSort, canManage, loading,
+  onOpen, onEdit, onDuplicate, onDelete, onToast,
+  toolbar, page, pages, setPage, total, pageSize, emptyState,
+}) {
   return (
-    <BannerTable
+    <Table
       columns={LIST_COLUMNS}
-      rows={data}
+      rows={loading ? SKELETON_ROWS : data}
       rowId={(l) => l.id}
-      sortKey={sortKey} sortDir={sortDir} onSort={onSort}
-      onRowClick={(l) => onOpen(l.id)}
-      dim={(l) => l.status === 'archived'}
-      cell={cell}
-      actions={(l) => (
+      cell={loading ? skeletonCell : listCell}
+      sortKey={sortKey} sortDir={sortDir} onSort={loading ? undefined : onSort}
+      onRowClick={loading ? undefined : (l) => onOpen(l.id)}
+      actions={loading ? undefined : (l) => (
         <ActionMenu items={[
           { label: 'View', icon: <Ico.Eye s={16} c={DS.actionPrimary} />, onClick: () => onOpen(l.id) },
           { label: 'Duplicate', icon: <Ico.Copy s={16} c={DS.textSecondary} />, onClick: () => onDuplicate(l) },
           { label: 'Edit', icon: <Ico.Edit s={16} c={DS.textSecondary} />, onClick: () => onEdit(l), hidden: !canManage },
           { label: 'Delete', icon: <Ico.Trash s={16} c={DS.feedbackError} />, onClick: () => onDelete(l), danger: true, hidden: !canManage },
           { label: 'Export', icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => onToast('Export generated (demo).'), hidden: canManage },
+          { label: 'Copy list identifier', icon: <Ico.Copy s={16} c={DS.textSecondary} />, onClick: () => copyId(l.id, 'List identifier', onToast), hidden: !canManage },
+          { label: 'Copy folder identifier', icon: <Ico.Copy s={16} c={DS.textSecondary} />, onClick: () => copyId(folderId(l.folder), 'Folder identifier', onToast), hidden: !canManage },
         ]} />
       )}
+      toolbar={toolbar}
+      page={page} pages={pages} setPage={setPage} total={total} pageSize={pageSize}
+      emptyState={emptyState}
     />
   );
 }
@@ -486,69 +510,43 @@ function TrendChart({ months, values, height = 280 }) {
 }
 
 /* Folder menu — input-style dropdown to switch the viewed folder or create one. */
-function FolderRow({ active, count, onClick, children }) {
-  const [hover, setHover] = useState(false);
+/* Folder filter — the DS Atoms/Select (556:2972) via components/Select.jsx,
+   replacing the hand-rolled dropdown that came before. No folder icons anywhere.
+   The count lives in the option label — "Campaigns (12 lists)" — rather than in
+   a trailing pill or numeral: it reads as one phrase, and it carries into the
+   closed trigger, so the active folder still states its size.
+   "Create a folder" is the Select's footerAction — an action under the rule,
+   not a selectable folder. */
+/* Folder name, then its size in text/muted — no parentheses. The name is what
+   you scan for, so it keeps text/default at full weight and the count trails it
+   a shade quieter, the way the app writes every other piece of metadata. It is
+   a node rather than a string, so the closed trigger renders it the same way. */
+const withCount = (name, n) => (
+  <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}>
+    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+    <span style={{ ...TY.labelMd, color: DS.textMuted, flexShrink: 0 }}>
+      {n} list{n === 1 ? '' : 's'}
+    </span>
+  </span>
+);
+
+function FolderSelect({ folders, value, counts, total, onChange, onRequestCreateFolder }) {
   return (
-    <div onClick={onClick}
-      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-      style={{ minHeight: 40, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-               background: active ? DS.actionPrimarySubtle : hover ? DS.surfaceSubtle : 'transparent',
-               ...TY.bodyMd, fontFamily: DS.ff, color: active ? DS.actionPrimary : DS.textDefault }}>
-      <Ico.Inbox s={14} c={active ? DS.actionPrimary : DS.textSecondary} />
-      <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {children}
-        <span style={{ ...TY.labelMd, color: DS.textMuted, marginLeft: 6 }}>— {count} list{count === 1 ? '' : 's'}</span>
-      </span>
-      {active && <Ico.Check s={16} c={DS.actionPrimary} />}
-    </div>
-  );
-}
-
-function FolderMenu({ folders, value, counts, total, onChange, onRequestCreateFolder }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const f = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', f);
-    return () => document.removeEventListener('mousedown', f);
-  }, []);
-
-  const label = value === 'all' ? 'All folders' : value;
-
-  return (
-    <div ref={ref} style={{ position: 'relative', width: 260 }}>
-      {/* Geometry follows the DS TableToolbar folder filter (1784:33159):
-          h36, surfaceCanvas on borderField, radiusLg. */}
-      <button type="button" onClick={() => setOpen((o) => !o)}
-        style={{ height: 36, width: '100%', boxSizing: 'border-box', background: DS.surfaceCanvas,
-                 border: `1px solid ${open ? DS.borderFocus : DS.borderField}`,
-                 borderRadius: DS.radiusLg, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                 fontFamily: DS.ff, ...TY.bodyMd, color: DS.textDefault }}>
-        <Ico.Inbox s={16} c={DS.textSecondary} />
-        <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
-        <span style={{ ...TY.labelMd, color: DS.textMuted }}>{value === 'all' ? total : (counts[value] ?? 0)}</span>
-        <Ico.ChevDown s={16} c={DS.textDefault} />
-      </button>
-      {open && (
-        <div style={{ position: 'absolute', top: 40, left: 0, width: '100%', background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`,
-                      borderRadius: DS.radiusLg, boxShadow: DS.shadowSm, zIndex: 50, overflow: 'hidden' }}>
-          <div style={{ maxHeight: 260, overflowY: 'auto' }}>
-            <FolderRow active={value === 'all'} count={total} onClick={() => { onChange('all'); setOpen(false); }}>All folders</FolderRow>
-            {folders.map((f) => (
-              <FolderRow key={f} active={value === f} count={counts[f] ?? 0} onClick={() => { onChange(f); setOpen(false); }}>{f}</FolderRow>
-            ))}
-          </div>
-          <div style={{ height: 1, background: DS.borderDivider }} />
-          <div onClick={() => { setOpen(false); onRequestCreateFolder(); }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = DS.surfaceSubtle)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-            style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                     ...TY.labelLg, color: DS.actionPrimary, fontFamily: DS.ff }}>
-            <Ico.Plus s={16} c={DS.actionPrimary} />Create a folder
-          </div>
-        </div>
-      )}
-    </div>
+    <Select
+      width={240}
+      portal
+      value={value}
+      onChange={onChange}
+      options={[
+        { value: 'all', label: withCount('All folders', total) },
+        ...folders.map((f) => ({ value: f, label: withCount(f, counts[f] ?? 0) })),
+      ]}
+      footerAction={{
+        label: 'Create a folder',
+        icon: <Ico.Plus s={16} c={DS.actionPrimary} />,
+        onClick: onRequestCreateFolder,
+      }}
+    />
   );
 }
 
@@ -659,7 +657,7 @@ function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewCo
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'stretch' }}>
           <RecordCard icon={<Ico.Info s={18} c={DS.actionPrimary} />} title="Information" style={{ flex: '2 1 380px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px 24px' }}>
-              <InfoItem label="Created by" value={<><Avatar name={l.owner} size={22} />{l.owner}</>} />
+              <InfoItem label="Created by" value={l.owner} />
               <InfoItem label="Created on" value={fmtDate(d(l.created))} />
               <InfoItem label="Folder" value={<><Ico.Inbox s={14} c={DS.textSecondary} />{l.folder}</>} />
             </div>
@@ -941,7 +939,10 @@ export default function ListsV3() {
     showToast(`Folder “${name}” deleted.`);
   };
 
-  const openCreate = () => { setEditing(null); setFormOpen(true); };
+  // A list is born from a segmentation, so "Create a list" hands over to the
+  // Contacts page and its segment builder rather than opening a form here.
+  // ListFormPanel stays for EDIT, which still works on an existing list.
+  const openCreate = () => navigate('/contacts');
   const openEdit = (l) => { setSelected(null); setEditing(l); setFormOpen(true); };
   const duplicate = (l) => { const id = 'l' + Date.now(); setLists((ls) => [{ ...l, id, name: l.name + ' (copy)', updated: '2026-06-05', created: '2026-06-05' }, ...ls]); showToast('List duplicated.'); };
   const save = (form, edit) => {
@@ -960,36 +961,71 @@ export default function ListsV3() {
 
   const recordList = selected ? lists.find((x) => x.id === selected) : null;
 
+  /* The folder filter, the folder rename/delete actions and the search all sit
+     in the DS TableToolbar now (Molecules/TableToolbar 1784:33159) instead of a
+     hand-rolled strip above the rows — so they stay with the table in every
+     state, including loading. */
+  const toolbarLeft = renamingFolder ? (
+    <>
+      <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') { renameFolder(folderFilter, renameValue); setRenamingFolder(false); }
+          if (e.key === 'Escape') setRenamingFolder(false);
+        }}
+        style={{ width: 240, height: 36, boxSizing: 'border-box', padding: '0 12px', borderRadius: DS.radiusLg,
+                 border: `1px solid ${DS.borderFocus}`, background: DS.surfaceCanvas, outline: 'none',
+                 fontFamily: DS.ff, ...TY.bodyMd, color: DS.textDefault }} />
+      <Btn type="Primary" size="Small" onClick={() => { renameFolder(folderFilter, renameValue); setRenamingFolder(false); }}>Save</Btn>
+      <Btn type="Tertiary" size="Small" onClick={() => setRenamingFolder(false)}>Cancel</Btn>
+    </>
+  ) : (
+    <>
+      <FolderSelect
+        folders={folders}
+        value={folderFilter}
+        counts={folderCounts}
+        total={lists.length}
+        onChange={(v) => { setFolderFilter(v); setPage(0); }}
+        onRequestCreateFolder={() => setFolderModal(true)}
+      />
+      {folderFilter !== 'all' && canManage && (
+        <>
+          <IconBtn type="Secondary" size="Small" aria-label="Rename folder" title="Rename folder"
+            icon={<Ico.EditSquare s={16} />}
+            onClick={() => { setRenameValue(folderFilter); setRenamingFolder(true); }} />
+          <IconBtn type="Secondary" size="Small" aria-label="Delete folder" title="Delete folder"
+            icon={<Ico.TrashBin s={16} c={DS.feedbackError} />}
+            onClick={() => setFolderPendingDelete(folderFilter)} />
+        </>
+      )}
+    </>
+  );
+
+  const tableToolbar = {
+    leftExtra: toolbarLeft,
+    search: query,
+    onSearchChange: (v) => { setQuery(v); setPage(0); },
+    searchPlaceholder: 'Search a list…',
+  };
+
   const body = () => {
-    if (dataState === 'loading') {
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {[0, 1, 2, 3, 4, 5].map((i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, background: DS.surfaceCanvas,
-                                   border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusXl,
-                                   boxShadow: DS.shadowSm, padding: '14px 16px' }}>
-              <Skel w={44} h={44} r={8} />
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}><Skel w="40%" h={14} /><Skel w="60%" h={10} /></div>
-              <Skel w={90} h={16} /><Skel w={90} h={16} /><Skel w={90} h={16} />
-            </div>
-          ))}
-        </div>
-      );
-    }
     if (dataState === 'error') return <ErrorState title="Unable to load the lists." retryLabel="Retry" onRetry={() => setDataState('ready')} />;
-    if (lists.length === 0) return <EmptyState icon={<Ico.List s={24} />} title="No lists yet" sub="Create your first contact list to segment your CRM." cta={<Btn type="Primary" size="Medium" iconLeft={<Ico.Plus s={18} />} onClick={openCreate}>Create a list</Btn>} />;
-    if (filtered.length === 0) return <EmptyState icon={<Ico.Search s={24} />} title="No results" sub="No list matches your search or the selected filter." />;
+    // Nothing to filter yet — the toolbar would be dead chrome, so the empty
+    // state stands on its own rather than inside an empty table shell.
+    if (dataState === 'ready' && lists.length === 0) return <EmptyState icon={<Ico.List s={24} />} title="No lists yet" sub="Create your first contact list to segment your CRM." cta={<Btn type="Primary" size="Medium" iconLeft={<Ico.Plus s={18} />} onClick={openCreate}>Create a list</Btn>} />;
     return (
-      <>
-        <ListsBanners
-          data={pageItems}
-          sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}
-          canManage={canManage}
-          onOpen={(id) => setSelected(id)} onEdit={openEdit} onDuplicate={duplicate}
-          onDelete={(x) => setDeleteTarget(x)} onToast={showToast}
-        />
-        <Pagination page={pageSafe} pages={pages} setPage={setPage} total={sorted.length} pageSize={pageSize} />
-      </>
+      <ListsTable
+        data={pageItems}
+        loading={dataState === 'loading'}
+        sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}
+        canManage={canManage}
+        onOpen={(id) => setSelected(id)} onEdit={openEdit} onDuplicate={duplicate}
+        onDelete={(x) => setDeleteTarget(x)} onToast={showToast}
+        toolbar={tableToolbar}
+        page={pageSafe} pages={pages} setPage={setPage}
+        total={sorted.length} pageSize={pageSize}
+        emptyState={<EmptyState icon={<Ico.Search s={24} />} title="No results" sub="No list matches your search or the selected filter." />}
+      />
     );
   };
 
@@ -1017,8 +1053,10 @@ export default function ListsV3() {
           {/* Page header */}
           <PageHeader
             title="Lists"
-            description="Manage the contact lists in your CRM"
-            actions={canManage && (
+            // The DS count/freshness line, which is what PageHeader's `meta`
+            // slot is for — it takes precedence over `description`.
+            meta={`${lists.length} list${lists.length === 1 ? '' : 's'} in ${folders.length} folder${folders.length === 1 ? '' : 's'} in total`}
+            actions={(
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Btn type="Primary" size="Medium" iconLeft={<Ico.Plus s={18} />} onClick={openCreate}>Create a list</Btn>
                 <OptionsMenu items={[
@@ -1031,51 +1069,10 @@ export default function ListsV3() {
           />
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 16 }}>
-            {/* List section — free-standing banners (no table card) */}
-            <section style={{ margin: '0 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {renamingFolder ? (
-                    <>
-                      <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') { renameFolder(folderFilter, renameValue); setRenamingFolder(false); }
-                          if (e.key === 'Escape') setRenamingFolder(false);
-                        }}
-                        style={{ width: 240, height: 36, boxSizing: 'border-box', padding: '0 12px', borderRadius: DS.radiusLg,
-                                 border: `1px solid ${DS.borderFocus}`, background: DS.surfaceCanvas, outline: 'none',
-                                 fontFamily: DS.ff, ...TY.bodyMd, color: DS.textDefault }} />
-                      <Btn type="Primary" size="Small" onClick={() => { renameFolder(folderFilter, renameValue); setRenamingFolder(false); }}>Save</Btn>
-                      <Btn type="Tertiary" size="Small" onClick={() => setRenamingFolder(false)}>Cancel</Btn>
-                    </>
-                  ) : (
-                    <>
-                      <FolderMenu
-                        folders={folders}
-                        value={folderFilter}
-                        counts={folderCounts}
-                        total={lists.length}
-                        onChange={(v) => { setFolderFilter(v); setPage(0); }}
-                        onRequestCreateFolder={() => setFolderModal(true)}
-                      />
-                      {folderFilter !== 'all' && canManage && (
-                        <>
-                          <IconBtn type="Secondary" size="Small" aria-label="Rename folder" title="Rename folder"
-                            icon={<Ico.EditSquare s={16} />}
-                            onClick={() => { setRenameValue(folderFilter); setRenamingFolder(true); }} />
-                          <IconBtn type="Secondary" size="Small" aria-label="Delete folder" title="Delete folder"
-                            icon={<Ico.TrashBin s={16} c={DS.feedbackError} />}
-                            onClick={() => setFolderPendingDelete(folderFilter)} />
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
-                <SearchField value={query} onChange={(e) => { setQuery(e.target.value); setPage(0); }} placeholder="Search a list…" />
-              </div>
-              {(query.trim() !== '' || folderFilter !== 'all') && (
-                <div style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff }}>{filtered.length} result{filtered.length > 1 ? 's' : ''}</div>
-              )}
+            {/* List section — one DS Table (toolbar · rows · pagination) */}
+            {/* No horizontal margin: AppLayout already insets the page by 32px,
+                so the table shell lines up with the PageHeader above it. */}
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {body()}
             </section>
           </div>

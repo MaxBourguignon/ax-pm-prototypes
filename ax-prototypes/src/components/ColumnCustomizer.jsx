@@ -29,6 +29,13 @@ const GripIcon = ({ s = 20, c = DS.textMuted }) => (
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ColumnCustomizer({ config, allColumns, defaultConfig, onChange, label = "Configure columns" }) {
+  // The DS `Btn / Configure columns` (1041:17990) carries the sliders glyph in
+  // brand blue. Blue reads as ACTIVE here — the table is not showing its default
+  // columns — so a standard config keeps the neutral icon and only a customised
+  // one turns blue, which is what makes the state worth colouring at all.
+  const customized = defaultConfig
+    ? JSON.stringify(config) !== JSON.stringify(defaultConfig)
+    : false;
   const [open,      setOpen]      = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
@@ -60,7 +67,11 @@ export default function ColumnCustomizer({ config, allColumns, defaultConfig, on
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      <Btn type="Secondary" iconLeft={<Ico.Settings />} onClick={() => setOpen((o) => !o)}>
+      <Btn
+        type="Secondary"
+        iconLeft={<Ico.Sliders s={16} c={customized ? DS.actionPrimary : DS.textSecondary} />}
+        onClick={() => setOpen((o) => !o)}
+      >
         {label}
       </Btn>
 

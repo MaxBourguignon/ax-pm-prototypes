@@ -639,7 +639,7 @@ function LogCampaignModal({ open, onClose, onSave }) {
   const valid = f.name.trim() && f.date.trim();
   function save() { setSaving(true); setTimeout(() => { onSave({ ...f }); setSaving(false); onClose(); }, 700); }
   return (
-    <Modal open={open} onClose={onClose} variant="center" width={520} title="Log a campaign"
+    <Modal open={open} onClose={onClose} variant="center" size="md" title="Log a campaign"
       footer={<div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
                 <Btn type="Tertiary" onClick={onClose}>Cancel</Btn>
                 <Btn type="Primary" disabled={!valid || saving} onClick={save} iconLeft={saving ? undefined : <Ico.Check s={16} />}>{saving ? 'Saving…' : 'Save campaign'}</Btn>
@@ -682,7 +682,7 @@ function ConversionRulesDialog({ open, onClose, rules, onSave, isAdmin }) {
   const r = draft[active];
   const actions = TRIGGER_ACTIONS[active].map((a) => ({ value: a, label: a }));
   return (
-    <Modal open={open} onClose={onClose} variant="center" width={540} title="Conversion rules"
+    <Modal open={open} onClose={onClose} variant="center" size="md" title="Conversion rules"
       footer={<div style={{ display: 'flex', gap: 8, marginLeft: 'auto', alignItems: 'center' }}>
                 {!isAdmin && <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginRight: 'auto' }}>Read-only — admin access required to edit.</span>}
                 <Btn type="Tertiary" onClick={onClose}>Close</Btn>
@@ -752,7 +752,7 @@ function FilterDialog({ open, onClose, channel, periode, onApply }) {
   const applySince = (v) => { setSince(v); if (v) setDraftPeriode(Math.max(1, daysAgo(new Date(v)))); };
 
   return (
-    <Modal open={open} onClose={onClose} variant="center" width={540} title="Filter"
+    <Modal open={open} onClose={onClose} variant="center" size="md" title="Filter"
       footer={<div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
                 <Btn type="Tertiary" onClick={onClose}>Cancel</Btn>
                 <Btn type="Primary" iconLeft={<Ico.Filter s={16} />} onClick={() => { onApply(draftChannel, draftPeriode); onClose(); }}>Apply filters</Btn>

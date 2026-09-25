@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { DS } from '../utils/designSystem';
+import { SearchField } from './Field';
 import faviconLogo from '../assets/logo_2026_favicon.svg';
 
 const ACCENT = '#3B6FF5';
@@ -41,12 +42,6 @@ const IconHome = ({ c }) => (
 const IconChevron = ({ c }) => (
   <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
     <path d="M8 5l5 5-5 5" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-const IconSearch = ({ c }) => (
-  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-    <circle cx="9" cy="9" r="5.5" stroke={c} strokeWidth="1.6" />
-    <path d="M13.5 13.5L17 17" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
   </svg>
 );
 const IconApps = ({ c }) => (
@@ -138,7 +133,6 @@ function Breadcrumb() {
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 export default function TopHeader() {
-  const [focused, setFocused] = useState(false);
   const [q, setQ] = useState('');
 
   return (
@@ -154,29 +148,15 @@ export default function TopHeader() {
       <Breadcrumb />
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-        {/* Search */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          width: 300, height: 44, padding: '0 14px',
-          background: focused ? DS.white : '#F4F6FA',
-          border: `1px solid ${focused ? ACCENT : '#E4E9F2'}`,
-          borderRadius: 12,
-          boxShadow: focused ? `0 0 0 3px ${ACCENT}20` : 'none',
-          transition: `border ${DS.durFast} ${DS.ease}, box-shadow ${DS.durFast} ${DS.ease}`,
-        }}>
-          <IconSearch c={focused ? ACCENT : '#8A93A6'} />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder="Search..."
-            style={{
-              flex: 1, border: 'none', outline: 'none', background: 'transparent',
-              fontSize: 14, color: DS.textDefault, fontFamily: DS.ff,
-            }}
-          />
-        </div>
+        {/* Search — Atoms/SearchInput via the shared field. Was a local box on
+            raw hexes (#F4F6FA / #E4E9F2), radius 12 and a 44px height, none of
+            which are in the DS. */}
+        <SearchField
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Quick search…"
+          style={{ width: 300 }}
+        />
 
         <IconBtn title="AI"><IconApps c={ACCENT} /></IconBtn>
         <IconBtn title="Notifications"><IconBell c={ACCENT} /></IconBtn>

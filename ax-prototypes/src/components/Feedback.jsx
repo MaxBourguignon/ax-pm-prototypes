@@ -32,6 +32,39 @@ export function EmptyState({ icon, title, sub, cta }) {
   );
 }
 
+/* The one completion state. Every action modal ended on its own version of this
+   — 52px vs 64px mark, tinted vs solid fill, teal vs green tick, titleMd vs
+   15/600 — so finishing two different actions looked like two different products.
+   Taken from the add-to-list flow, which was the most used.
+   No DS node: the DS has no success screen. Codebase-only, like EmptyState. */
+/* The mark on its own, for a completion screen that carries more than a title
+   and a line of text (the export's file card, say) but must still wear the same
+   badge as every other one. */
+export function SuccessMark() {
+  return (
+    <div style={{
+      width: 52, height: 52, borderRadius: '50%', flexShrink: 0, background: DS.feedbackSuccessBg,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <Ico.Check s={24} c={DS.teal500} />
+    </div>
+  );
+}
+
+export function SuccessState({ title, children }) {
+  return (
+    <div style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, textAlign: 'center' }}>
+      <SuccessMark />
+      <div style={{ fontSize: 15, fontWeight: 600, color: DS.textStrong, fontFamily: DS.ff }}>{title}</div>
+      {children && (
+        <div style={{ fontSize: 13, color: DS.textMuted, fontFamily: DS.ff, maxWidth: 300, lineHeight: '20px' }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ErrorState({ title = "Couldn't load this data.", sub, retryLabel = 'Retry', onRetry }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -55,7 +88,7 @@ export function ConfirmDialog({ open = true, title, body, confirmLabel = 'Confir
                                danger = false, confirmIcon, onConfirm, onCancel }) {
   const icon = confirmIcon !== undefined ? confirmIcon : (danger ? <Ico.Trash s={18} /> : undefined);
   return (
-    <Modal open={open} onClose={onCancel} variant="center" width={420} title={title}
+    <Modal open={open} onClose={onCancel} variant="center" size="sm" title={title}
            footer={
              <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
                <Btn type="Tertiary" size="Medium" onClick={onCancel}>{cancelLabel}</Btn>

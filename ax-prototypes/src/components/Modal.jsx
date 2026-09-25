@@ -14,7 +14,8 @@
  *   children  body content (scrolls)
  *   footer    node | null             rendered in a bordered footer band
  *   variant   "panel" | "center"      default "panel"
- *   width     number                  override (panel default 440, center default 665)
+ *   size      "sm" | "md" | "lg"      centre modals only, default "md"
+ *   width     number                  explicit override, wins over `size`
  *   headerContent node | null          rendered inside the gradient header, below the title row (e.g. tabs)
  *   headerActions node | null          rendered in the title row, just before the close button (e.g. icon buttons)
  *
@@ -73,10 +74,21 @@ function HeaderModal({ title, onClose, headerContent, headerActions }) {
   );
 }
 
-export function Modal({ open, onClose, title, children, footer, variant = 'panel', width, headerContent, headerActions }) {
+/* Centre-modal width ladder. The app had grown twelve different widths by hand
+   (420 · 460 · 520 · 540 · 560 · 620 · 665 · 780 · 1280), so two dialogs doing
+   the same job rarely measured the same. Three steps instead, each a notch
+   wider than what it replaces:
+     sm  confirmations and single-field dialogs
+     md  forms and action modals — the default
+     lg  content-heavy: pickers, comparisons, anything two-column
+   The DS documents a 480 base and a 560 widest composition (1223:3646); `lg` has
+   no DS precedent and is ours. `width` still wins, for the rare outlier. */
+const CENTER_W = { sm: 480, md: 600, lg: 720 };
+
+export function Modal({ open, onClose, title, children, footer, variant = 'panel', size = 'md', width, headerContent, headerActions }) {
   if (!open) return null;
   const isCenter = variant === 'center';
-  const w = width || (isCenter ? 665 : 440);
+  const w = width || (isCenter ? (CENTER_W[size] ?? CENTER_W.md) : 440);
 
   const surface = isCenter
     ? {

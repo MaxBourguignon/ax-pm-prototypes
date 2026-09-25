@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { DS } from "../../utils/designSystem";
 import Ico from "../../utils/icons";
+import { SearchField } from "../../components/Field";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SMALL BUTTONS / MENU
@@ -163,11 +164,9 @@ export default function ViewsBar({
       {menu === "picker" && (
         <div style={{ position: "absolute", top: "calc(100% - 1px)", left: 24, zIndex: 9999, width: 300, background: DS.white, border: `1px solid ${DS.neutral200}`, borderRadius: 8, boxShadow: "0 12px 32px rgba(15,23,42,.16)", overflow: "hidden" }}>
           <div style={{ padding: 8, borderBottom: `1px solid ${DS.neutral200}` }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 10px", height: 34, border: `1px solid ${DS.neutral200}`, borderRadius: 6, background: DS.neutral100 }}>
-              <Ico.Search s={14} c={DS.neutral500} />
-              <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search a view…"
-                style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: DS.ff, fontSize: 13, color: DS.neutral900 }} />
-            </div>
+            {/* Atoms/SearchInput via the shared field — was a local 34px box on
+                legacy neutral aliases. */}
+            <SearchField autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search a view…" />
           </div>
           <div style={{ maxHeight: 280, overflowY: "auto", padding: "6px 0" }}>
             <PickerGroup label="Standard views" views={standard} activeViewId={activeViewId} onSelect={(id) => { onSelect(id); setMenu(null); }} />

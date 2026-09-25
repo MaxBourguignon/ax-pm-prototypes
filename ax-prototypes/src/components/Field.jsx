@@ -10,10 +10,17 @@
  *     Label row   h 16 · gap 4 · Label/Medium (12/16/500) in text/strong
  *                 + a "*" in feedback/danger when required
  *                 + an optional 14px info icon (showInfo)
- *     Input       h 36 · radius 4 · px 12 py 8 · surface/canvas fill
+ *     Input       h 36 · radius 8 · px 12 py 8 · surface/canvas fill
  *                 border/field border · placeholder text/muted · bodyMd
  *     Help text   12/16 regular in text/muted — a permanent slot, distinct
  *                 from the error message
+ *
+ * ⚠ RADIUS: the Figma Input renders at 4, but every input in this app is at 8
+ *   on the PM's call — the Button is 8, so a 4px field sitting beside an 8px
+ *   button read as two different systems. Applied consistently: Input, Textarea,
+ *   SearchField, the Select trigger and the EntityPicker search box. `radiusLg`
+ *   already carries 8, so no token was added; raise it with the designer if the
+ *   Figma component should follow.
  *
  * ⚠ Only the Default state is read from Figma. Focus / Error / Disabled keep the
  *   pre-existing treatment rebased onto DS tokens (focus → border/focus, error →
@@ -68,7 +75,7 @@ function inputStyle({ focused, error, disabled, value }) {
   return {
     height:       INPUT_H,
     padding:      '8px 12px',
-    borderRadius: DS.radiusMd,
+    borderRadius: DS.radiusLg,
     border,
     background:   bg,
     color,
@@ -163,12 +170,22 @@ export function Field({
   );
 }
 
-// ─── SearchField ─────────────────────────────────────────────────────────────
-// No DS node of its own; follows the Input shell with a leading icon.
+// ─── SearchField (Atoms/SearchInput 1041:17995) ──────────────────────────────
+// Verified with get_design_context 2026-09. The single search input in the app:
+//   shell   surface/canvas on 1px border/SUBTLE (#F4F5F5 — not border/field),
+//           radius 8, padding 8px 12px, gap 6
+//   icon    16px `fi-br-search`, FILLED, text/default — Ico.SearchFilled
+//   text    Inter Regular 13/20, placeholder in text/muted
+// ⚠ Two things the node does not document, kept as flagged local behaviour:
+//   · a Focus state (border/focus), borrowed from Atoms/Input, which does have
+//     one — a field that doesn't answer the caret is worse than one off-spec;
+//   · the 13/20 type: TY.bodySm is 13/18, so the line-height is set explicitly.
+// The height is pinned to 36 with border-box (rather than left to the padding)
+// for the same reason as Btn: Figma draws the border inside the frame.
 export function SearchField({
   value,
   onChange,
-  placeholder = 'Search…',
+  placeholder = 'Quick search…',
   disabled    = false,
   style: styleProp,
   ...rest
@@ -180,18 +197,18 @@ export function SearchField({
       style={{
         height:       INPUT_H,
         padding:      '8px 12px',
-        borderRadius: DS.radiusMd,
-        border:       `1px solid ${disabled ? DS.borderSubtle : focused ? DS.borderFocus : DS.borderField}`,
+        borderRadius: DS.radiusLg,
+        border:       `1px solid ${!disabled && focused ? DS.borderFocus : DS.borderSubtle}`,
         background:   disabled ? DS.surfaceMuted : DS.surfaceCanvas,
         display:      'flex',
         alignItems:   'center',
-        gap:          8,
+        gap:          6,
         boxSizing:    'border-box',
         transition:   `border-color ${DS.durFast} ${DS.ease}`,
         ...styleProp,
       }}
     >
-      <Ico.Search s={16} c={focused ? DS.actionPrimary : DS.textMuted} />
+      <Ico.SearchFilled s={16} c={disabled ? DS.textDisabled : DS.textDefault} />
       <input
         value={value ?? ''}
         onChange={disabled ? undefined : onChange}
@@ -206,7 +223,11 @@ export function SearchField({
           background: 'transparent',
           outline:    'none',
           fontFamily: DS.ff,
-          ...TY.bodyMd,
+          ...TY.bodySm,
+          lineHeight: '20px',
+          // The placeholder is text/muted and the typed value text/default;
+          // an inline style cannot reach ::placeholder, so the input's own
+          // colour stands in for it.
           color:      disabled ? DS.textDisabled : value ? DS.textDefault : DS.textMuted,
           cursor:     disabled ? 'not-allowed' : 'text',
         }}

@@ -344,7 +344,7 @@ function MergeModal({ open, rows, level, onClose, onConfirm }) {
 function MessageModal({ log, onClose }) {
   if (!log) return null;
   return (
-    <Modal open onClose={onClose} variant="center" width={620} title={`Message — action ${log.id}`}>
+    <Modal open onClose={onClose} variant="center" size="lg" title={`Message — action ${log.id}`}>
       <div style={{ padding: 20 }}>
         <pre style={{ margin: 0, padding: 14, borderRadius: 8, overflowX: 'auto',
                       background: DS.surfaceSubtle, border: `1px solid ${DS.borderDefault}`,

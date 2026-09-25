@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import contactsData from "../../../contacts.json";
 import AddFilterModal from "./AddFilterModal";
+import ContactFormDrawer from "./ContactFormDrawer";
 import { DS, TY } from "../../utils/designSystem";
 import Ico from '../../utils/icons';
 import { Btn } from '../../components/Btn';
@@ -15,8 +16,11 @@ import DATA_OBJECTS from "../../utils/dataObject";
 import ListActionModal from "./ListActionModal";
 import CreateListModal from "./CreateListModal";
 import DeleteContactsModal from "./DeleteContactsModal";
+import ExportContactsModal from "./ExportContactsModal";
+import AssociateStructureModal from "./AssociateStructureModal";
 import ConsentActionModal from "./ConsentActionModal";
 import ColumnCustomizer from "../../components/ColumnCustomizer";
+import ActionMenu from "../../components/ActionMenu";
 import ViewsBar from "./ViewsBar";
 import ViewModal from "./ViewModal";
 
@@ -331,7 +335,7 @@ const evalSeg = (contacts, seg) => {
 
 const ObjIcon = ({ id, s = 13 }) => {
   const obj = getObj(id);
-  const p = { s, c: obj.color };
+  const p = { s, c: obj.text };
   const map = {
     contact: <Ico.User          {...p} />,
     consumptions: <Ico.Card          {...p} />,
@@ -486,10 +490,10 @@ const ObjHeaderLabel = ({ objId }) => {
   const obj = getObj(objId);
   return (
     <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <span style={{ width: 16, height: 16, borderRadius: DS.radiusSm, background: obj.bg, border: `1px solid ${obj.color}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      <span style={{ width: 16, height: 16, borderRadius: DS.radiusSm, background: obj.surface, border: `1px solid ${obj.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <ObjIcon id={obj.id} s={10} />
       </span>
-      <span style={{ ...TY.labelMd, color: obj.color, fontFamily: DS.ff }}>{obj.label}</span>
+      <span style={{ ...TY.labelMd, color: obj.text, fontFamily: DS.ff }}>{obj.label}</span>
     </span>
   );
 };
@@ -548,10 +552,10 @@ const AnchorRow = ({ objId, filter, onPatch, onRemove }) => {
         onChange={(v) => { const [levelId, pol] = v.split("|"); selectLevelOption(levelId, pol); }}
         trigger={({ open, toggle }) => (
           <button onClick={toggle}
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 36, padding: "0 12px", boxSizing: "border-box", borderRadius: DS.radiusLg, background: obj.bg, border: `1.5px solid ${obj.color}40`, cursor: "pointer", fontFamily: DS.ff, ...TY.labelMd, color: obj.color, whiteSpace: "nowrap", boxShadow: open ? `0 0 0 2px ${obj.color}20` : "none", transition: "box-shadow .15s" }}>
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 36, padding: "0 12px", boxSizing: "border-box", borderRadius: DS.radiusLg, background: obj.surface, border: `1.5px solid ${obj.border}`, cursor: "pointer", fontFamily: DS.ff, ...TY.labelMd, color: obj.text, whiteSpace: "nowrap", boxShadow: open ? `0 0 0 2px ${obj.border}66` : "none", transition: "box-shadow .15s" }}>
             <ObjIcon id={objId} s={14} />
             {config.label}
-            <Ico.ChevDown s={16} c={obj.color} />
+            <Ico.ChevDown s={16} c={obj.text} />
           </button>
         )}
       />
@@ -653,10 +657,10 @@ const ContextualFieldPicker = ({ objId, onAdd, anchorLevel, channelScope = "all"
       }}
       trigger={({ open, toggle }) => (
         <button onClick={toggle}
-          onMouseEnter={e => { e.currentTarget.style.background = obj.bg; e.currentTarget.style.borderColor = `${obj.color}60`; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = `${obj.color}30`; }}
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 28, padding: "0 8px", boxSizing: "border-box", borderRadius: DS.radiusLg, border: `1px solid ${open ? `${obj.color}60` : `${obj.color}30`}`, background: "transparent", cursor: "pointer", fontFamily: DS.ff, ...TY.labelMd, color: obj.color, transition: "all .12s", whiteSpace: "nowrap" }}>
-          <Ico.Plus s={14} c={obj.color} />
+          onMouseEnter={e => { e.currentTarget.style.background = obj.surface; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 28, padding: "0 8px", boxSizing: "border-box", borderRadius: DS.radiusLg, border: `1px solid ${obj.border}`, background: open ? obj.surface : "transparent", cursor: "pointer", fontFamily: DS.ff, ...TY.labelMd, color: obj.text, transition: "all .12s", whiteSpace: "nowrap" }}>
+          <Ico.Plus s={14} c={obj.text} />
           Refine {obj.label.toLowerCase()}
         </button>
       )}
@@ -802,7 +806,7 @@ const FilterBlock = ({ block, idx, topLogic, onTopLogicChange, onPatchBlock, onR
                       <div style={{
                         marginLeft: (!isContact && hasAnchor) ? 8 : 0,
                         marginTop: (!isContact && hasAnchor) ? 2 : 0,
-                        borderLeft: (!isContact && hasAnchor) ? `3px solid ${obj.color}35` : "none",
+                        borderLeft: (!isContact && hasAnchor) ? `3px solid ${obj.border}` : "none",
                         paddingLeft: (!isContact && hasAnchor) ? 13 : 0,
                       }}>
                         {filtersToRender.map((filter, fi) => (
@@ -888,8 +892,13 @@ const resolveColumns = (config) =>
 // 19. TOOLBAR
 // ─────────────────────────────────────────────────────────────────────────────
 
+const STRUCTURES = [...new Set(CONTACTS.map((c) => c.structure).filter(Boolean))]
+  .sort((a, b) => a.localeCompare(b))
+  .map((name) => ({ id: name, name }));
+
 const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
-  const [open, setOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [structureOpen, setStructureOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);
   const [consentAddOpen, setConsentAddOpen] = useState(false);
@@ -918,113 +927,47 @@ const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
     { id: "analytics", name: "Analytics & tracking", count: 120 },
   ];
 
-  const handleModal = (item) => {
-    if (item.label === "Add to a list") { setAddOpen(true); setOpen(false); }
-    else if (item.label === "Remove from a list") { setRemoveOpen(true); setOpen(false); }
-    else if (item.label === "Add to a consent") { setConsentAddOpen(true); setOpen(false); }
-    else if (item.label === "Remove from a consent") { setConsentRemoveOpen(true); setOpen(false); }
-    else if (item.label === "Delete contacts") { setDeleteOpen(true); setOpen(false); }
-    else { setOpen(false); }
-  };
-
-  const ref = useRef();
-  useEffect(() => {
-    if (!open) return;
-    const h = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [open]);
-
-  const items = [
-    { icon: <Ico.Download s={16} />, label: "Export contacts" },
-    { icon: <Ico.Merge s={16} />, label: "Merge contact records" },
-    { icon: <Ico.UserPlus s={16} />, label: "Add to a list" },
-    { icon: <Ico.UserPlus s={16} />, label: "Add to a consent" },
-    { icon: <Ico.UserMinus s={16} />, label: "Remove from a list" },
-    { icon: <Ico.UserMinus s={16} />, label: "Remove from a consent" },
-    { icon: <Ico.Trash s={16} />, label: "Delete contacts" },
-    { icon: <Ico.Organization s={16} />, label: "Associate with a structure" },
-  ];
-
   return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <Btn onClick={() => { if (!disabled) setOpen(o => !o); }} disabled={disabled} type="Secondary" iconLeft={<Ico.Dots />}>Options</Btn>
-      {open && (
-        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 9999, background: DS.surfaceCanvas, border: `1px solid ${DS.actionPrimary}`, borderRadius: 6, padding: 5, display: "flex", flexDirection: "column", minWidth: 240 }}>
-          {items.map((item, i) => (
-            <div key={i} onClick={() => handleModal(item)}
-              style={{ display: "flex", alignItems: "center", gap: 15, padding: "0 10px", height: 32, borderRadius: 6, cursor: "pointer" }}
-              onMouseEnter={e => { e.currentTarget.style.background = DS.brandPrimarySubtle; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
-              {item.icon}
-              <span style={{ fontSize: 12, fontWeight: 400, lineHeight: "20px", fontFamily: DS.ff, color: DS.textStrong, whiteSpace: "nowrap" }}>{item.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
+    <>
+      {/* Molecules/MenuItem (554:2953) via the shared ActionMenu — this used to
+          be a local dropdown on a 6px radius with a brand-blue outline and 32px
+          rows, none of which the DS has. */}
+      <ActionMenu
+        label="Options"
+        size="Md"
+        align="left"
+        width={260}
+        disabled={disabled}
+        disabledTooltip="Select at least one contact to use these options"
+        items={[
+          { label: "Export contacts", icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => setExportOpen(true) },
+          { label: "Merge contact records", icon: <Ico.Merge s={16} c={DS.textSecondary} /> },
+          { label: "Add to a list", icon: <Ico.UserPlus s={16} c={DS.textSecondary} />, onClick: () => setAddOpen(true) },
+          { label: "Add to a consent", icon: <Ico.UserPlus s={16} c={DS.textSecondary} />, onClick: () => setConsentAddOpen(true) },
+          { label: "Remove from a list", icon: <Ico.UserMinus s={16} c={DS.textSecondary} />, onClick: () => setRemoveOpen(true) },
+          { label: "Remove from a consent", icon: <Ico.UserMinus s={16} c={DS.textSecondary} />, onClick: () => setConsentRemoveOpen(true) },
+          { label: "Associate with a structure", icon: <Ico.Organization s={16} c={DS.textSecondary} />, onClick: () => setStructureOpen(true) },
+          { label: "Delete contacts", icon: <Ico.Trash s={16} c={DS.actionDanger} />, onClick: () => setDeleteOpen(true), danger: true },
+        ]}
+      />
+
       <ListActionModal mode="add" open={addOpen} lists={STATIC_LISTS} selectedContactIds={[...selected]} onClose={() => setAddOpen(false)} onConfirm={() => { }} />
       <ListActionModal mode="remove" open={removeOpen} lists={STATIC_LISTS} selectedContactIds={[...selected]} onClose={() => setRemoveOpen(false)} onConfirm={() => { }} />
       <ConsentActionModal mode="add" open={consentAddOpen} consents={STATIC_CONSENTS} selectedContactIds={[...selected]} onClose={() => setConsentAddOpen(false)} onConfirm={() => { }} />
       <ConsentActionModal mode="remove" open={consentRemoveOpen} consents={STATIC_CONSENTS} selectedContactIds={[...selected]} onClose={() => setConsentRemoveOpen(false)} onConfirm={() => { }} />
       <DeleteContactsModal open={deleteOpen} count={selected.size} onClose={() => setDeleteOpen(false)} onConfirm={() => { }} />
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 20. CREATE CONTACT SIDEBAR
-// ─────────────────────────────────────────────────────────────────────────────
-
-const CreateContactSidebar = ({ open, onClose }) => {
-  const INITIAL = { email: "", nom: "", prenom: "", dateNaissance: "", telephone: "", adresse: "", codePostal: "", pays: "" };
-  const [form, setForm] = useState(INITIAL);
-  const [sections, setSections] = useState({ infos: true, coords: true, listes: false, consentements: false });
-  const patch = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const toggle = (k) => setSections(s => ({ ...s, [k]: !s[k] }));
-
-  if (!open) return null;
-
-  const SH = ({ label, sKey }) => (
-    <div onClick={() => toggle(sKey)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 48, cursor: "pointer" }}>
-      <span style={{ fontSize: 16, fontWeight: 600, color: DS.blue600, fontFamily: DS.ff }}>{label}</span>
-      {sections[sKey] ? <Ico.ChevDown s={16} c={DS.blue600} /> : <Ico.ChevRight s={16} c={DS.blue600} />}
-    </div>
-  );
-
-  const F = ({ label, fKey, type = "text" }) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
-      <span style={{ fontSize: 14, color: DS.textMuted, fontFamily: DS.ff }}>{label}</span>
-      <input type={type} value={form[fKey]} onChange={(e) => patch(fKey, e.target.value)}
-        style={{ height: 40, padding: "4px 12px", borderRadius: DS.radiusLg, width: "100%", boxSizing: "border-box", border: `1px solid ${DS.borderDefault}`, background: DS.surfaceSubtle, fontFamily: DS.ff, fontSize: 14, color: DS.textStrong, outline: "none" }}
-        onFocus={e => e.target.style.borderColor = DS.actionPrimary}
-        onBlur={e => e.target.style.borderColor = DS.borderDefault} />
-    </div>
-  );
-
-  return (
-    <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 1000 }} />
-      <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 480, background: DS.surfaceCanvas, zIndex: 1001, display: "flex", flexDirection: "column", boxShadow: "-4px 0 24px rgba(15,23,42,.15)" }}>
-        <div style={{ background: DS.brandGradientH, padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-          <span style={{ fontSize: 16, fontWeight: 600, color: DS.textOnBrand, fontFamily: DS.ff }}>Create a contact</span>
-          <IconBtn type="Tertiary" size="sm" icon={<Ico.Cross s={16} c={DS.surfaceCanvas} />} onClick={onClose} style={{ borderColor: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.15)" }} />
-        </div>
-        <div style={{ padding: "16px 24px", display: "flex", flexDirection: "column", flex: 1, overflowY: "auto" }}>
-          <SH label="Information" sKey="infos" />
-          {sections.infos && <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 10px" }}><F label="Email" fKey="email" type="email" /><F label="Last name" fKey="nom" /><F label="First name" fKey="prenom" /><F label="Date of birth" fKey="dateNaissance" type="date" /></div>}
-          <SH label="Coordinates" sKey="coords" />
-          {sections.coords && <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 10px" }}><F label="Phone" fKey="telephone" type="tel" /><F label="Address" fKey="adresse" /><F label="Postal code" fKey="codePostal" /><F label="Country" fKey="pays" /></div>}
-          <SH label="Lists" sKey="listes" />
-          <SH label="Consents" sKey="consentements" />
-        </div>
-        <div style={{ padding: "16px 24px", display: "flex", flexShrink: 0, alignItems: "center", justifyContent: "center", gap: 12, borderTop: `1px solid ${DS.borderDefault}` }}>
-          <Btn type="Tertiary" onClick={() => { setForm(INITIAL); onClose(); }}>Cancel</Btn>
-          <Btn type="Primary" onClick={onClose}>Search</Btn>
-        </div>
-      </div>
+      <ExportContactsModal open={exportOpen} onClose={() => setExportOpen(false)} selectedCount={selected.size} />
+      <AssociateStructureModal
+        open={structureOpen}
+        onClose={() => setStructureOpen(false)}
+        structures={STRUCTURES}
+        selectedCount={selected.size}
+        onConfirm={(st) => console.log("Associated with structure (simulated):", st.name)}
+      />
     </>
   );
 };
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 21. VIEWS — a view = a saved { filters + column layout + sort }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1232,7 +1175,10 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
         {/* Page header — transparent, aligned with content */}
         <PageHeader
           title="Contacts"
-          description="Browse, segment and manage every contact in your CRM"
+          // The DS count line, in PageHeader's `meta` slot. CONTACTS, not the
+          // filtered set: "in total" means the whole base, so a segmentation
+          // must not move this number.
+          meta={`${CONTACTS.length.toLocaleString("en-US").replace(/,/g, " ")} contact${CONTACTS.length === 1 ? "" : "s"} in total`}
           actions={<>
             <Btn type="Primary" iconLeft={<Ico.Filter s={16} c={DS.surfaceCanvas} />} disabled={builderOpen} onClick={startSegmentation}>{segHasFilters(applied) ? "Edit filters" : "Start segmentation"}</Btn>
             <Btn type="Secondary" iconLeft={<Ico.Plus c={DS.actionPrimary} />} onClick={() => setShowCreateSidebar(true)}>Add a contact</Btn>
@@ -1362,7 +1308,15 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
 
       </div>
 
-      <CreateContactSidebar open={showCreateSidebar} onClose={() => setShowCreateSidebar(false)} />
+      {/* The same form the contact record edits with, in create mode — one set
+          of fields and labels for one object, rather than a second hand-rolled
+          sidebar that drifts from it. */}
+      <ContactFormDrawer
+        mode="create"
+        open={showCreateSidebar}
+        onClose={() => setShowCreateSidebar(false)}
+        onSave={() => setShowCreateSidebar(false)}
+      />
 
       <CreateListModal
         open={createListOpen}

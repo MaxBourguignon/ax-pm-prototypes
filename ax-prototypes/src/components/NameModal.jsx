@@ -61,7 +61,7 @@ export default function NameModal({
   );
 
   return (
-    <Modal open={open} onClose={onClose} title={title} variant="center" width={460} footer={footer}>
+    <Modal open={open} onClose={onClose} title={title} variant="center" size="sm" footer={footer}>
       <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
         {description && (
           <p style={{ margin: 0, fontFamily: DS.ff, ...TY.b2, color: DS.textSecondary }}>{description}</p>

@@ -7,7 +7,7 @@
  * builder ends at a Review/Send step. V1 KPIs only: messages sent, delivery %, click %.
  *
  * Imports the shared design system + components (no inline DS/TY/Ico, no app shell).
- * BUILD-NEW (feature-local): TabBar, PhonePreview, SmsCounter, builder section
+ * BUILD-NEW (feature-local): PhonePreview, SmsCounter, builder section
  * checklist, delivery/clicks chart (recharts), DateRange picker.
  */
 import React from 'react';
@@ -29,6 +29,7 @@ import ActionMenu from '../../components/ActionMenu';
 import StatePreview from '../../components/StatePreview';
 import PageHeader from '../../components/PageHeader';
 import { EmptyState, ErrorState, ConfirmDialog } from '../../components/Feedback';
+import Tabs from '../../components/Tabs';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip as RTooltip, Legend,
@@ -142,27 +143,6 @@ function smsCount(resolvedText) {
 
 const CARD = { margin: 0, padding: 16 };
 const PAGE_X = 32;
-
-/* ════════════════════════════ BUILD-NEW: TabBar ════════════════════════════ */
-function TabBar({ tabs, active, onChange }) {
-  return (
-    <div style={{ display: 'flex', gap: 24, borderBottom: `1px solid ${DS.borderDefault}` }}>
-      {tabs.map((t) => {
-        const on = t.value === active;
-        return (
-          <button key={t.value} type="button" onClick={() => onChange(t.value)}
-            style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
-                     padding: '0 2px 12px', fontFamily: DS.ff, ...TY.b1, fontWeight: 500,
-                     color: on ? DS.actionPrimary : DS.navText, display: 'inline-flex', alignItems: 'center' }}>
-            {t.label}
-            {on && <span style={{ position: 'absolute', left: 0, right: 0, bottom: -1, height: 4,
-                                  borderRadius: '4px 4px 0 0', background: DS.navActiveTab }} />}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 /* ════════════════════════════ BUILD-NEW: SmsCounter ════════════════════════════ */
 function SmsCounter({ resolved }) {
@@ -500,9 +480,9 @@ export function SmsManagement() {
 
       {/* Tabs */}
       <div style={{ padding: `16px ${PAGE_X}px 0` }}>
-        <TabBar active={tab} onChange={setTab} tabs={[
-          { value: 'campaigns',  label: 'Campaigns',  icon: <Ico.List s={18} c={tab === 'campaigns' ? DS.actionPrimary : DS.navText} /> },
-          { value: 'statistics', label: 'Statistics', icon: <Ico.Chart s={18} c={tab === 'statistics' ? DS.actionPrimary : DS.navText} /> },
+        <Tabs value={tab} onChange={setTab} divider tabs={[
+          { value: 'campaigns',  label: 'Campaigns'  },
+          { value: 'statistics', label: 'Statistics' },
         ]} />
       </div>
 

@@ -4,18 +4,10 @@ import { createPortal } from "react-dom";
 import {DS} from "../../utils/designSystem";
 import Ico from "../../utils/icons";
 import USE_CASES from "../../utils/useCases";
-
-// ─── DATA OBJECTS ─────────────────────────────────────────────────────────────
-const DATA_OBJECTS = [
-    { id: "contact",       label: "Contacts",         description: "Filter contacts by their profile attributes",                          color: DS.actionPrimary,    bg: DS.blue100    },
-    { id: "consumptions",  label: "Purchase summary",  description: "Filter by number of purchases or total spending, across all channels", color: DS.neutral500, bg: DS.neutral200 },
-    { id: "ticket",        label: "Ticketing",         description: "Filter by tickets, representations or purchases — event, type or date",color: DS.purple600,  bg: DS.purple100  },
-    { id: "order",         label: "E-commerce",        description: "Filter by individual products — item, category, or order status",      color: DS.teal500,    bg: DS.teal100    },
-    { id: "subscription",  label: "Subscriptions",     description: "Filter contacts who have or had a subscription",                       color: DS.orange500,  bg: DS.orange100  },
-    { id: "campaign",      label: "Campaigns",         description: "Filter contacts who received or interacted with a campaign",           color: DS.amber600,   bg: DS.amber100   },
-    { id: "consent",       label: "Consents",          description: "Filter contacts by consent status",                                    color: DS.rose600,    bg: DS.rose100    },
-    { id: "accessControl", label: "Access control",    description: "Filter contacts by event attendance",                                  color: DS.indigo800,  bg: DS.indigo100  },
-];
+// Single source of truth for the eight filter objects — the same catalog the
+// segmentation builder reads, so the picker and the builder can never disagree
+// on an object's identity or its colour.
+import DATA_OBJECTS from "../../utils/dataObject";
 
 const OBJECT_GROUPS = [
     { id: "profile",    label: null,         objects: ["contact"] },
@@ -27,7 +19,7 @@ const OBJECT_GROUPS = [
 // ─── ICON MAP ─────────────────────────────────────────────────────────────────
 const ObjIcon = ({ id, s = 14, c }) => {
     const obj = DATA_OBJECTS.find(o => o.id === id);
-    const col = c || obj?.color || DS.actionPrimary;
+    const col = c || obj?.text || DS.actionPrimary;
     const map = {
         contact:       <Ico.User          s={s} c={col} />,
         ticket:        <Ico.Ticket        s={s} c={col} />,
@@ -105,10 +97,10 @@ export default function AddFilterModal({ open, onClose, onSelect }) {
                     {step === "usecase" && currentObj && (
                         <div style={{
                             width: 28, height: 28, borderRadius: 7, flexShrink: 0,
-                            background: currentObj.bg,
+                            background: currentObj.surface,
                             display: "flex", alignItems: "center", justifyContent: "center",
                         }}>
-                            <ObjIcon id={currentObj.id} s={14} c={currentObj.color} />
+                            <ObjIcon id={currentObj.id} s={14} c={currentObj.text} />
                         </div>
                     )}
 
@@ -166,8 +158,8 @@ export default function AddFilterModal({ open, onClose, onSelect }) {
                                                 cursor: "pointer", transition: "background .1s",
                                             }}
                                         >
-                                            <div style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: obj.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                                <ObjIcon id={obj.id} s={16} c={obj.color} />
+                                            <div style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: obj.surface, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                                <ObjIcon id={obj.id} s={16} c={obj.text} />
                                             </div>
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
