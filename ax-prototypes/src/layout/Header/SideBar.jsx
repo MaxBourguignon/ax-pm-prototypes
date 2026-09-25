@@ -116,7 +116,9 @@ const NAV_TABS_L1 = [
     id: "ventes",
     label: "Sales",
     Icon: IcoSales,
-    subitems: [],
+    subitems: [
+      { id: "analytics-builder", label: "Analytics builder", link: "/sales/analytics-builder" },
+    ],
   },
   {
     id: "gestion",

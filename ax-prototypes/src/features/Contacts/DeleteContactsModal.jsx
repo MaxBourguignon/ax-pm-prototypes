@@ -3,6 +3,7 @@ import { Modal } from "../../components/Modal";
 import { Btn } from "../../components/Btn";
 import { DS } from "../../utils/designSystem";
 import Ico from "../../utils/icons";
+import { SuccessState } from "../../components/Feedback";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // STEP INDICATOR
@@ -191,50 +192,11 @@ const Step2 = ({ count, confirmValue, onConfirmChange }) => {
 // STEP 3 — COMPLETION SUMMARY
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SummaryRow = ({ icon, bg, iconColor, value, label }) => (
-  <div style={{
-    display: "flex", alignItems: "center", gap: 12,
-    padding: "12px 14px", borderRadius: 8,
-    background: DS.neutral100, border: `1px solid ${DS.neutral200}`,
-  }}>
-    <div style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, background: bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      {icon(iconColor)}
-    </div>
-    <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-      <span style={{ fontFamily: DS.ff, fontSize: 20, fontWeight: 700, lineHeight: "24px", color: DS.neutral900 }}>{value}</span>
-      <span style={{ fontFamily: DS.ff, fontSize: 13, lineHeight: "18px", color: DS.neutral700 }}>{label}</span>
-    </div>
-  </div>
-);
-
 const Step3 = ({ deleted, anonymized }) => (
-  <div style={{ padding: "24px 20px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-    <div style={{ width: 52, height: 52, borderRadius: "50%", background: DS.teal100, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <Ico.Check s={24} c={DS.teal500} />
-    </div>
-    <div style={{ textAlign: "center" }}>
-      <p style={{ margin: 0, fontFamily: DS.ff, fontSize: 15, fontWeight: 600, color: DS.neutral900 }}>Deletion completed</p>
-      <p style={{ margin: "4px 0 0", fontFamily: DS.ff, fontSize: 13, lineHeight: "18px", color: DS.neutral500 }}>
-        Here is a summary of what was processed.
-      </p>
-    </div>
-    <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
-      <SummaryRow
-        bg={DS.feedbackErrorBg}
-        iconColor={DS.feedbackError}
-        icon={(c) => <Ico.Trash s={15} c={c} />}
-        value={deleted}
-        label={`contact${deleted !== 1 ? "s" : ""} permanently deleted`}
-      />
-      <SummaryRow
-        bg={DS.neutral200}
-        iconColor={DS.neutral500}
-        icon={(c) => <Ico.Eye s={15} c={c} />}
-        value={anonymized}
-        label={`contact${anonymized !== 1 ? "s" : ""} anonymized`}
-      />
-    </div>
-  </div>
+  <SuccessState title="Deletion completed">
+    {deleted} contact{deleted !== 1 ? "s" : ""} permanently deleted
+    {anonymized > 0 && <> · {anonymized} anonymized because they are linked to purchases</>}.
+  </SuccessState>
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -309,7 +271,7 @@ export default function DeleteContactsModal({ open, count = 0, onClose, onConfir
       onClose={onClose}
       title="Delete contacts"
       variant="center"
-      width={520}
+      size="md"
       footer={footer}
     >
       <StepIndicator currentStep={step} />

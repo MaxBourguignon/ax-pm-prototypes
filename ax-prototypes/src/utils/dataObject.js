@@ -1,4 +1,4 @@
-import {DS} from "./designSystem"
+import {DS, CHIPS} from "./designSystem"
 
 // ─── CHANNEL SCOPES ───────────────────────────────────────────────────────────
 // Used by the consumptions anchor to scope metrics to a single channel.
@@ -46,7 +46,7 @@ const DATA_OBJECTS = [
     id: "contact",
     label: "Contacts",
     description: "Filter contacts by their profile attributes",
-    color: DS.actionPrimary, bg: DS.blue100,
+    chip: "chip1", ...CHIPS.chip1, // Purple
     fields: [
       { id: "firstName",         label: "First name",         type: "string" },
       { id: "lastName",          label: "Last name",          type: "string" },
@@ -83,7 +83,7 @@ const DATA_OBJECTS = [
     id: "consumptions",
     label: "Purchase summary",
     description: "Filter by number of purchases or spending, across all channels",
-    color: DS.neutral500, bg: DS.neutral200,
+    chip: "chip3", ...CHIPS.chip3, // Amber
     fields: [
       { id: "purchaseCount",      label: "Number of purchases",         type: "number" },
       { id: "totalAmount",        label: "Total amount spent",          type: "number" },
@@ -104,7 +104,7 @@ const DATA_OBJECTS = [
     id: "ticket",
     label: "Ticketing",
     description: "Filter by representations, tickets or purchases — event, type, seat, or date",
-    color: DS.purple600, bg: DS.purple100,
+    chip: "chip2", ...CHIPS.chip2, // Teal
     fields: [
       // ── Event ────────────────────────────────────────────────────────────────
       { id: "eventName",           label: "Event name",                type: "string", level: "any" },
@@ -142,7 +142,7 @@ const DATA_OBJECTS = [
     id: "order",
     label: "E-commerce",
     description: "Filter by products or purchases — item, category, or status",
-    color: DS.teal500, bg: DS.teal100,
+    chip: "chip4", ...CHIPS.chip4, // Pink
     fields: [
       { id: "purchaseCount",   label: "Number of purchases", type: "number", level: "purchase" },
       { id: "purchaseDate",    label: "Purchase date",       type: "date",   level: "purchase" },
@@ -163,7 +163,7 @@ const DATA_OBJECTS = [
     id: "subscription",
     label: "Subscriptions",
     description: "Filter contacts who have or had a subscription",
-    color: DS.orange500, bg: DS.orange100,
+    chip: "chip6", ...CHIPS.chip6, // Sky
     fields: [
       { id: "purchaseCount",      label: "Number of purchases",     type: "number", level: "purchase"     },
       { id: "purchaseDate",       label: "Purchase date",           type: "date",   level: "purchase"     },
@@ -181,7 +181,7 @@ const DATA_OBJECTS = [
     id: "campaign",
     label: "Campaigns",
     description: "Filter contacts who received or interacted with a campaign",
-    color: DS.amber600, bg: DS.amber100,
+    chip: "chip7", ...CHIPS.chip7, // Coral
     fields: [
       { id: "campaignName", label: "Campaign name", type: "string" },
       { id: "channelType",  label: "Channel",       type: "enum", choices: ["Email", "SMS", "Push", "Wallet"] },
@@ -197,7 +197,7 @@ const DATA_OBJECTS = [
     id: "consent",
     label: "Consents",
     description: "Filter contacts by consent status",
-    color: DS.rose600, bg: DS.rose100,
+    chip: "chip8", ...CHIPS.chip8, // Slate
     fields: [
       { id: "consentName",   label: "Consent name", type: "string" },
       { id: "channel",       label: "Channel",      type: "enum", choices: ["Email", "SMS", "Push", "Mail"] },
@@ -210,7 +210,7 @@ const DATA_OBJECTS = [
     id: "accessControl",
     label: "Access control",
     description: "Filter contacts by event attendance",
-    color: DS.indigo800, bg: DS.indigo100,
+    chip: "chip5", ...CHIPS.chip5, // Lime
     fields: [
       { id: "accessPoint",      label: "Event",            type: "string" },
       { id: "numberOfControls", label: "Number of visits", type: "number" },

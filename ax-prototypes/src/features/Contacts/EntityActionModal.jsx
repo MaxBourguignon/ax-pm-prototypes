@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { Modal } from "../../components/Modal";
+import EntityPicker from "../../components/EntityPicker";
 import { Btn } from "../../components/Btn";
 import { Checkbox } from "../../components/Controls";
 import { Badge, RemovableChip } from "../../components/Tag";
 import { DS } from "../../utils/designSystem";
 import Ico from "../../utils/icons";
+import { SuccessState as SharedSuccessState } from "../../components/Feedback";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // EntityActionModal — reusable "add/remove contacts to/from an entity" flow.
@@ -69,99 +70,29 @@ const StepIndicator = ({ currentStep, step1Label }) => {
 // PORTAL DROPDOWN — renders outside modal so it is never clipped
 // ─────────────────────────────────────────────────────────────────────────────
 
-const PortalDropdown = ({ anchorRef, children }) => {
-  const [rect, setRect] = useState(null);
-
-  useEffect(() => {
-    if (!anchorRef.current) return;
-    setRect(anchorRef.current.getBoundingClientRect());
-  }, [anchorRef]);
-
-  if (!rect) return null;
-
-  return createPortal(
-    <div style={{ position: "fixed", top: rect.bottom + 4, left: rect.left, width: rect.width, zIndex: 9999 }}>
-      {children}
-    </div>,
-    document.body
-  );
-};
-
 // ─────────────────────────────────────────────────────────────────────────────
 // STEP 1 — ENTITY SELECTION
 // ─────────────────────────────────────────────────────────────────────────────
 
 const Step1 = ({ entities, selectedIds, onToggle, cfg, countUnit }) => {
-  const [search,   setSearch]   = useState("");
-  const [dropOpen, setDropOpen] = useState(false);
-  const searchRef = useRef();
-  const wrapRef   = useRef();
-
-  useEffect(() => {
-    if (!dropOpen) return;
-    const h = (e) => { if (!wrapRef.current?.contains(e.target)) setDropOpen(false); };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [dropOpen]);
-
-  const trimmed  = search.trim().toLowerCase();
-  const filtered = entities.filter(e =>
-    (!trimmed || e.name.toLowerCase().includes(trimmed)) &&
-    !selectedIds.has(e.id)
-  );
-
-  const handleSelect = (id) => {
-    onToggle(id);
-    setSearch("");
-    setDropOpen(false);
-    searchRef.current?.focus();
-  };
-
   const selectedEntities = entities.filter(e => selectedIds.has(e.id));
 
   return (
     <div style={{ padding: "20px 20px 0" }}>
 
-      {/* Search + portal dropdown */}
-      <div ref={wrapRef} style={{ position: "relative", marginBottom: 16 }}>
-        <SearchBox
-          value={search}
+      {/* Search + dropdown — the shared picker, same control as the contact
+          record's Lists drawer. */}
+      <div style={{ marginBottom: 16 }}>
+        <EntityPicker
+          entities={entities}
+          selectedIds={selectedIds}
+          onSelect={onToggle}
           placeholder={cfg.searchPlaceholder}
-          onChange={(v) => { setSearch(v); setDropOpen(true); }}
-          onFocus={() => setDropOpen(true)}
-          inputRef={searchRef}
+          countUnit={countUnit}
+          emptyLabel={({ query, allSelected }) => (query
+            ? "No match found"
+            : allSelected ? "Everything is already selected" : "Start typing to search…")}
         />
-
-        {dropOpen && (
-          <PortalDropdown anchorRef={wrapRef}>
-            <div style={{
-              background: DS.surfaceCanvas,
-              border: `1px solid ${DS.borderDefault}`,
-              borderRadius: 6,
-              boxShadow: "0 12px 32px rgba(15,23,42,.2)",
-              maxHeight: 180,
-              overflowY: "auto",
-            }}>
-              {filtered.length === 0 ? (
-                <div style={{ padding: "12px 14px", fontSize: 12, color: DS.textMuted, fontFamily: DS.ff }}>
-                  {trimmed
-                    ? "No match found"
-                    : selectedIds.size === entities.length
-                      ? "Everything is already selected"
-                      : "Start typing to search…"}
-                </div>
-              ) : filtered.map((e, i) => (
-                <DropdownItem
-                  key={e.id}
-                  entity={e}
-                  countUnit={countUnit}
-                  isLast={i === filtered.length - 1}
-                  onSelect={() => handleSelect(e.id)}
-                />
-              ))}
-            </div>
-          </PortalDropdown>
-        )}
       </div>
 
       {/* Selected entities — always visible */}
@@ -198,61 +129,6 @@ const Step1 = ({ entities, selectedIds, onToggle, cfg, countUnit }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // SUB-COMPONENTS
 // ─────────────────────────────────────────────────────────────────────────────
-
-const SearchBox = ({ value, onChange, onFocus, inputRef, placeholder }) => {
-  const [focused, setFocused] = useState(false);
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 36,
-      border: `1px solid ${focused ? DS.actionPrimary : DS.borderDefault}`,
-      borderRadius: 4, background: DS.surfaceSubtle, transition: "border-color .15s",
-    }}>
-      <Ico.Search s={14} c={DS.textMuted} />
-      <input
-        ref={inputRef}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        onFocus={() => { setFocused(true); onFocus?.(); }}
-        onBlur={() => setFocused(false)}
-        placeholder={placeholder}
-        style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: DS.ff, fontSize: 13, color: DS.textStrong }}
-      />
-      {value && (
-        <span onClick={() => onChange("")} style={{ cursor: "pointer", fontSize: 11, color: DS.textMuted, lineHeight: 1 }}>✕</span>
-      )}
-    </div>
-  );
-};
-
-const DropdownItem = ({ entity, countUnit, isLast, onSelect }) => {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <div
-      onMouseDown={e => { e.preventDefault(); onSelect(); }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: "flex", alignItems: "center", gap: 10, padding: "8px 12px",
-        cursor: "pointer",
-        borderBottom: isLast ? "none" : `0.5px solid ${DS.borderDefault}`,
-        background: hovered ? DS.brandPrimarySubtle : DS.surfaceCanvas,
-        transition: "background .1s",
-      }}
-    >
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 500, color: hovered ? DS.actionPrimary : DS.textStrong, fontFamily: DS.ff, lineHeight: "18px", transition: "color .1s" }}>
-          {entity.name}
-        </div>
-        {entity.count != null && (
-          <div style={{ fontSize: 11, color: DS.textMuted, fontFamily: DS.ff, marginTop: 1 }}>
-            {entity.count.toLocaleString()} {countUnit}
-          </div>
-        )}
-      </div>
-      <Ico.Plus s={13} c={hovered ? DS.actionPrimary : DS.textMuted} />
-    </div>
-  );
-};
 
 // DS Atoms/Chip (556:2973) — the removable pill, via the shared atom.
 const SelectedChip = ({ entity, onRemove }) => (
@@ -387,15 +263,9 @@ const Step2 = ({ selectedContactCount, selectedEntities, confirmValue, onConfirm
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SuccessState = ({ contactCount, entityCount, cfg }) => (
-  <div style={{ padding: "40px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14, textAlign: "center" }}>
-    <div style={{ width: 52, height: 52, borderRadius: "50%", background: DS.feedbackSuccessBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <Ico.Check s={24} c={DS.teal500} />
-    </div>
-    <div style={{ fontSize: 15, fontWeight: 600, color: DS.textStrong, fontFamily: DS.ff }}>{cfg.successTitle}</div>
-    <div style={{ fontSize: 13, color: DS.textMuted, fontFamily: DS.ff, maxWidth: 300, lineHeight: "20px" }}>
-      {cfg.successBody(contactCount, entityCount)}
-    </div>
-  </div>
+  <SharedSuccessState title={cfg.successTitle}>
+    {cfg.successBody(contactCount, entityCount)}
+  </SharedSuccessState>
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -477,7 +347,7 @@ export default function EntityActionModal({
     footer = (
       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
         <Btn type="Tertiary" size="Medium" onClick={handleBack}>Back</Btn>
-        <Btn type="Primary" size="Medium" iconLeft={<Ico.Check />} disabled={!canConfirm} onClick={handleConfirm}>{cfg.confirmBtnLabel}</Btn>
+        <Btn type="Primary" size="Medium" disabled={!canConfirm} onClick={handleConfirm}>{cfg.confirmBtnLabel}</Btn>
       </div>
     );
   }
@@ -488,7 +358,7 @@ export default function EntityActionModal({
       onClose={handleClose}
       title={cfg.title}
       variant="center"
-      width={560}
+      size="md"
       footer={footer}
     >
       {done ? (

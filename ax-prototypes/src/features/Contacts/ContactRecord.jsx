@@ -45,7 +45,12 @@ import contactsData from "../../../contacts.json";
 import { DS, TY } from "../../utils/designSystem";
 import Ico from "../../utils/icons";
 import { Btn } from "../../components/Btn";
-import { Badge } from "../../components/Tag";
+import { Badge, RemovableChip } from "../../components/Tag";
+import IconBtn from "../../components/Iconbtn";
+import Modal from "../../components/Modal";
+import EntityPicker from "../../components/EntityPicker";
+import ContactFormDrawer from "./ContactFormDrawer";
+import ActionMenu from "../../components/ActionMenu";
 import { TextArea } from "../../components/Field";
 import KpiCard from "../../components/Kpi";
 import Table from "../../components/Table";
@@ -297,6 +302,155 @@ function buildConsentRows(history = []) {
     }));
 }
 
+/* ── Lists ───────────────────────────────────────────────────────────────────
+   Every list in the tenant, and how membership is decided:
+     dynamic — the list is a rule, so a contact enters and leaves it on its own
+               and cannot be taken off by hand
+     static  — the list is a hand-picked set, so a contact can be added to it or
+               removed from it
+   That distinction is the whole point of the drawer: it decides which chips
+   carry a cross and which lists the search is allowed to add. */
+const TENANT_LISTS = [
+  { id: 4837, name: "Loyal audience", type: "dynamic", count: 12480, folder: "Loyalty & VIP" },
+  { id: 4874, name: "Loyal fans", type: "dynamic", count: 8340, folder: "Loyalty & VIP" },
+  { id: 4911, name: "Patrons circle", type: "static", count: 96, folder: "Loyalty & VIP" },
+  { id: 4948, name: "VIP evening — June", type: "static", count: 180, folder: "Events" },
+  { id: 4985, name: "Season launch guest list", type: "static", count: 220, folder: "Events" },
+  { id: 5022, name: "Last-minute ticket buyers for the RCT v UBB match", type: "static", count: 1240, folder: "Events" },
+  { id: 5059, name: "Senior segment", type: "dynamic", count: 5120, folder: "Audiences" },
+  { id: 5096, name: "Student segment (under 26)", type: "dynamic", count: 3765, folder: "Audiences" },
+  { id: 5133, name: "Public around", type: "dynamic", count: 21030, folder: "Audiences" },
+  { id: 5170, name: "Public proche", type: "dynamic", count: 18940, folder: "Audiences" },
+  { id: 5207, name: "Schools programme", type: "static", count: 1870, folder: "Audiences" },
+  { id: 5244, name: "Yesterday's buyers", type: "dynamic", count: 412, folder: "Sales" },
+  { id: 5281, name: "List of yesterday's buyers", type: "static", count: 386, folder: "Sales" },
+  { id: 5318, name: "Press and partners", type: "static", count: 145, folder: "Campaigns" },
+  { id: 5355, name: "Newsletter — manual additions", type: "static", count: 640, folder: "Campaigns" },
+];
+const listType = (name) => TENANT_LISTS.find((l) => l.name === name)?.type ?? "static";
+
+/* The membership drawer. Dynamic lists are shown but cannot be removed; static
+   ones carry a cross. The search covers the whole tenant, and offers only the
+   static lists for adding — a dynamic list is a rule, so putting a contact in
+   one by hand would be a contradiction rather than a permission. */
+function ListsDrawer({ open, onClose, value, onSave }) {
+  const [draft, setDraft] = useState(value);
+  const [wasOpen, setWasOpen] = useState(false);
+
+  if (open !== wasOpen) {            // render-time reset on open, no effect needed
+    setWasOpen(open);
+    if (open) setDraft(value);
+  }
+
+  /* Only STATIC lists are offered. A dynamic list is a rule the contact matches
+     or does not, so there is nothing to pick — showing them greyed made the menu
+     longer without making it more useful. */
+  /* Sizes are left off here on purpose: on a single contact the question is
+     which list to put them in, not how big it is. The catalogue still carries
+     `count` and the picker still renders it — pass it through to bring the line
+     back, as the bulk add-to-list flow does. */
+  const addable = TENANT_LISTS
+    .filter((l) => l.type === "static")
+    // The picker keys on the name — that is what a membership stores. The
+    // list's own id is not shown for now; pass it as `ref` to print it before
+    // the name, as the picker still supports.
+    .map((l) => ({ id: l.name, name: l.name, folder: l.folder }));
+
+  /* The drawer shows the change it is about to make, split three ways: what the
+     contact is in today, what will be added, and what will be taken away. A
+     removal is staged rather than applied, so it stays visible — and undoable —
+     until Save. */
+  const kept = value.filter((n) => draft.includes(n));
+  const added = draft.filter((n) => !value.includes(n));
+  const removed = value.filter((n) => !draft.includes(n));
+
+  const add = (name) => setDraft((ls) => (ls.includes(name) ? ls : [...ls, name]));
+  const remove = (name) => setDraft((ls) => ls.filter((n) => n !== name));
+
+  const sectionLabel = {
+    ...TY.labelMd, letterSpacing: "0.04em", textTransform: "uppercase",
+    color: DS.textMuted, fontFamily: DS.ff,
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Lists"
+      width={400}
+      footer={(
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
+          <Btn type="Tertiary" onClick={onClose}>Cancel</Btn>
+          <Btn type="Primary" onClick={() => onSave(draft)}>Save</Btn>
+        </div>
+      )}
+    >
+      <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+        {/* The shared picker — the same control the bulk "add to list" modal
+            uses, so the two never drift apart. */}
+        <EntityPicker
+          entities={addable}
+          selectedIds={new Set(draft)}
+          onSelect={add}
+          groupBy="folder"
+          /* Already-added lists stay in the menu carrying a check, rather than
+             vanishing — "it is already there" is an answer. */
+          hideSelected={false}
+          placeholder="Select and add to lists..."
+          emptyLabel={({ query, allSelected }) => (query
+            ? "No list matches this search"
+            : allSelected ? "This contact is already in every static list" : "Start typing to search…")}
+        />
+
+        <span style={sectionLabel}>Current lists</span>
+        {kept.length === 0 ? (
+          <span style={{ ...TY.bodySm, color: DS.textMuted, fontFamily: DS.ff }}>
+            This contact is not in any list yet.
+          </span>
+        ) : (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {kept.map((name) => (
+              <RemovableChip
+                key={name}
+                onRemove={listType(name) === "static" ? () => remove(name) : undefined}
+              >
+                {name}
+              </RemovableChip>
+            ))}
+          </div>
+        )}
+
+        {/* Each appears only once there is something in it: what you are about
+            to change is a different thing from what the contact is already in,
+            and keeping them apart is what makes Save legible before you press
+            it. On both, the cross undoes the staged change. */}
+        {added.length > 0 && (
+          <>
+            <span style={{ ...sectionLabel, marginTop: 4 }}>Add to</span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {added.map((name) => (
+                <RemovableChip key={name} onRemove={() => remove(name)}>{name}</RemovableChip>
+              ))}
+            </div>
+          </>
+        )}
+
+        {removed.length > 0 && (
+          <>
+            <span style={{ ...sectionLabel, marginTop: 4 }}>Remove from</span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {removed.map((name) => (
+                // The cross here cancels the removal and puts the list back.
+                <RemovableChip key={name} onRemove={() => add(name)}>{name}</RemovableChip>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
 /* Where each consent stands right now: the most recent action wins. The rail
    shows the state, the Consents tab shows how it got there. */
 function currentConsents(history = []) {
@@ -477,7 +631,7 @@ function RailStates({ items }) {
   );
 }
 
-function RailSection({ title, rows, tags, states, open, onToggle, last }) {
+function RailSection({ title, rows, tags, chips, states, action, open, onToggle, last }) {
   const shown = (rows || []).filter((r) =>
     r.type === "role" ? r.values?.length > 0 : r.value != null && r.value !== "");
 
@@ -513,11 +667,24 @@ function RailSection({ title, rows, tags, states, open, onToggle, last }) {
                 {tags.map((t, i) => <Badge key={i}>{t}</Badge>)}
               </div>
             )}
+            {/* List memberships are DS chips on an 8px wrapping grid, not badges:
+                a membership is something you can take off the contact, and the
+                chip is the atom that carries that. */}
+            {chips?.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {chips.map((c) => (
+                  <RemovableChip key={c.label} onRemove={c.onRemove}>{c.label}</RemovableChip>
+                ))}
+              </div>
+            )}
             {states?.length > 0 && <RailStates items={states} />}
             {shown.map((r, i) => <RailRow key={i} {...r} />)}
-            {shown.length === 0 && !tags?.length && !states?.length && (
+            {shown.length === 0 && !tags?.length && !chips?.length && !states?.length && (
               <span style={{ ...RAIL_TEXT, fontFamily: DS.ff, color: DS.textMuted }}>No data</span>
             )}
+            {/* The section's own edit affordance, at its foot — the content above
+                it stays read-only until the user asks to change it. */}
+            {action && <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}>{action}</div>}
           </>
         )}
       </div>
@@ -538,7 +705,7 @@ export default function ContactRecord({ selectedContact }) {
   const [columnConfig, setColumnConfig] = useState({});
   const [page, setPage] = useState(0);
   const [openSections, setOpenSections] = useState({
-    personal: true, coordinates: true, segmentation: true,
+    personal: true, coordinates: true, lists: true,
     consents: true, preferences: false, others: false,
   });
   const toggle = (k) => setOpenSections((s) => ({ ...s, [k]: !s[k] }));
@@ -547,6 +714,30 @@ export default function ContactRecord({ selectedContact }) {
     () => (contactId && Array.isArray(contactsData) ? contactsData.find((c) => c.id === contactId) : null),
     [contactId],
   );
+
+  /* Memberships are edited in the drawer, so they live in state rather than
+     being read straight off the record each render. */
+  const [lists, setLists] = useState(() => contact?.lists ?? []);
+  const [listsDrawerOpen, setListsDrawerOpen] = useState(false);
+  /* The fields the Edit drawer owns. Held in state so an edit shows up
+     everywhere the record reads them — header, rail and all. */
+  const [details, setDetails] = useState(() => ({
+    email: contact?.identity?.email ?? "",
+    firstName: contact?.identity?.firstName ?? "",
+    lastName: contact?.identity?.lastName ?? "",
+    dateOfBirth: contact?.identity?.dateOfBirth ?? "",
+    age: contact?.identity?.age ?? "",
+    civility: contact?.identity?.civility ?? "",
+    gender: contact?.identity?.gender ?? "",
+    phones: [contact?.coordinates?.phone].filter(Boolean),
+    addressLines: [contact?.coordinates?.address].filter(Boolean),
+    postalCode: contact?.coordinates?.postalCode ?? "",
+    city: contact?.coordinates?.city ?? "",
+    country: contact?.coordinates?.country ?? "",
+    organisation: contact?.structure ?? "",
+    role: (contact?.accessControls || [])[0]?.role ?? "",
+  }));
+  const [editDrawerOpen, setEditDrawerOpen] = useState(false);
 
   const TABS = useMemo(() => {
     if (!contact) return {};
@@ -652,12 +843,10 @@ export default function ContactRecord({ selectedContact }) {
     );
   }
 
-  const ident = contact.identity || {};
-  const coords = contact.coordinates || {};
   const purchases = purchaseMetrics(contact);
   const consumption = consumptionMetrics(contact);
   const campaigns = campaignMetrics(contact);
-  const name = `${ident.firstName || ""} ${ident.lastName || ""}`.trim() || "Unnamed contact";
+  const name = `${details.firstName || ""} ${details.lastName || ""}`.trim() || "Unnamed contact";
   const tab = TABS[activeTab] ?? TABS.tickets;
   const tabKeys = Object.keys(TABS);
 
@@ -724,17 +913,28 @@ export default function ContactRecord({ selectedContact }) {
           avatarName={name}
           status="Active client"
           details={[
-            ident.email,
-            coords.phone,
-            [coords.address, coords.country].filter(Boolean).join(", "),
-            ident.dateOfBirth
-              ? `Born ${formatDate(ident.dateOfBirth)}${ident.age ? ` (${ident.age})` : ""}`
+            details.email,
+            // The header shows the first number; the rail lists them all.
+            details.phones?.[0],
+            [...(details.addressLines ?? []), details.country].filter(Boolean).join(", "),
+            details.dateOfBirth
+              ? `Born ${formatDate(details.dateOfBirth)}${details.age ? ` (${details.age})` : ""}`
               : null,
           ]}
           actions={(
             <>
-              <Btn type="Secondary">Segment</Btn>
-              <Btn type="Primary">Edit contact</Btn>
+              {/* Secondary before Primary, per the Principles page. Both record
+                  actions here are destructive, so they live behind the menu
+                  rather than as buttons someone can hit by accident. */}
+              <ActionMenu
+                label="Options"
+                size="Md"
+                items={[
+                  { label: "Anonymize", icon: <Ico.User s={16} c={DS.textSecondary} /> },
+                  { label: "Delete", icon: <Ico.Trash s={16} c={DS.actionDanger} />, danger: true },
+                ]}
+              />
+              <Btn type="Primary" onClick={() => setEditDrawerOpen(true)}>Edit contact</Btn>
             </>
           )}
         />
@@ -897,14 +1097,14 @@ export default function ContactRecord({ selectedContact }) {
             open={openSections.personal}
             onToggle={() => toggle("personal")}
             rows={[
-              { label: "Email", type: "link", value: ident.email },
-              { label: "First name", value: ident.firstName },
-              { label: "Last name", value: ident.lastName },
+              { label: "Email", type: "link", value: details.email },
+              { label: "First name", value: details.firstName },
+              { label: "Last name", value: details.lastName },
               // The DS pairs birth date and age on one line: "05/05/1962 (63 ans)".
-              { label: "Date of birth", value: ident.dateOfBirth
-                ? `${formatDate(ident.dateOfBirth)}${ident.age ? ` (${ident.age})` : ""}` : null },
-              { label: "Civility", value: ident.civility },
-              { label: "Gender", value: ident.gender },
+              { label: "Date of birth", value: details.dateOfBirth
+                ? `${formatDate(details.dateOfBirth)}${details.age ? ` (${details.age})` : ""}` : null },
+              { label: "Civility", value: details.civility },
+              { label: "Gender", value: details.gender },
             ]}
           />
           <RailSection
@@ -912,18 +1112,41 @@ export default function ContactRecord({ selectedContact }) {
             open={openSections.coordinates}
             onToggle={() => toggle("coordinates")}
             rows={[
-              { label: "Phone", value: coords.phone },
-              { label: "Address", value: coords.address },
-              { label: "Postal code", value: coords.postalCode },
-              { label: "City", value: coords.city },
-              { label: "Country", value: coords.country },
+              ...(details.phones?.length
+                ? details.phones.map((p, i) => ({
+                  label: i === 0 ? "Phone" : `Phone ${i + 1}`,
+                  value: p,
+                }))
+                : [{ label: "Phone", value: null }]),
+              ...(details.addressLines?.length
+                ? details.addressLines.map((line, i) => ({
+                  label: i === 0 ? "Address" : `Address ${i + 1}`,
+                  value: line,
+                }))
+                : [{ label: "Address", value: null }]),
+              { label: "Postal code", value: details.postalCode },
+              { label: "City", value: details.city },
+              { label: "Country", value: details.country },
             ]}
           />
           <RailSection
-            title="Segmentation"
-            open={openSections.segmentation}
-            onToggle={() => toggle("segmentation")}
-            tags={contact.lists || []}
+            title="Lists"
+            open={openSections.lists}
+            onToggle={() => toggle("lists")}
+            /* Read-only: a chip carries no remove cross here. Taking a contact
+               off a list happens through the edit action below, not by a stray
+               click on a chip. */
+            chips={lists.map((name) => ({ label: name }))}
+            action={(
+              <IconBtn
+                kind="Filled"
+                size="Md"
+                icon={<Ico.Edit s={16} />}
+                title="Edit lists"
+                aria-label="Edit lists"
+                onClick={() => setListsDrawerOpen(true)}
+              />
+            )}
           />
           <RailSection
             title="Consents"
@@ -945,8 +1168,8 @@ export default function ContactRecord({ selectedContact }) {
             onToggle={() => toggle("others")}
             last
             rows={[
-              { label: "Organisation", value: contact.structure },
-              { label: "Role", value: (contact.accessControls || [])[0]?.role },
+              { label: "Organisation", value: details.organisation },
+              { label: "Role", value: details.role },
               {
                 label: "Roles & structures",
                 type: "role",
@@ -959,6 +1182,20 @@ export default function ContactRecord({ selectedContact }) {
           />
         </div>
       </div>
+
+      <ContactFormDrawer
+        mode="edit"
+        open={editDrawerOpen}
+        onClose={() => setEditDrawerOpen(false)}
+        value={details}
+        onSave={(next) => { setDetails(next); setEditDrawerOpen(false); }}
+      />
+      <ListsDrawer
+        open={listsDrawerOpen}
+        onClose={() => setListsDrawerOpen(false)}
+        value={lists}
+        onSave={(next) => { setLists(next); setListsDrawerOpen(false); }}
+      />
     </div>
   );
 }

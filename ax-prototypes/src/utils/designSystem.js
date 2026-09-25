@@ -382,3 +382,38 @@ export const TY = {
   weightSemiBold: 600,
   weightBold:     700, // Display/Large only
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHIPS — Nuancier catégoriel
+//
+// Figma `Chips · Nuancier catégoriel` (node 3020:45613), read with
+// get_design_context 2026-09:
+//   https://www.figma.com/design/nIMtO7v8dDamI8b2vnMcRc/Arenametrix-DS--WIP-?node-id=3020-45613
+//
+// Eight categorical identities, each a triplet — surface / border / text —
+// for anything that is a CATEGORY rather than a state: tags, memberships,
+// segments, interests, product categories, and the segmentation filter objects.
+// Never use them for feedback (success/warning/danger own that) and never for
+// the brand: `brand/primary` stays the CTA colour.
+//
+// ⚠ Two ramps here exist NOWHERE else in this file — Lime and Sky are new to
+//   the code, introduced by this scale.
+// ⚠ Do not reach for DS.purple100 / DS.amber100 expecting these values: those
+//   legacy aliases hold #A78BFA and #FCEDDE, not Purple/100 #F0ECFE and
+//   Amber/100 #FEF3C7. The nuancier is deliberately kept as its own scale
+//   rather than re-pointing tokens other features already depend on.
+//
+// Usage:
+//   import { CHIPS } from '../../utils/designSystem';
+//   <span style={{ background: CHIPS.chip1.surface, border: `1px solid ${CHIPS.chip1.border}`, color: CHIPS.chip1.text }}>
+// ─────────────────────────────────────────────────────────────────────────────
+export const CHIPS = {
+  chip1: { name: "Purple", surface: "#F0ECFE", border: "#A78BFA", text: "#3B2A7A" }, // Purple/100 · 300 · 800
+  chip2: { name: "Teal",   surface: "#DEF9F4", border: "#7ECFC2", text: "#115E56" }, // Teal/100   · 300 · 800
+  chip3: { name: "Amber",  surface: "#FEF3C7", border: "#FCD34D", text: "#78350F" }, // Amber/100  · 300 · Orange/800
+  chip4: { name: "Pink",   surface: "#FCE7F3", border: "#D97BB0", text: "#9D174D" }, // Pink/100   · 300 · 800
+  chip5: { name: "Lime",   surface: "#ECFCCB", border: "#A3E635", text: "#3F6212" }, // Lime/100   · 400 · 800
+  chip6: { name: "Sky",    surface: "#E0F2FE", border: "#7DD3FC", text: "#075985" }, // Sky/100    · 300 · 800
+  chip7: { name: "Coral",  surface: "#FFE4E0", border: "#FF7C6D", text: "#9A3412" }, // Coral/100  · 500 · 800
+  chip8: { name: "Slate",  surface: "#F1F5F9", border: "#CBD5E1", text: "#3E4E65" }, // Slate/100  · 300 · 700
+};

@@ -30,11 +30,16 @@
  *   up in the same row. DS-side inconsistency, not a bug here.
  *
  * Props
- *   value, onChange, disabled, width, placeholder, label
+ *   value, onChange, disabled, width, placeholder, label, required
  *   options   [{ value, label, meta?, group? }]
- *               meta  → trailing neutral pill (e.g. a type glyph)
+ *               meta  → trailing annotation (e.g. a type glyph, a count)
  *               group → options are bucketed under a MenuSection per group
+ *               A plain COUNT belongs in the option label, not here — a badge
+ *               on every row reads as a row of qualifiers.
  *   header    string | node — rendered as the panel's MenuSection label
+ *   footerAction  { label, icon?, onClick } — an action pinned under the
+ *             options, below a label-less MenuSection rule: brand-coloured,
+ *             never selected, never the value. For "Create a …" and the like.
  *   portal    boolean — render the panel in a portal anchored to the trigger,
  *             flipping above when there isn't room below. Required when the
  *             Select lives inside a scrolling/clipping container.
@@ -48,6 +53,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { DS, TY } from '../utils/designSystem';
 import Ico from '../utils/icons';
+import { Badge } from './Tag';
 
 const PANEL_MAX_H = 320;
 
@@ -62,7 +68,7 @@ function MenuItem({ label, meta, selected, onClick }) {
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         gap: 8, height: 40, padding: '10px 12px', boxSizing: 'border-box',
-        borderRadius: DS.radiusMd, background: bg, cursor: 'pointer',
+        borderRadius: DS.radiusLg, background: bg, cursor: 'pointer',
         ...TY.bodyMd, fontFamily: DS.ff,
         color: selected ? DS.brandOnSurface : DS.textDefault,
         transition: `background ${DS.durFast} ${DS.ease}`,
@@ -73,14 +79,9 @@ function MenuItem({ label, meta, selected, onClick }) {
       </span>
       <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
         {meta != null && (
-          // Neutral trailing pill. Badge-shaped, but not the Badge atom — the DS
-          // Badge has only semantic tones and a neutral one would misread.
-          <span style={{
-            ...TY.labelMd, fontFamily: DS.ff, color: DS.textMuted,
-            padding: '2px 8px', borderRadius: DS.radiusPill, background: DS.surfaceSubtle,
-          }}>
-            {meta}
-          </span>
+          // The Badge atom in its neutral tone, so a dropdown annotation and a
+          // badge elsewhere in the app are the same object.
+          <Badge tone="neutral">{meta}</Badge>
         )}
         {selected && <Ico.Check s={16} c={DS.brandOnSurface} />}
       </span>
@@ -88,13 +89,44 @@ function MenuItem({ label, meta, selected, onClick }) {
   );
 }
 
+// Molecules/MenuSection (558:2960). `HasLabel=false` — no title, just the rule —
+// is the DS's own way to split a menu, which is what sets a footer action apart
+// from the values above it.
 function MenuSection({ label }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 12px 0', boxSizing: 'border-box' }}>
-      {typeof label === 'string'
+      {label != null && (typeof label === 'string'
         ? <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary }}>{label}</span>
-        : label}
+        : label)}
       <div style={{ height: 1, background: DS.borderDivider }} />
+    </div>
+  );
+}
+
+/* Footer action — a MenuItem Kind=WithIcon under a label-less MenuSection.
+   It is an ACTION, not a value: it carries the brand colour, never a check, and
+   never becomes the Select's value. Before this existed, "Create a folder" was
+   smuggled in as an option row with a sentinel value, which read as a folder you
+   could select. */
+function FooterAction({ label, icon, onClick }) {
+  const [hover, setHover] = React.useState(false);
+  return (
+    <div
+      role="button"
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        height: 40, padding: '10px 12px', boxSizing: 'border-box',
+        borderRadius: DS.radiusLg, cursor: 'pointer',
+        background: hover ? DS.surfaceSubtle : 'transparent',
+        ...TY.labelLg, fontFamily: DS.ff, color: DS.actionPrimary,
+        transition: `background ${DS.durFast} ${DS.ease}`,
+      }}
+    >
+      {icon}
+      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
     </div>
   );
 }
@@ -111,8 +143,8 @@ const panelShell = {
 };
 
 export function Select({
-  label, value, options = [], onChange, disabled, width, placeholder, header,
-  portal = false, minWidth, trigger,
+  label, required = false, value, options = [], onChange, disabled, width, placeholder, header,
+  portal = false, minWidth, trigger, footerAction,
 }) {
   const [open, setOpen] = React.useState(false);
   const [pos, setPos] = React.useState(null);
@@ -179,17 +211,39 @@ export function Select({
             <MenuItem key={o.value} label={o.label} meta={o.meta}
               selected={o.value === value} onClick={() => pick(o.value)} />
           ))}
-      {options.length === 0 && (
+      {options.length === 0 && !footerAction && (
         <div style={{ padding: 12, textAlign: 'center', ...TY.bodySm, fontFamily: DS.ff, color: DS.textMuted }}>
           No options available
         </div>
+      )}
+      {footerAction && (
+        <>
+          {options.length > 0 && <MenuSection />}
+          <FooterAction
+            label={footerAction.label}
+            icon={footerAction.icon}
+            onClick={() => { setOpen(false); footerAction.onClick?.(); }}
+          />
+        </>
       )}
     </div>
   );
 
   return (
-    <div ref={wrapRef} style={{ display: 'flex', flexDirection: 'column', gap: 8, width: width || (trigger ? undefined : '100%') }}>
-      {label && <label style={{ ...TY.bodyMd, color: DS.textSecondary, fontFamily: DS.ff }}>{label}</label>}
+    <div ref={wrapRef} style={{ display: 'flex', flexDirection: 'column', gap: 4, width: width || (trigger ? undefined : '100%') }}>
+      {/* Same label row as Molecules/FormField (484:115) — Label/Medium in
+          text/strong, h16, gap 4, with the required marker in feedback/danger.
+          Field.jsx and Select.jsx must read as one control family. */}
+      {label && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, height: 16, width: '100%' }}>
+          <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textStrong, whiteSpace: 'nowrap' }}>
+            {label}
+          </span>
+          {required && (
+            <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.feedbackDanger }} aria-hidden="true">*</span>
+          )}
+        </div>
+      )}
       <div style={{ position: 'relative', flexShrink: trigger ? 0 : undefined }}>
         {trigger ? (
           // The wrapper carries the ref (for positioning + outside-click), so the

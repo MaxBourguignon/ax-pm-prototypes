@@ -3,114 +3,165 @@ import { Modal } from "../../components/Modal";
 import { Btn } from "../../components/Btn";
 import { Field, TextArea } from "../../components/Field";
 import { Select } from "../../components/Select";
+import { Badge } from "../../components/Tag";
 import ConfirmSummaryCard from "../../components/ConfirmSummaryCard";
 import { DS, TY } from "../../utils/designSystem";
 import Ico from "../../utils/icons";
+import { SuccessState as SharedSuccessState } from "../../components/Feedback";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CreateListModal — turn the current segment into a new list (fully simulated).
-// Built on the shared AX Modal + Btn + Field + Select components, so it shares
-// the app-wide dialog language rather than a Contacts-local copy.
+//
+// Rebased onto the DS Organisms/Modal spec (1223:3646, read 2026-09):
+//   shell 480 base (560 here — the DS "Ajouter une opportunité" composition,
+//   2099:41154, is the widest documented and the type cards need the room)
+//   body  padding 24 · gap 16
+//   footer  Secondary (Cancel/Back) + one Primary, right-aligned
+// Form controls come from the shared Field / Select / TextArea, so the label
+// row, radius and border are the DS FormField ones rather than local copies.
 //
 // Flow: Step 1 (details) → Step 2 (confirm) → fake create → success.
-// Folder names + type options mirror src/features/Lists/ListsV3.jsx.
+// Folder names + type identity mirror src/features/Lists/ListsV3.jsx.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const FOLDERS = ["Loyalty & VIP", "Campaigns", "Events", "Retail", "Reactivation", "Imports", "B2B", "Compliance"];
 
+// Type identity mirrors ListsV3's TYPES — dynamic reads on the success pair,
+// static on the brand pair — so the picker, the confirm preview and the real
+// Lists page all colour the same concept the same way.
 const LIST_TYPES = [
   {
     id:    "dynamic",
     label: "Dynamic",
-    icon:  (c) => <Ico.Refresh s={16} c={c} />,
+    Icon:  Ico.Zap,
+    tone:  "success",
+    bg:    DS.feedbackSuccessBg,
+    fg:    DS.feedbackSuccess,
     desc:  "Auto-updates as contacts start or stop matching the segment.",
+    note:  "This list keeps updating automatically as contacts start or stop matching the segment.",
   },
   {
     id:    "static",
     label: "Static",
-    icon:  (c) => <Ico.List s={16} c={c} />,
+    Icon:  Ico.List,
+    tone:  "primary",
+    bg:    DS.brandPrimarySubtle,
+    fg:    DS.brandOnSurface,
     desc:  "A fixed snapshot of the contacts matching right now.",
+    note:  "This list is a fixed snapshot — new matching contacts won't be added later.",
   },
 ];
+
+const typeMeta = (id) => LIST_TYPES.find((t) => t.id === id) ?? LIST_TYPES[1];
 
 const CREATE_LATENCY_MS = 1000;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TYPE PICKER — two selectable cards (matches the shared field label style)
+// TYPE PICKER — two selectable cards.
+// No DS node: the DS has no card-radio. Built on DS primitives instead —
+// FormField's label row (Label/Medium in text/strong, h16, gap 4), the Input's
+// radius 8 + border/field outline, and brand/primary-subtle for the selection,
+// so it sits in the form without inventing a visual language.
 // ─────────────────────────────────────────────────────────────────────────────
 
+const TypeCard = ({ type, selected, onSelect }) => {
+  const [hover, setHover] = useState(false);
+  const I  = type.Icon;
+  const fg = selected ? DS.brandOnSurface : DS.textStrong;
+
+  return (
+    <div
+      role="radio"
+      aria-checked={selected}
+      onClick={() => onSelect(type.id)}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        flex: 1,
+        minWidth: 0,
+        cursor: "pointer",
+        padding: 12,
+        boxSizing: "border-box",
+        borderRadius: DS.radiusLg,
+        border: `1px solid ${selected ? DS.brandPrimary : DS.borderField}`,
+        background: selected ? DS.brandPrimarySubtle : hover ? DS.surfaceSubtle : DS.surfaceCanvas,
+        display: "flex",
+        flexDirection: "column",
+        gap: 6,
+        transition: `background ${DS.durFast} ${DS.ease}, border-color ${DS.durFast} ${DS.ease}`,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <I s={16} c={selected ? DS.brandOnSurface : DS.textSecondary} />
+        <span style={{ ...TY.labelLg, color: fg, fontFamily: DS.ff }}>{type.label}</span>
+        {selected && (
+          <span style={{ marginLeft: "auto", display: "flex" }}>
+            <Ico.Check s={16} c={DS.brandOnSurface} />
+          </span>
+        )}
+      </div>
+      <span style={{ ...TY.labelMd, fontWeight: 400, color: DS.textSecondary, fontFamily: DS.ff }}>
+        {type.desc}
+      </span>
+    </div>
+  );
+};
+
 const TypePicker = ({ value, onChange }) => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-    <label style={{ ...TY.b2, color: DS.textSecondary, fontFamily: DS.ff }}>List type</label>
-    <div style={{ display: "flex", gap: 10 }}>
-      {LIST_TYPES.map((t) => {
-        const isSel = value === t.id;
-        return (
-          <div key={t.id}
-            onClick={() => onChange(t.id)}
-            style={{
-              flex: 1, cursor: "pointer", padding: "12px 14px", borderRadius: 6,
-              border: `1.5px solid ${isSel ? DS.actionPrimary : DS.borderDefault}`,
-              background: isSel ? DS.blue100 : DS.bgCard, transition: "all .15s",
-            }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-              {t.icon(isSel ? DS.actionPrimary : DS.textSecondary)}
-              <span style={{ ...TY.b2, fontWeight: 600, color: isSel ? DS.actionPrimary : DS.textDefault, fontFamily: DS.ff }}>
-                {t.label}
-              </span>
-              {isSel && <div style={{ marginLeft: "auto" }}><Ico.Check s={14} c={DS.actionPrimary} /></div>}
-            </div>
-            <div style={{ ...TY.b3, color: DS.textSecondary, fontFamily: DS.ff }}>
-              {t.desc}
-            </div>
-          </div>
-        );
-      })}
+  <div style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
+    {/* Same label row as Molecules/FormField (484:115) */}
+    <div style={{ display: "flex", alignItems: "center", gap: 4, height: 16 }}>
+      <span style={{ ...TY.labelMd, color: DS.textStrong, fontFamily: DS.ff, whiteSpace: "nowrap" }}>
+        List type
+      </span>
+    </div>
+    <div role="radiogroup" style={{ display: "flex", gap: 12 }}>
+      {LIST_TYPES.map((t) => (
+        <TypeCard key={t.id} type={t} selected={value === t.id} onSelect={onChange} />
+      ))}
     </div>
   </div>
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STEP INDICATOR — light bar, sits at the top of the body
+// STEP INDICATOR — no DS node (the DS has no stepper). Built from DS tokens:
+// brand/primary for the active step, the feedback/success pair for a completed
+// one, border/default + text/secondary for the step still ahead.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const StepIndicator = ({ currentStep }) => {
-  const steps = [{ n: 1, label: "List details" }, { n: 2, label: "Confirm" }];
-  return (
-    <div style={{ display: "flex", alignItems: "center", padding: "16px 20px 0" }}>
-      {steps.map((s, i) => {
-        const done   = currentStep > s.n;
-        const active = currentStep === s.n;
-        const dotBg     = done ? DS.teal100 : active ? DS.blue100 : DS.bgSurface;
-        const dotBorder = done ? DS.teal500 : active ? DS.actionPrimary : DS.borderDefault;
-        const dotColor  = done ? DS.teal500 : active ? DS.actionPrimary : DS.textSecondary;
-        const textColor = done ? DS.teal500 : active ? DS.actionPrimary : DS.textSecondary;
-        return (
-          <div key={s.n} style={{ display: "flex", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{
-                width: 20, height: 20, borderRadius: "50%",
-                border: `1.5px solid ${dotBorder}`, background: dotBg,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, transition: "all .2s",
-              }}>
-                {done
-                  ? <Ico.Check s={10} c={dotColor} />
-                  : <span style={{ ...TY.b3, fontSize: 10, fontWeight: 700, color: dotColor, fontFamily: DS.ff }}>{s.n}</span>}
-              </div>
-              <span style={{ ...TY.b3, fontWeight: 500, color: textColor, fontFamily: DS.ff, transition: "color .2s" }}>
-                {s.label}
-              </span>
+const STEPS = [{ n: 1, label: "List details" }, { n: 2, label: "Confirm" }];
+
+const StepIndicator = ({ currentStep }) => (
+  <div style={{ display: "flex", alignItems: "center" }}>
+    {STEPS.map((s, i) => {
+      const done   = currentStep > s.n;
+      const active = currentStep === s.n;
+      const dotBg     = done ? DS.feedbackSuccessBg : active ? DS.brandPrimarySubtle : DS.surfaceSubtle;
+      const dotBorder = done ? DS.feedbackSuccess   : active ? DS.brandPrimary       : DS.borderDefault;
+      const fg        = done ? DS.feedbackSuccess   : active ? DS.brandOnSurface     : DS.textSecondary;
+      return (
+        <div key={s.n} style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{
+              width: 20, height: 20, borderRadius: DS.radiusPill, boxSizing: "border-box",
+              border: `1px solid ${dotBorder}`, background: dotBg,
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              transition: `background ${DS.durFast} ${DS.ease}, border-color ${DS.durFast} ${DS.ease}`,
+            }}>
+              {done
+                ? <Ico.Check s={12} c={fg} />
+                : <span style={{ ...TY.captionSm, fontWeight: 500, color: fg, fontFamily: DS.ff }}>{s.n}</span>}
             </div>
-            {i < steps.length - 1 && (
-              <div style={{ width: 20, height: 1, background: DS.borderDefault, margin: "0 8px" }} />
-            )}
+            <span style={{ ...TY.labelMd, color: fg, fontFamily: DS.ff }}>{s.label}</span>
           </div>
-        );
-      })}
-    </div>
-  );
-};
+          {i < STEPS.length - 1 && (
+            <div style={{ width: 24, height: 1, background: DS.borderDefault, margin: "0 8px" }} />
+          )}
+        </div>
+      );
+    })}
+  </div>
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // STEP 2 — CONFIRMATION
@@ -118,66 +169,39 @@ const StepIndicator = ({ currentStep }) => {
 // rather than a receipt of the form fields. Uses the shared ConfirmSummaryCard.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Type identity mirrors src/features/Lists/ListsV3.jsx (dynamic = teal Zap,
-// static = blue List) so the preview reads as a rehearsal of the real item.
-const TYPE_META = {
-  dynamic: { label: "Dynamic", bg: DS.green100, fg: DS.green500, Icon: Ico.Zap },
-  static:  { label: "Static",  bg: DS.blue100,  fg: DS.actionPrimary,  Icon: Ico.List },
-};
-
-const TypeBadge = ({ bg, fg, icon, label }) => {
-  const I = icon;
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 999,
-      padding: "3px 9px", background: bg, color: fg, ...TY.b3, fontWeight: 500, fontFamily: DS.ff,
-    }}>
-      <I s={12} c={fg} />{label}
-    </span>
-  );
-};
-
 const Step2 = ({ name, description, type, folder, contactCount }) => {
-  const t = TYPE_META[type] ?? TYPE_META.static;
+  const t = typeMeta(type);
   const I = t.Icon;
   return (
-    <div style={{ padding: "20px 20px 0" }}>
-      <ConfirmSummaryCard
-        icon={<I s={20} c={t.fg} />}
-        accent={{ bg: t.bg, fg: t.fg }}
-        title={name}
-        subtitle={folder}
-        badge={<TypeBadge bg={t.bg} fg={t.fg} icon={t.Icon} label={t.label} />}
-        description={description}
-        metric={{
-          value: contactCount.toLocaleString(),
-          label: `contact${contactCount !== 1 ? "s" : ""} at creation`,
-        }}
-        note={{
-          icon: <t.Icon s={13} c={DS.textSecondary} />,
-          text: type === "dynamic"
-            ? "This list keeps updating automatically as contacts start or stop matching the segment."
-            : "This list is a fixed snapshot — new matching contacts won't be added later.",
-        }}
-      />
-    </div>
+    <ConfirmSummaryCard
+      icon={<I s={20} c={t.fg} />}
+      accent={{ bg: t.bg, fg: t.fg }}
+      title={name}
+      subtitle={folder}
+      badge={<Badge tone={t.tone}>{t.label}</Badge>}
+      description={description}
+      metric={{
+        value: contactCount.toLocaleString(),
+        label: `contact${contactCount !== 1 ? "s" : ""} at creation`,
+      }}
+      note={{
+        icon: <I s={14} c={DS.textSecondary} />,
+        text: t.note,
+      }}
+    />
   );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SUCCESS STATE
+// SUCCESS STATE — left-aligned per the DS text rule (centre only where Figma
+// shows it), on the feedback/success pair.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SuccessState = ({ name, folder }) => (
-  <div style={{ padding: "48px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14, textAlign: "center" }}>
-    <div style={{ width: 52, height: 52, borderRadius: "50%", background: DS.teal100, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <Ico.Check s={24} c={DS.teal500} />
-    </div>
-    <div style={{ ...TY.h4, color: DS.textDefault, fontFamily: DS.ff }}>List created</div>
-    <div style={{ ...TY.b2, color: DS.textSecondary, fontFamily: DS.ff, maxWidth: 320 }}>
-      <strong style={{ color: DS.textDefault }}>{name}</strong> has been created in <strong style={{ color: DS.textDefault }}>{folder}</strong>.
-    </div>
-  </div>
+const CreatedState = ({ name, folder }) => (
+  <SharedSuccessState title="List created">
+    <strong style={{ fontWeight: 600, color: DS.textDefault }}>{name}</strong> has been created
+    in {folder} successfully.
+  </SharedSuccessState>
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -241,52 +265,54 @@ export default function CreateListModal({ open, onClose, onCreated, contactCount
     }, CREATE_LATENCY_MS);
   };
 
-  // Footer varies by step / status
-  let footer = null;
+  // Footer — one Primary per view, Secondary alongside it (DS Button decision
+  // tree: Cancel / Previous are Secondary, never Ghost, next to a Primary).
+  let actions;
   if (done) {
-    footer = (
-      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
-        <Btn type="Primary" size="Medium" onClick={onClose}>Close</Btn>
-      </div>
-    );
+    actions = <Btn type="Primary" size="Md" onClick={onClose}>Close</Btn>;
   } else if (step === 1) {
-    footer = (
-      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
-        <Btn type="Tertiary" size="Medium" onClick={onClose}>Cancel</Btn>
-        <Btn type="Primary" size="Medium" iconRight={<Ico.ChevRight />} disabled={!step1Valid} onClick={() => setStep(2)}>Next</Btn>
-      </div>
+    actions = (
+      <>
+        <Btn type="Secondary" size="Md" onClick={onClose}>Cancel</Btn>
+        <Btn type="Primary" size="Md" iconRight={<Ico.ChevRight />} disabled={!step1Valid} onClick={() => setStep(2)}>
+          Next
+        </Btn>
+      </>
     );
   } else {
-    footer = (
-      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
-        <Btn type="Tertiary" size="Medium" disabled={creating} onClick={() => setStep(1)}>Back</Btn>
-        <Btn type="Primary" size="Medium" iconLeft={creating ? <Ico.Refresh /> : <Ico.Check />} disabled={creating} onClick={handleCreate}>
+    actions = (
+      <>
+        <Btn type="Secondary" size="Md" disabled={creating} onClick={() => setStep(1)}>Back</Btn>
+        <Btn type="Primary" size="Md" iconLeft={creating ? <Ico.Refresh /> : <Ico.Check />} disabled={creating} onClick={handleCreate}>
           {creating ? "Creating…" : "Create list"}
         </Btn>
-      </div>
+      </>
     );
   }
 
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Create a list"
-      variant="center"
-      width={600}
-      footer={footer}
-    >
-      {done ? (
-        <SuccessState name={name.trim()} folder={folder} />
-      ) : (
-        <>
-          <StepIndicator currentStep={step} />
+  const footer = (
+    // DS footer (1223:3664): a flexible spacer pushes the actions right, gap 8.
+    <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+      <div style={{ flex: "1 0 0", minWidth: 0 }} />
+      {actions}
+    </div>
+  );
 
-          <div style={{ minHeight: 220, paddingBottom: 24 }}>
-            {step === 1 && (
-              <div style={{ padding: "20px 20px 0", display: "flex", flexDirection: "column", gap: 16 }}>
+  return (
+    <Modal open={open} onClose={onClose} title="Create a list" variant="center" size="md" footer={footer}>
+      {/* DS Modal body (1223:3651): padding 24, column, gap 16 */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: 24, minHeight: 240, boxSizing: "border-box" }}>
+        {done ? (
+          <CreatedState name={name.trim()} folder={folder} />
+        ) : (
+          <>
+            <StepIndicator currentStep={step} />
+
+            {step === 1 ? (
+              <>
                 <Field
-                  label={<>List title <span style={{ color: DS.feedbackError }}>*</span></>}
+                  label="List title"
+                  required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Active buyers — Paris"
@@ -295,7 +321,8 @@ export default function CreateListModal({ open, onClose, onCreated, contactCount
                 />
                 <TypePicker value={type} onChange={setType} />
                 <Select
-                  label={<>Folder <span style={{ color: DS.feedbackError }}>*</span></>}
+                  label="Folder"
+                  required
                   value={folder}
                   onChange={setFolder}
                   options={FOLDERS.map((f) => ({ value: f, label: f }))}
@@ -306,16 +333,21 @@ export default function CreateListModal({ open, onClose, onCreated, contactCount
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What is this list for? (optional)"
-                  rows={3}
+                  help="Optional — helps your team understand what the list is for."
                 />
-              </div>
+              </>
+            ) : (
+              <Step2
+                name={name.trim()}
+                description={description.trim()}
+                type={type}
+                folder={folder}
+                contactCount={contactCount}
+              />
             )}
-            {step === 2 && (
-              <Step2 name={name.trim()} description={description.trim()} type={type} folder={folder} contactCount={contactCount} />
-            )}
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </Modal>
   );
 }

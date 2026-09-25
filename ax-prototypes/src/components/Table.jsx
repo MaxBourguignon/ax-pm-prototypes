@@ -58,6 +58,7 @@ import { DS, TY } from '../utils/designSystem';
 import Ico from '../utils/icons';
 import { Btn } from './Btn';
 import { Badge } from './Tag';
+import { SearchField } from './Field';
 
 /* ⚠ HORIZONTAL GUTTER DEVIATION. The DS pads the toolbar, header cells, data
    cells and pagination bar at 12px/16px. They are all at 12px/24px here, on the
@@ -103,7 +104,6 @@ export function TableToolbar({
   primaryAction,
   leftExtra,      // node — appended to ToolbarLeft (e.g. a Toggle)
 }) {
-  const [focus, setFocus] = React.useState(false);
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -115,7 +115,7 @@ export function TableToolbar({
           buttons instead of hanging off the top. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
         {columnConfig ?? (onConfigureColumns && (
-          <Btn type="Secondary" iconLeft={<Ico.Settings s={16} />} onClick={onConfigureColumns}>
+          <Btn type="Secondary" iconLeft={<Ico.Sliders s={16} c={DS.textSecondary} />} onClick={onConfigureColumns}>
             {configureColumnsLabel}
           </Btn>
         ))}
@@ -168,26 +168,14 @@ export function TableToolbar({
           </Btn>
         ))}
         {onSearchChange && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px',
-            background: DS.surfaceCanvas, borderRadius: DS.radiusMdPlus,
-            border: `1px solid ${focus ? DS.borderFocus : DS.borderSubtle}`,
-            transition: `border-color ${DS.durFast} ${DS.ease}`,
-          }}>
-            <Ico.Search s={16} c={DS.textMuted} />
-            <input
-              value={search ?? ''}
-              onChange={(e) => onSearchChange(e.target.value)}
-              onFocus={() => setFocus(true)}
-              onBlur={() => setFocus(false)}
-              placeholder={searchPlaceholder}
-              style={{
-                ...TY.bodySm, fontFamily: DS.ff, color: DS.textStrong,
-                width: 180, border: 'none', outline: 'none', background: 'transparent',
-                padding: 0, textAlign: 'left',
-              }}
-            />
-          </div>
+          // Atoms/SearchInput, via the shared field — this toolbar used to carry
+          // its own copy of the same box.
+          <SearchField
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={searchPlaceholder}
+            style={{ width: 220 }}
+          />
         )}
         {secondaryAction}
         {primaryAction}
@@ -227,8 +215,10 @@ function HeadCell({ col, sortKey, sortDir, onSort, filters, onFilterChange }) {
         justifyContent: align === 'right' ? 'flex-end' : 'flex-start',
         cursor: sortable ? 'pointer' : 'default', userSelect: 'none',
       }} onClick={sortable ? () => onSort(col.key) : undefined}>
+        {/* ⚠ TRYING 14px. The DS header is Label/Medium (12/16/500); this is
+            Label/Large (14/20/500), the same step as the data it labels. */}
         <span style={{
-          ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary,
+          ...TY.labelLg, fontFamily: DS.ff, color: DS.textSecondary,
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {col.label}
@@ -268,7 +258,7 @@ function HeadCell({ col, sortKey, sortDir, onSort, filters, onFilterChange }) {
           placeholder={col.label}
           aria-label={`Filter by ${col.label}`}
           style={{
-            ...TY.labelMd, fontFamily: DS.ff, color: DS.textStrong,
+            ...TY.labelLg, fontFamily: DS.ff, color: DS.textStrong,
             flex: '1 0 0', minWidth: 0, border: 'none', outline: 'none',
             background: 'transparent', padding: 0, textAlign: 'left',
           }}
@@ -378,8 +368,15 @@ export function Cell({ type = 'text', background = 'inherit', align, value, widt
 
   if (t === 'titledescription') {
     const v = value ?? {};
+    // The DS draws this cell left-aligned only. `align="right"` is a local
+    // addition for a NUMERIC two-line cell (a count over its share of the
+    // base), where the Principles rule "Number cells align right" wins.
+    const end = align === 'right';
     return (
-      <div style={{ ...box, ...pad, flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+      <div style={{
+        ...box, ...pad, flexDirection: 'column', gap: 4,
+        alignItems: end ? 'flex-end' : 'flex-start',
+      }}>
         <span style={{ ...TY.bodySmBold, fontFamily: DS.ff, color: DS.textStrong, whiteSpace: 'nowrap' }}>
           {v.title}
         </span>
@@ -626,7 +623,7 @@ export function Table({
             height: CELL_H, padding: '12px 16px', gap: 8,
             background: DS.surfaceHeader, boxSizing: 'border-box',
           }}>
-            <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary, textAlign: 'right' }}>
+            <span style={{ ...TY.labelLg, fontFamily: DS.ff, color: DS.textSecondary, textAlign: 'right' }}>
               Actions
             </span>
           </div>
