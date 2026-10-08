@@ -144,7 +144,7 @@ function FormsOverview({ onOpen, onCreate }) {
   const newResp = Math.round(totalResp * 0.12);
 
   return (
-    <div style={{ background:DS.bgPage, minHeight:"100vh" }}>
+    <div style={{ minHeight:"100vh" }}>
       <PageHeader title="ArenaForm" description="Build and manage your data-collection forms" icon={<Ico.Form s={20} c={DS.actionPrimary}/>}
         actions={<><Btn type="Primary" iconLeft={<Ico.Plus s={16} c={DS.textInverse}/>} onClick={onCreate}>Create new form</Btn></>}/>
 
@@ -316,7 +316,7 @@ function FormEditor({ form, isNew, onBack }) {
   const [step, setStep] = useState(isNew ? 0 : 3);
 
   return (
-    <div style={{ background:DS.bgPage, minHeight:"100vh", display:"flex", flexDirection:"column" }}>
+    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column" }}>
       {/* Breadcrumb */}
       <div style={{ background:DS.bgCard, padding:"8px 24px", borderBottom:`1px solid ${DS.borderDefault}`, display:"flex", alignItems:"center", gap:8 }}>
         <button onClick={onBack} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", color:DS.actionPrimary, fontFamily:DS.ff, ...TY.b3 }}>
@@ -384,7 +384,7 @@ function BuilderTab({ form }) {
       </div>
 
       {/* Canvas */}
-      <div style={{ flex:1, background:DS.bgPage, overflow:"auto", padding:"24px 32px", display:"flex", flexDirection:"column", alignItems:"center", gap:16 }}>
+      <div style={{ flex:1, background:DS.surfaceAppBackground, overflow:"auto", padding:"24px 32px", display:"flex", flexDirection:"column", alignItems:"center", gap:16 }}>
         {unmapped > 0 && showWarn && (
           <div style={{ background:DS.feedbackWarningBg, border:`1px solid ${DS.feedbackWarning}`, borderRadius:10, padding:"10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", maxWidth:540 }}>
             <Ico.Warn s={16} c={DS.feedbackWarning}/>
@@ -485,7 +485,7 @@ function WorkflowTab() {
     action:   {bg:DS.feedbackSuccessBg,border:DS.feedbackSuccess},
   };
   return (
-    <div style={{ background:DS.bgPage, padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto" }}>
+    <div style={{ padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto" }}>
       <div style={{ background:DS.bgCard, border:`1px solid ${DS.borderDefault}`, borderRadius:10, overflow:"hidden" }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${DS.borderDefault}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div>
@@ -540,7 +540,7 @@ function ConnectTab({ form }) {
   function copy(text, key) { navigator.clipboard.writeText(text).catch(()=>{}); setCopied(key); setTimeout(()=>setCopied(null),2000); }
 
   return (
-    <div style={{ background:DS.bgPage, padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto", display:"flex", gap:16 }}>
+    <div style={{ padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto", display:"flex", gap:16 }}>
       <div style={{ flex:1, display:"flex", flexDirection:"column", gap:16 }}>
         <div style={{ background:DS.bgCard, border:`1px solid ${DS.borderDefault}`, borderRadius:10, overflow:"hidden" }}>
           <div style={{ padding:"12px 16px", borderBottom:`1px solid ${DS.borderDefault}` }}>
@@ -611,7 +611,7 @@ function ResultsTab({ form }) {
   const isEmpty = !form || form.contacts === 0;
 
   if (isEmpty) return (
-    <div style={{ background:DS.bgPage, height:"calc(100vh - 185px)", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:12 }}>
+    <div style={{ height:"calc(100vh - 185px)", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:12 }}>
       <Ico.Chart s={40} c={DS.neutral500}/>
       <div style={{ ...TY.h5, color:DS.textDefault, fontFamily:DS.ff }}>No responses yet</div>
       <div style={{ ...TY.b2, color:DS.textSecondary, fontFamily:DS.ff }}>Share your form to start collecting data.</div>
@@ -644,7 +644,7 @@ function ResultsTab({ form }) {
   const maxW = Math.max(...weeklyData.map(d=>d.value));
 
   return (
-    <div style={{ background:DS.bgPage, padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto", display:"flex", flexDirection:"column", gap:16 }}>
+    <div style={{ padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto", display:"flex", flexDirection:"column", gap:16 }}>
       {/* KPI strip — corrected CardStats from Figma */}
       <div style={{ display:"flex", gap:16 }}>
         <CardStats title="Total responses" value={form.contacts.toLocaleString()} subvalue={`out of ${form.sent.toLocaleString()} sent`} icon={Ico.Responses}/>

@@ -186,7 +186,7 @@ export default function ConsentsV3() {
   }
 
   return (
-    <div style={{ background: DS.bgPage, minHeight: '100%', fontFamily: DS.ff, paddingBottom: 40 }}>
+    <div style={{ minHeight: '100%', fontFamily: DS.ff, paddingBottom: 40 }}>
       {/* Prototype state switcher — shared floating control */}
       <StatePreview groups={[{
         label: 'State', value: viewState, onChange: setViewState,

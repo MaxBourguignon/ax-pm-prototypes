@@ -64,7 +64,7 @@ const PAGE_SIZE = 10;
 /* The mock dataset is anchored to a fixed "now" so recency labels stay stable. */
 const TODAY = new Date("2026-06-05T00:00:00");
 /* The loyalty window. Declared up here with TODAY, not next to the metrics that
-   read it: CONSUMPTION_ROWS and CONSUMPTION_BASE below run at module-evaluation
+   read it: RFM_DIMS below runs at module-evaluation
    time, so a later `const` would sit in the temporal dead zone and throw on
    import — which a build cannot catch, because a build never runs the module. */
 const LOYALTY_MONTHS = 36;
@@ -213,11 +213,20 @@ function buildPurchases(tickets = []) {
    longer ago than most", which is bad news, while a long Total spent bar is good
    news. Both are brand/primary — colouring them by sentiment would need a rule
    per metric that the DS does not have. */
-const CONSUMPTION_ROWS = [
-  { key: "recency", label: "Recency",                            format: (v) => `${Math.round(v)} days` },
-  { key: "loyalty", label: `Loyalty (${LOYALTY_MONTHS} mo)`,      format: (v) => `${v} purchase${v === 1 ? "" : "s"}` },
-  { key: "total",   label: "Total spent",                        format: (v, cur) => formatCurrency(v, cur) },
-  { key: "basket",  label: "Average basket",                     format: (v, cur) => formatCurrency(v, cur) },
+/* RFM — Recency / Frequency / Monetary, the classic read of purchase behaviour.
+   Each row is the contact's own figure plus a grey caption saying what it
+   counts. A contact who never bought shows "Never" for recency. */
+const RFM_DIMS = [
+  { key: "recency", label: "Recency", Icon: Ico.Clock,
+    value: (v) => (v == null ? "—" : `${Math.round(v)}`),
+    caption: (v) => (v == null ? "no purchase yet" : `${Math.round(v) === 1 ? "day" : "days"} since last order`) },
+  { key: "loyalty", label: "Frequency", Icon: Ico.Refresh,
+    value: (v) => `${v}`,
+    caption: (v) => `${v === 1 ? "purchase" : "purchases"} in ${LOYALTY_MONTHS} months` },
+  { key: "total",   label: "Monetary value", Icon: Ico.Wallet,
+    // Whole units: the tile is narrow and the cents add nothing at this scale.
+    value: (v, cur) => new Intl.NumberFormat("en-GB", { style: "currency", currency: cur || "EUR", maximumFractionDigits: 0 }).format(v),
+    caption: () => "total spent" },
 ];
 
 function consumptionMetrics(contact) {
@@ -231,36 +240,11 @@ function consumptionMetrics(contact) {
   const n = purchases.length;
 
   return {
-    recency: last ? Math.max(0, (TODAY - new Date(last)) / 86400000) : 0,
+    recency: last ? Math.max(0, (TODAY - new Date(last)) / 86400000) : null,
     loyalty: purchases.filter((p) => p.purchaseDate && new Date(p.purchaseDate) >= since).length,
     total,
     basket: n > 0 ? total / n : 0,
   };
-}
-
-/* The scale behind every track: each metric's min and max across the whole base,
-   computed once at module load. */
-const CONSUMPTION_BASE = (() => {
-  const everyone = (Array.isArray(contactsData) ? contactsData : []).map(consumptionMetrics);
-  const range = {};
-  CONSUMPTION_ROWS.forEach(({ key }) => {
-    const values = everyone.map((m) => m[key]).filter((v) => Number.isFinite(v));
-    // The scale runs from the base MINIMUM to the base maximum, as the reference
-    // chart does — not from zero, which would flatten the spread between
-    // contacts into the bottom of every track.
-    range[key] = values.length > 0
-      ? { min: Math.min(...values), max: Math.max(...values) }
-      : { min: 0, max: 0 };
-  });
-  return range;
-})();
-
-/* Where a value sits between the base min and max. Floored at 2% so the lightest
-   contact in the base still shows a mark rather than an empty track. */
-function basePct(key, value) {
-  const { min, max } = CONSUMPTION_BASE[key] ?? {};
-  if (!(max > min)) return 100;
-  return Math.max(2, Math.min(100, ((value - min) / (max - min)) * 100));
 }
 
 /* The consent action history, grouped per consent. Inside a consent the newest
@@ -845,6 +829,12 @@ export default function ContactRecord({ selectedContact }) {
 
   const purchases = purchaseMetrics(contact);
   const consumption = consumptionMetrics(contact);
+  const rfm = RFM_DIMS.map((d) => ({
+    label: d.label,
+    value: d.value(consumption[d.key], purchases.currency),
+    caption: d.caption(consumption[d.key]),
+    Icon: d.Icon,
+  }));
   const campaigns = campaignMetrics(contact);
   const name = `${details.firstName || ""} ${details.lastName || ""}`.trim() || "Unnamed contact";
   const tab = TABS[activeTab] ?? TABS.tickets;
@@ -957,29 +947,24 @@ export default function ContactRecord({ selectedContact }) {
             <div key="p1" style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
               <div style={{ flex: "1 1 340px", minWidth: 0, display: "flex" }}>
                 <KpiCard
-                  type="progress"
+                  type="rfm"
                   label="Purchase behaviour"
-                  meta="vs. the whole contact base"
-                  rows={CONSUMPTION_ROWS.map((r) => ({
-                    label: r.label,
-                    value: r.format(consumption[r.key], purchases.currency),
-                    pct: basePct(r.key, consumption[r.key]),
-                  }))}
+                  rows={rfm}
                 />
               </div>
               <div style={{ flex: "1 1 340px", minWidth: 0, display: "flex" }}>
-                {/* A funnel rather than progress tracks: these four figures are
-                    nested (sent ⊇ received ⊇ opened ⊇ clicked), so the drop-off
-                    between stages is the story, and equal-length tracks hide it. */}
+                {/* Back to the DS Progress type: the open rate as the headline,
+                    open and click rates as tracks, and the send count as a
+                    muted track — it is a count, not a rate. */}
                 <KpiCard
-                  type="funnel"
-                  label="Campaign engagement"
-                  meta={`${pctOf(campaigns.opened, campaigns.sent)}% open · ${pctOf(campaigns.clicked, campaigns.sent)}% click`}
-                  stages={[
-                    { label: "Sent", value: campaigns.sent },
-                    { label: "Received", value: campaigns.received },
-                    { label: "Opened", value: campaigns.opened },
-                    { label: "Clicked", value: campaigns.clicked },
+                  type="progress"
+                  label="Engagement"
+                  meta={`${campaigns.opened} / ${campaigns.sent} opened`}
+                  value={`${pctOf(campaigns.opened, campaigns.sent)}%`}
+                  rows={[
+                    { label: "Open rate", value: `${pctOf(campaigns.opened, campaigns.sent)}%`, pct: pctOf(campaigns.opened, campaigns.sent) },
+                    { label: "Click rate", value: `${pctOf(campaigns.clicked, campaigns.sent)}%`, pct: pctOf(campaigns.clicked, campaigns.sent) },
+                    { label: "Campaigns sent", value: campaigns.sent, pct: campaigns.sent > 0 ? 100 : 0, tone: "muted" },
                   ]}
                 />
               </div>

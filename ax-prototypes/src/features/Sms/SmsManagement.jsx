@@ -295,7 +295,7 @@ function CampaignBuilder({ draft, onClose, onSent, onTest }) {
   const segs = smsCount(resolveVars(message)).segments;
 
   return (
-    <div style={{ minHeight: '100%', background: DS.bgPage, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Builder header (own header — back + send actions) */}
       <div style={{ background: DS.bgCard, borderBottom: `1px solid ${DS.borderDefault}`,
                     padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -470,7 +470,7 @@ export function SmsManagement() {
   }
 
   return (
-    <div style={{ minHeight: '100%', background: DS.bgPage, paddingBottom: 40 }}>
+    <div style={{ minHeight: '100%', paddingBottom: 40 }}>
       <PageHeader
         icon={<Ico.Sms s={20} c={DS.actionPrimary} />}
         title="SMS Management"

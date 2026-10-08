@@ -1495,7 +1495,7 @@ export default function PerformanceV3() {
   }
 
   return (
-    <div style={{ background: DS.bgPage, minHeight: '100%', paddingBottom: 48 }}>
+    <div style={{ minHeight: '100%', paddingBottom: 48 }}>
       <StatePreview groups={[
         { label: 'Role', value: role, onChange: setRole, options: ['admin', 'client'] },
         { label: 'State', value: demo, onChange: setDemo, options: ['ready', 'loading', 'empty', 'error'] },

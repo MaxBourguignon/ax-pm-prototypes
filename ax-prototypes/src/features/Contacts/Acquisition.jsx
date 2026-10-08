@@ -302,7 +302,7 @@ export default function Acquisition() {
   const showEmpty = forceEmpty || (!loading && !errored && kpis.total === 0);
 
   return (
-    <div style={{ background: DS.bgPage, minHeight: '100%', paddingBottom: 48 }}>
+    <div style={{ minHeight: '100%', paddingBottom: 48 }}>
       <StatePreview groups={[
         { label: 'State', value: demo, onChange: setDemo, options: ['ready', 'loading', 'empty', 'error'] },
       ]} />

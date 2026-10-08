@@ -60,8 +60,9 @@
  *                   { label: 'Campaigns sent', value: 5, pct: 8, tone: 'muted' }]} />
  *
  * Props
- *   type       'stat' | 'donut' | 'progress' | 'funnel'            default 'stat'
- *              ('funnel' is NOT a DS type — see the note above FunnelBody)
+ *   type       'stat' | 'donut' | 'progress' | 'funnel' | 'rfm'    default 'stat'
+ *              ('funnel' and 'rfm' are NOT DS types — see the notes above
+ *              FunnelBody and RfmBody)
  *   label      string  (alias: title)
  *   value      node
  *   loading    bool — type-shaped skeleton
@@ -71,6 +72,9 @@
  *   — donut     segments [{ label, value, display?, color? }] · total · totalLabel · note
  *   — funnel    meta · stages [{ label, value }] — bars centred, widths relative
  *               to the largest stage
+ *   — rfm       meta · rows [{ label, value, caption, Icon? }] — one tinted tile
+ *               each; Icon is an Ico component (not an element), the card
+ *               colours it
  *   — progress  meta (right of the label) · rows [{ label, value, pct, tone }]
  *               `value` is the headline figure and is OPTIONAL here (the DS
  *               always shows one); omit it when the rows already say it
@@ -320,6 +324,64 @@ function FunnelBody({ label, meta, stages, loading }) {
   );
 }
 
+/* ── Type=RFM — NOT IN THE DS ────────────────────────────────────────────────
+   BUILD-CUSTOM, like the funnel: no RFM card exists in the Figma file. It reads
+   a contact's purchase behaviour as the classic Recency / Frequency / Monetary
+   triad — three tinted tiles, one hue per dimension. Each tile: the name
+   top-left with its icon top-right, a large figure, and a caption in the same
+   hue saying what the figure counts. No chart, no comparison against the base.
+
+   Tints are DS primitives (100-step backgrounds, 800-step ink) except the
+   purple background: the DS has no light purple, so it is purple/300 at 15%
+   alpha — flag it if the DS gains a purple/100. */
+const RFM_TONES = [
+  { bg: DS.blue100,             ink: DS.textStrong, icon: DS.brandOnSurface },
+  { bg: DS.teal100,             ink: DS.green800,   icon: DS.teal500 },
+  { bg: `${DS.purple300}26`,    ink: DS.purple800,  icon: DS.purple400 },
+];
+
+/* Tiles fill the card's height: the name sits at the top, the figure and its
+   caption at the bottom. The caption slot reserves two lines so the three
+   figures stay level however the captions wrap. */
+const TWO_LINES = 32;
+
+function RfmTile({ label, value, caption, Icon, tone }) {
+  return (
+    <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                  gap: 8, padding: '10px 10px 8px', borderRadius: DS.radiusLg, background: tone.bg }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 4 }}>
+        <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: tone.ink }}>{label}</span>
+        {Icon && <span style={{ flexShrink: 0, display: 'flex' }}><Icon s={16} c={tone.icon} /></span>}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span style={{ ...TY.headlineMd, fontFamily: DS.ff, color: tone.ink, whiteSpace: 'nowrap' }}>
+          {value}
+        </span>
+        {caption && (
+          <span style={{ ...TY.labelMd, fontWeight: TY.weightRegular, fontFamily: DS.ff, color: tone.ink, minHeight: TWO_LINES }}>{caption}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RfmBody({ label, meta, rows, loading }) {
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%' }}>
+        <CardLabel upper>{label}</CardLabel>
+        {meta && <span style={{ ...TY.captionSm, fontFamily: DS.ff, color: DS.textMuted }}>{meta}</span>}
+      </div>
+      {/* Tiles stretch to whatever height a taller neighbour gives the card. */}
+      <div style={{ flex: '1 0 auto', display: 'flex', alignItems: 'stretch', gap: 8, width: '100%' }}>
+        {loading
+          ? [0, 1, 2].map((i) => <Skeleton key={i} w="100%" h={84} r={DS.radiusLg} />)
+          : rows.map((r, i) => <RfmTile key={r.label ?? i} {...r} tone={RFM_TONES[i % RFM_TONES.length]} />)}
+      </div>
+    </>
+  );
+}
+
 /* ── Card ──────────────────────────────────────────────────────────────────── */
 export function KpiCard({
   type = 'stat',
@@ -348,7 +410,7 @@ export function KpiCard({
       // and 16px on Progress, which reads as a lot of air on a record page where
       // two cards sit side by side. Tightened one step; the type scale is
       // untouched, so only the whitespace changed.
-      padding: isStat ? '16px 16px 16px 22px' : '16px 24px 16px 30px',
+      padding: isStat || type === 'rfm' ? '16px 16px 16px 22px' : '16px 24px 16px 30px',
       gap: isStat ? 6 : type === 'donut' ? 16 : 12,
       ...style,
     }}>
@@ -357,6 +419,8 @@ export function KpiCard({
         <DonutBody label={heading} segments={segments} total={total} totalLabel={totalLabel} note={note} loading={loading} />
       ) : type === 'progress' ? (
         <ProgressBody label={heading} value={value} meta={meta} rows={rows} loading={loading} />
+      ) : type === 'rfm' ? (
+        <RfmBody label={heading} meta={meta} rows={rows} loading={loading} />
       ) : type === 'funnel' ? (
         <FunnelBody label={heading} meta={meta} stages={stages} loading={loading} />
       ) : (
