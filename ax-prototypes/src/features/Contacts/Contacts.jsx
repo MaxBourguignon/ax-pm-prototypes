@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import contactsData from "../../../contacts.json";
 import AddFilterModal from "./AddFilterModal";
 import ContactFormDrawer from "./ContactFormDrawer";
@@ -1036,8 +1036,22 @@ const INITIAL_VIEWS = [
 export default function ContactsPage({ selectedContact, setSelectedContact }) {
   const navigate = useNavigate();
 
-  const [builderOpen, setBuilderOpen] = useState(false);
-  const [segment, setSegment] = useState(makeSeg);
+  // Arriving from an Insight card's "Open as segment": the card's filters are
+  // pre-filled and the card's count is shown (contacts.json is only a sample).
+  const fromCard = useLocation().state?.fromCard ?? null;
+  const segFromCard = () => ({
+    topLogic: "AND",
+    blocks: [{
+      id: uid(), logic: "AND",
+      filters: [
+        makeDefaultAnchorFilter("subscription", uid),
+        ...fromCard.conditions.map((c) => ({ id: uid(), objId: "subscription", fieldId: "subscriptionName", op: "contains", val: c, isAnchor: false })),
+      ],
+    }],
+  });
+
+  const [builderOpen, setBuilderOpen] = useState(!!fromCard);
+  const [segment, setSegment] = useState(() => (fromCard ? segFromCard() : makeSeg()));
   const [applied, setApplied] = useState(null);
   const isDirty = JSON.stringify(segment) !== JSON.stringify(applied ?? makeSeg());
 
@@ -1184,6 +1198,16 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
             <Btn type="Secondary" iconLeft={<Ico.Plus c={DS.actionPrimary} />} onClick={() => setShowCreateSidebar(true)}>Add a contact</Btn>
           </>}
         />
+
+        {fromCard && (
+          <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 8, background: DS.brandPrimarySubtle, border: `1px solid ${DS.borderDefault}`, ...TY.bodySm, fontFamily: DS.ff, color: DS.textDefault }}>
+            <Ico.Chart s={16} c={DS.actionPrimary} />
+            <span style={{ flex: 1 }}>
+              From card: <b>{fromCard.title}</b> · {Number(fromCard.count).toLocaleString("en-US")} contacts. The card's filters are filled in below; the rows are sample data.
+            </span>
+            <Btn type="Ghost" size="Sm" onClick={() => navigate("/insights")}>Back to Insights</Btn>
+          </div>
+        )}
 
         {/* Views tab bar */}
         <div style={{ padding: '24px 0' }}>
