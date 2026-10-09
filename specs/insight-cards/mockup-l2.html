@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Insight Cards sketch</title>
+<style>
+  :root {
+    --bg:#F4F5F5; --surface:#FFFFFF; --border:#DEE0E3; --text:#1F2937; --muted:#64748B;
+    --primary:#2575FC; --primary-soft:#EFF4FF; --teal:#34B0A1; --teal-soft:#DEF9F4;
+    --up:#16A34A; --down:#DC2626; --flag:#FCEDDE; --flag-text:#78350F; --bar:#AFB6C1;
+    --nav-grad:linear-gradient(90deg,#5BA3A8,#5A8FC4);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"Helvetica Neue",Arial,sans-serif; background:var(--bg); color:var(--text); font-size:14px; }
+  .top { background:#fff; display:flex; align-items:center; gap:28px; padding:0 32px; height:64px; border-bottom:1px solid var(--border); }
+  .logo { font-weight:700; color:var(--teal); margin-right:20px; }
+  .top a { color:var(--text); text-decoration:none; font-size:15px; padding:20px 0; }
+  .top a.on { font-weight:700; border-bottom:3px solid var(--text); }
+  .avatar { margin-left:auto; width:36px; height:36px; border-radius:50%; background:#E07A70; color:#fff; display:grid; place-items:center; font-weight:700; font-size:13px; }
+  .sub { background:var(--nav-grad); height:44px; display:flex; align-items:center; padding:0 32px; gap:28px; color:#fff; }
+  .sub span { opacity:.9 } .sub span.on { font-weight:700; opacity:1 }
+  main { padding:24px 40px 60px; max-width:1280px; margin:0 auto; }
+  .head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  h1 { font-size:26px; font-weight:500; margin:0; }
+  .btn { border:1px solid var(--border); background:#fff; border-radius:6px; padding:8px 14px; font-size:14px; cursor:pointer; color:var(--text); }
+  .btn.primary { background:var(--primary); border-color:var(--primary); color:#fff; font-weight:600; }
+  .btn.link { border:none; background:none; color:var(--primary); padding:4px 0; font-weight:600; }
+  .tabs { display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .tab { padding:10px 16px; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; }
+  .tab.on { color:var(--primary); border-color:var(--primary); font-weight:600; }
+  .bar { display:flex; gap:24px; align-items:center; margin-bottom:20px; color:var(--muted); }
+  select, input[type=text], textarea { font:inherit; border:1px solid var(--border); border-radius:6px; padding:7px 10px; background:#fff; color:var(--text); }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; align-items:start; }
+  .card { background:var(--surface); border-radius:8px; padding:18px 20px; box-shadow:0 1px 2px rgba(0,0,0,.05); position:relative; }
+  .card.new { animation:hl 1.6s ease; }
+  @keyframes hl { 0% { box-shadow:0 0 0 3px var(--primary) } 100% { box-shadow:0 1px 2px rgba(0,0,0,.05) } }
+  .ctitle { display:flex; align-items:center; gap:6px; font-size:15px; }
+  .info { width:16px; height:16px; border-radius:50%; background:var(--teal); color:#fff; font-size:11px; display:grid; place-items:center; cursor:pointer; font-weight:700; }
+  .menu { margin-left:auto; cursor:pointer; color:var(--muted); padding:0 4px; }
+  .big { font-size:34px; font-weight:700; margin:10px 0 2px; }
+  .delta { font-size:13px; } .delta.up { color:var(--up) } .delta.down { color:var(--down) }
+  .def { display:none; background:var(--primary-soft); border-radius:6px; padding:10px; font-size:12.5px; margin-top:10px; color:var(--text); line-height:1.5; }
+  .def.show { display:block; }
+  .rank { margin-top:10px; } .row { display:flex; align-items:center; gap:8px; margin:6px 0; font-size:13px; }
+  .row .lbl { width:80px; } .row .b { height:10px; background:var(--bar); border-radius:3px; } .row .n { color:var(--muted); }
+  .spark { display:flex; align-items:flex-end; gap:5px; height:56px; margin-top:12px; }
+  .spark div { flex:1; background:var(--primary); opacity:.75; border-radius:2px 2px 0 0; }
+  .seg { margin-top:12px; }
+  .dim { position:fixed; inset:0; background:rgba(21,27,38,.35); display:none; }
+  .panel { position:fixed; top:0; right:0; height:100vh; width:440px; max-width:100vw; background:#fff; box-shadow:-4px 0 20px rgba(0,0,0,.12); transform:translateX(100%); transition:transform .25s; display:flex; flex-direction:column; }
+  .open .dim { display:block } .open .panel { transform:none; }
+  .ph { display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--border); font-size:17px; font-weight:600; }
+  .pb { padding:18px 22px; overflow:auto; flex:1; }
+  .pf { padding:14px 22px; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; }
+  .ai { background:var(--primary-soft); border-radius:8px; padding:12px; }
+  .ai label { font-weight:600; display:block; margin-bottom:6px; }
+  .ai textarea { width:100%; height:58px; resize:none; }
+  .or { color:var(--muted); font-size:12.5px; margin:14px 0 6px; }
+  .field { margin:12px 0; } .field > label { display:block; font-size:12.5px; color:var(--muted); margin-bottom:4px; }
+  .field select, .field input { width:100%; }
+  .chip { display:inline-flex; align-items:center; gap:6px; background:var(--teal-soft); border-radius:14px; padding:5px 10px; margin:3px 4px 3px 0; font-size:13px; cursor:pointer; }
+  .chip.flag { background:var(--flag); color:var(--flag-text); }
+  .chip .x { opacity:.6 }
+  .note { font-size:12px; color:var(--flag-text); margin-top:4px; }
+  .preview { border:1px dashed var(--border); border-radius:8px; padding:14px; margin-top:8px; }
+  .preview .big { font-size:28px; margin:4px 0 0; }
+  .loading { color:var(--muted); font-style:italic; }
+  .refuse { background:#FFEBE8; color:#991B1B; border-radius:6px; padding:10px; font-size:13px; margin-top:10px; display:none; }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--text); color:#fff; padding:12px 18px; border-radius:8px; display:none; font-size:13.5px; }
+  .tag { font-size:10.5px; background:#EFF4FF; color:var(--primary); border-radius:4px; padding:1px 5px; margin-left:6px; font-weight:600; }
+  .legend { color:var(--muted); font-size:12px; margin-top:28px; }
+  @media (max-width:900px) { .grid { grid-template-columns:1fr; } main { padding:16px; } .top { overflow:auto; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="logo">arenametrix</span>
+  <a>Contacts</a><a>Campaigns</a><a>Sales</a><a>Sales BtoB</a><a>Patronage</a><a>SSO</a><a>Mobile app</a>
+  <a class="on">Insights</a>
+  <div class="avatar">JM</div>
+</div>
+<div class="sub"><span class="on">My cards</span></div>
+
+<main>
+  <div class="head">
+    <h1>Insights</h1>
+    <button class="btn primary" onclick="openPanel()">+ Make new card</button>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="bar">
+    <span>Period <select><option>This season</option><option>This month</option><option>Last 7 days</option></select></span>
+    <span>Comparison <select><option>Last season</option><option>Same period last year</option><option>None</option></select></span>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="legend">Sketch of spec section L2, mock data only. <span class="tag">1b</span> marks the text entry and "Open as segment"; the rest is Lot 1a.</p>
+</main>
+
+<div class="dim" onclick="closePanel()"></div>
+<aside class="panel">
+  <div class="ph"><span id="ptitle">New card</span><button class="btn link" onclick="closePanel()">✕</button></div>
+  <div class="pb">
+    <div class="ai">
+      <label>Describe your number <span class="tag">1b</span></label>
+      <textarea id="q">season ticket holders who did not renew yet</textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <span style="font-size:12px;color:var(--muted)">Try: "revenue per day for the derby"</span>
+        <button class="btn primary" onclick="build()">Build ▸</button>
+      </div>
+      <div class="refuse" id="refuse"></div>
+    </div>
+    <div class="or">or build it by hand ↓</div>
+    <div id="builder">
+      <div class="field"><label>Source</label>
+        <select id="src"><option>Subscription</option><option>Ticket</option><option>Contact</option><option>Consumptions</option><option>Order</option></select></div>
+      <div class="field"><label>Conditions</label>
+        <div id="conds"></div>
+        <button class="btn link" onclick="addCond()">+ Add condition</button>
+      </div>
+      <div class="field"><label>Measure</label>
+        <select id="measure" onchange="upd()"><option>Count people</option><option>Count tickets</option><option>Sum of revenue</option></select></div>
+      <div class="field"><label>Form</label>
+        <select id="form" onchange="upd()"><option>Number</option><option>Ranked breakdown</option><option>Per day</option></select></div>
+      <div class="field"><label>Comparison</label>
+        <select><option>Use page comparison</option><option>None</option></select></div>
+      <div class="field"><label>Title</label><input type="text" id="title" oninput="upd()" value=""></div>
+      <div class="field"><label>Preview</label><div class="preview" id="preview"><span class="loading">Add a source to see your number</span></div></div>
+    </div>
+  </div>
+  <div class="pf">
+    Tab <select id="saveTab"></select>
+    <span style="flex:1"></span>
+    <button class="btn" onclick="closePanel()">Cancel</button>
+    <button class="btn primary" onclick="save()">Save</button>
+  </div>
+</aside>
+<div class="toast" id="toast"></div>
+
+<script>
+const tabs = ["Season tickets", "Renewals", "Matchday"];
+let activeTab = "Season tickets";
+let cards = [
+  { tab:"Season tickets", title:"Season ticket holders", form:"number", value:"8,412", delta:+6, people:true,
+    def:"Source: Subscription. Conditions: season 25/26, status active. Measure: count people." },
+  { tab:"Season tickets", title:"Not renewed yet", form:"number", value:"1,284", delta:-12, people:true,
+    def:"Source: Subscription. Conditions: season 25/26 AND no 26/27 subscription. Measure: count people." },
+  { tab:"Season tickets", title:"Top cities of holders", form:"rank", people:false,
+    rows:[["Amsterdam",2124],["Utrecht",1310],["Haarlem",980],["Leiden",412]],
+    def:"Source: Subscription + Contact. Conditions: season 25/26, active. Measure: count people, broken down by city." },
+  { tab:"Season tickets", title:"Tickets sold per day", form:"day", value:"412 today", delta:+8, people:false,
+    series:[22,35,50,61,48,80,66], def:"Source: Ticket. Conditions: all events, period. Measure: count tickets per day." },
+  { tab:"Season tickets", title:"Revenue", form:"number", value:"€ 152,300", delta:+4, people:false,
+    def:"Source: Order. Conditions: period. Measure: sum of revenue." },
+  { tab:"Renewals", title:"Renewed for 26/27", form:"number", value:"7,128", delta:+3, people:true,
+    def:"Source: Subscription. Conditions: season 26/27, active. Measure: count people." },
+];
+let conds = [];
+
+function renderTabs() {
+  const el = document.getElementById("tabs");
+  el.innerHTML = tabs.map(t => `<div class="tab ${t===activeTab?"on":""}" onclick="activeTab='${t}';renderAll()">${t}</div>`).join("")
+    + `<div class="tab" onclick="addTab()">+</div>`;
+  document.getElementById("saveTab").innerHTML = tabs.map(t => `<option ${t===activeTab?"selected":""}>${t}</option>`).join("");
+}
+function addTab() { const n = "New tab " + (tabs.length - 2); tabs.push(n); activeTab = n; renderAll(); }
+
+function cardBody(c) {
+  const d = c.delta === undefined ? "" :
+    `<div class="delta ${c.delta>=0?"up":"down"}">${c.delta>=0?"+":""}${c.delta}% vs. last season</div>`;
+  if (c.form === "rank") {
+    const max = Math.max(...c.rows.map(r => r[1]));
+    return `<div class="rank">${c.rows.map(r => `<div class="row"><span class="lbl">${r[0]}</span><div class="b" style="width:${Math.round(r[1]/max*120)}px"></div><span class="n">${r[1].toLocaleString("en")}</span></div>`).join("")}</div>`;
+  }
+  if (c.form === "day") {
+    const max = Math.max(...c.series);
+    return `<div class="spark">${c.series.map(v => `<div style="height:${Math.round(v/max*100)}%"></div>`).join("")}</div><div style="margin-top:8px;font-weight:600">${c.value}</div>${d}`;
+  }
+  return `<div class="big">${c.value}</div>${d}`;
+}
+
+function renderGrid() {
+  const list = cards.filter(c => c.tab === activeTab);
+  const g = document.getElementById("grid");
+  if (!list.length) {
+    g.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;padding:40px">
+      <div style="font-size:16px;font-weight:600">No cards yet. Make your first card.</div>
+      <p style="color:var(--muted)">Start from an example: Season ticket holders · Tickets sold per day · Top cities</p>
+      <button class="btn primary" onclick="openPanel()">+ Make new card</button></div>`;
+    return;
+  }
+  g.innerHTML = list.map(c => {
+    const i = cards.indexOf(c);
+    return `<div class="card ${c.isNew?"new":""}">
+      <div class="ctitle">${c.title} <span class="info" onclick="toggleDef(${i})">i</span>
+        <span class="menu" title="Edit · Duplicate · Move to tab · Delete" onclick="openPanel(${i})">⋮</span></div>
+      ${cardBody(c)}
+      <div class="def" id="def${i}">${c.def}</div>
+      ${c.people ? `<div class="seg"><button class="btn link" onclick="openSeg(${i})">Open as segment →</button><span class="tag">1b</span></div>` : ""}
+    </div>`;
+  }).join("");
+  cards.forEach(c => c.isNew = false);
+}
+function toggleDef(i) { document.getElementById("def"+i).classList.toggle("show"); }
+function renderAll() { renderTabs(); renderGrid(); }
+
+function renderConds() {
+  document.getElementById("conds").innerHTML = conds.length
+    ? conds.map((c,i) => `${i?'<span style="font-size:11px;color:var(--muted)">AND</span> ':""}<span class="chip ${c.flag?"flag":""}" onclick="unflag(${i})">${c.flag?"⚑ ":""}${c.label} <span class="x" onclick="event.stopPropagation();rmCond(${i})">✕</span></span>`).join("")
+      + (conds.some(c => c.flag) ? `<div class="note">⚑ assumed, check this. Click the chip to confirm or change it.</div>` : "")
+    : `<span style="color:var(--muted);font-size:13px">No conditions yet</span>`;
+}
+function unflag(i) { conds[i].flag = false; renderConds(); }
+function rmCond(i) { conds.splice(i,1); renderConds(); upd(); }
+function addCond() { conds.push({ label:"Age 18 to 35", flag:false }); renderConds(); upd(); }
+
+function upd() {
+  const p = document.getElementById("preview");
+  if (!conds.length) { p.innerHTML = `<span class="loading">Add a source to see your number</span>`; return; }
+  const t = document.getElementById("title").value || "Untitled card";
+  const m = document.getElementById("measure").value;
+  const v = m === "Sum of revenue" ? "€ 48,920" : m === "Count tickets" ? "3,906" : (1284 - (conds.length-2)*310).toLocaleString("en");
+  p.innerHTML = `<div style="color:var(--muted)">${t}</div><div class="big">${v}</div><div class="delta down">-12% vs. last season</div>`;
+}
+
+function build() {
+  const q = document.getElementById("q").value.toLowerCase();
+  const r = document.getElementById("refuse");
+  r.style.display = "none";
+  document.getElementById("preview").innerHTML = `<span class="loading">Building your card...</span>`;
+  setTimeout(() => {
+    if (q.includes("weather") || q.includes("instagram")) {
+      r.style.display = "block";
+      r.innerHTML = "Arenametrix holds no data on this, so I can't build this number. I can build: tickets sold per day for the same events.";
+      conds = []; renderConds(); upd(); return;
+    }
+    if (q.includes("revenue")) {
+      document.getElementById("src").value = "Order";
+      conds = [{ label:"Event: Ajax vs. Feyenoord", flag:true }];
+      document.getElementById("measure").value = "Sum of revenue";
+      document.getElementById("form").value = "Per day";
+      document.getElementById("title").value = "Derby revenue per day";
+    } else {
+      document.getElementById("src").value = "Subscription";
+      conds = [{ label:"Season 25/26", flag:false }, { label:"No 26/27 subscription", flag:true }];
+      document.getElementById("measure").value = "Count people";
+      document.getElementById("form").value = "Number";
+      document.getElementById("title").value = "Not renewed yet";
+    }
+    renderConds(); upd();
+  }, 900);
+}
+
+function openPanel(i) {
+  document.getElementById("ptitle").textContent = i === undefined ? "New card" : "Edit card";
+  if (i === undefined) { conds = []; document.getElementById("title").value = ""; }
+  else { conds = [{ label:"As defined", flag:false }]; document.getElementById("title").value = cards[i].title; }
+  document.getElementById("refuse").style.display = "none";
+  renderTabs(); renderConds(); upd();
+  document.body.classList.add("open");
+}
+function closePanel() { document.body.classList.remove("open"); }
+
+function save() {
+  if (!conds.length) { toast("Add a source and at least one condition first."); return; }
+  const tab = document.getElementById("saveTab").value;
+  const form = { "Number":"number", "Ranked breakdown":"rank", "Per day":"day" }[document.getElementById("form").value];
+  const m = document.getElementById("measure").value;
+  cards.push({ tab, title:document.getElementById("title").value || "Untitled card", form, isNew:true,
+    value: form==="day" ? "1,920 today" : (m==="Sum of revenue" ? "€ 48,920" : "1,284"), delta:-12,
+    people: m === "Count people", rows:[["Amsterdam",540],["Utrecht",320],["Haarlem",210]], series:[10,18,25,40,32,55,61],
+    def:`Source: ${document.getElementById("src").value}. Conditions: ${conds.map(c=>c.label).join(" AND ")}. Measure: ${m.toLowerCase()}.` });
+  activeTab = tab; closePanel(); renderAll(); toast("Card saved to " + tab);
+}
+function openSeg(i) { toast(`Opens Contacts with the same filters: "${cards[i].title}", ${cards[i].value} contacts. Then save as list or start a campaign.`); }
+function toast(t) { const el = document.getElementById("toast"); el.textContent = t; el.style.display = "block"; clearTimeout(el._t); el._t = setTimeout(() => el.style.display = "none", 3200); }
+
+renderAll();
+</script>
+</body>
+</html>
