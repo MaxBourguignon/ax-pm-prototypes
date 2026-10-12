@@ -176,7 +176,7 @@ export default function CardBuilder({ open, initial, tabs, defaultTab, period, c
     if (!form.source) { setError('Choose a source first.'); return; }
     if (!form.conditions.length) { setError('Add at least one condition.'); return; }
     if (!form.title.trim()) { setError('Give the card a title.'); return; }
-    if (form.conditions.some((c) => c.flagged)) { setError('Confirm or change the assumed conditions first.'); return; }
+    if (form.conditions.some((c) => c.flagged)) { setError('Confirm the orange condition first.'); return; }
     onSave({
       ...(initial?.id ? initial : {}),
       title: form.title.trim(), form: form.form, measure: form.measure, source: form.source,
@@ -198,7 +198,7 @@ export default function CardBuilder({ open, initial, tabs, defaultTab, period, c
     <>
       <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary }}>Tab</span>
       <Select value={tab} onChange={setTab} width={170} options={tabs.map((t) => ({ value: t.id, label: t.name }))} />
-      <span style={{ flex: 1 }} />
+      <span style={{ flex: 1, ...TY.labelMd, fontFamily: DS.ff, color: DS.feedbackDanger, textAlign: 'right' }}>{error}</span>
       <Btn type="Secondary" onClick={requestClose}>Cancel</Btn>
       <Btn type="Primary" onClick={save}>Save</Btn>
     </>
@@ -340,7 +340,6 @@ export default function CardBuilder({ open, initial, tabs, defaultTab, period, c
                 </div>
               </div>
 
-              {error && <span style={{ ...TY.bodySm, color: DS.feedbackDanger }}>{error}</span>}
             </>
           )}
         </div>
