@@ -340,7 +340,7 @@ export default function EntityActionModal({
     footer = (
       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
         <Btn type="Tertiary" size="Medium" onClick={handleClose}>Cancel</Btn>
-        <Btn type="Primary" size="Medium" iconRight={<Ico.ChevRight />} disabled={selectedIds.size === 0} onClick={handleNext}>Next</Btn>
+        <Btn type="Primary" size="Medium" iconRight={<Ico.ArrowRightSmall />} disabled={selectedIds.size === 0} onClick={handleNext}>Next</Btn>
       </div>
     );
   } else {

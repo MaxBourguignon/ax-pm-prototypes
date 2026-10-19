@@ -106,6 +106,12 @@ const DATA_OBJECTS = [
     description: "Filter by representations, tickets or purchases — event, type, seat, or date",
     chip: "chip2", ...CHIPS.chip2, // Teal
     fields: [
+      // ── Relation ─────────────────────────────────────────────────────────────
+      // The contact's role on the ticket. No Relation condition = Buyer, so
+      // segments built before this field existed keep their meaning. With
+      // Beneficiary, purchase-level fields still describe the BUYER's purchase.
+      { id: "relation",            label: "Relation",                  type: "enum",   level: "any", choices: ["Buyer", "Beneficiary"] },
+
       // ── Event ────────────────────────────────────────────────────────────────
       { id: "eventName",           label: "Event name",                type: "string", level: "any" },
       { id: "eventType",           label: "Event type",                type: "string", level: "any" },

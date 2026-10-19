@@ -15,6 +15,7 @@ import ListsV3 from './features/Lists/ListsV3'
 import ArenaForm from './features/Arenaform/Arenaform'
 import SmsManagement from './features/Sms/SmsManagement'
 import EntityMerge from './features/Admin/EntityMerge'
+import AdminHome from './features/Admin/AdminHome'
 
 function App() {
 
@@ -37,6 +38,7 @@ function App() {
                     <Route path="/lists-v3" element={<ListsV3 />} />
                     <Route path="/arenaform" element={<ArenaForm />} />
                     <Route path="/sms" element={<SmsManagement />} />
+                    <Route path="/admin" element={<AdminHome />} />
                     <Route path="/admin/entity-merge" element={<EntityMerge />} />
                 </Route>
             </Routes>

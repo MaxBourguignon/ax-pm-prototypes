@@ -1,27 +1,43 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { DS, TY } from '../../utils/designSystem';
 import Ico from '../../utils/icons';
 import Btn from '../../components/Btn';
-import IconBtn from '../../components/Iconbtn';
-import { SearchField, Field, TextArea } from '../../components/Field';
+import { Field, TextArea } from '../../components/Field';
 import { Radio } from '../../components/Controls';
-import { Tag, StatusBadge } from '../../components/Tag';
+import { Badge, StatusBadge } from '../../components/Tag';
 import Modal from '../../components/Modal';
 import StatePreview from '../../components/StatePreview';
 import KpiCard from '../../components/Kpi';
 import Skeleton from '../../components/Skeleton';
-import BannerTable, { BannerIdentity } from '../../components/BannerTable';
+import Table from '../../components/Table';
+import Select, { MenuItem } from '../../components/Select';
+import { panelShell, PANEL_MAX_H } from '../../components/menuPanel';
 import PageHeader from '../../components/PageHeader';
 import ActionMenu from '../../components/ActionMenu';
+import Toast from '../../components/Toast';
+import { DrawerSection } from '../Contacts/ContactFormDrawer';
 import { EmptyState, ErrorState, ConfirmDialog } from '../../components/Feedback';
 
 /* =====================================================================
    Arenametrix — Consents V3  (CRM Marketing)
    Page only — renders inside the existing app shell (no nav/sidebar here).
-   Tokens: AX Design System — import { DS, TY } + Ico (never redefined inline).
-   Reuses the lighter-restyled multi-line chart + sparkline patterns from
-   ConsentsPage.jsx. BUILD-NEW: KPI cards, time toggle, channel donut,
-   activity-log timeline, edge-state skeletons.
+
+   Refreshed 2026-10 on the patterns Lists V3 and Contacts now share:
+     - page    PageHeader (Secondary + one Primary, no kebab) · no extra
+               horizontal inset (AppLayout already pads 32px) · 16px rhythm
+     - cards   DS container shell: borderSection · radius 12 · shadowSm;
+               titles Title/Medium, captions Label/Medium text/muted
+     - KPIs    DS KpiCard Type=Stat (label · value · delta) and Type=Donut
+               for the channel split
+     - filters shared Select (fixed width → small arrow) for the range; the
+               consent picker reuses Select's panel + MenuItem
+     - list    the DS Table (toolbar search + bulk Options, two-line cells,
+               row ActionMenu, selection) replaces BannerTable
+     - drawers ContactFormDrawer's blue section bands, label-above-value
+               fields, full-width Select (big arrow), Secondary Cancel
+   Local-only, no DS counterpart: the evolution line chart, the sparkline
+   and the activity-log timeline.
    ===================================================================== */
 
 // ── Per-consent line colours (CONSENT_COLORS pattern) ──────────────────
@@ -159,18 +175,45 @@ function trendMeta(t) {
   return { Icon: Ico.TrendFlat, color: DS.textSecondary, label: `${t}%` };
 }
 
+const fmtDate = (s) => (s ? new Date(`${s.slice(0, 10)}T00:00:00`).toLocaleDateString('en-GB') : '—');
+
+/* DS container shell — same as PageHeader, Table and the Lists record cards. */
+const shell = {
+  background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`,
+  borderRadius: DS.radiusXl, boxShadow: DS.shadowSm, boxSizing: 'border-box',
+};
+
+function SectionCard({ title, sub, right, children, style }) {
+  return (
+    <section style={{ ...shell, padding: 20, display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0, ...style }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ ...TY.titleMd, color: DS.textStrong, fontFamily: DS.ff }}>{title}</div>
+          {sub && <div style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff, marginTop: 2 }}>{sub}</div>}
+        </div>
+        {right}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 // =====================================================================
 //  Root
 // =====================================================================
 export default function ConsentsV3() {
   const [viewState, setViewState] = React.useState('ready'); // ready | empty | error | loading
-  const [range, setRange] = React.useState(DATE_RANGES[2]);
+  const [rangeId, setRangeId] = React.useState('12m');
   const [selection, setSelection] = React.useState(['nl-public', 'sms-promo', 'activites', 'nl-vip']);
   const [query, setQuery] = React.useState('');
+  const [checked, setChecked] = React.useState([]);
   const [openConsent, setOpenConsent] = React.useState(null); // consent object for detail drawer
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editingConsent, setEditingConsent] = React.useState(null); // consent being edited, or null = create
+  const [toast, setToast] = React.useState(null);
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2800); };
 
+  const range = DATE_RANGES.find((r) => r.id === rangeId) ?? DATE_RANGES[2];
   const active = CONSENTS.filter((c) => c.status === 'active');
 
   // Headline KPIs (active only)
@@ -179,32 +222,61 @@ export default function ConsentsV3() {
   const activeConsents = active.length;
   const optInRate = Math.round(active.reduce((s, c) => s + c.optInRate, 0) / Math.max(1, active.length));
 
+  const channelTotals = Object.keys(CHANNEL_COLORS)
+    .map((ch) => ({ ch, value: active.filter((c) => c.channel === ch).reduce((s, c) => s + c.contacts, 0) }))
+    .filter((x) => x.value > 0);
+
   const filtered = CONSENTS.filter((c) => c.name.toLowerCase().includes(query.toLowerCase()));
+  const loading = viewState === 'loading';
 
   function toggleConsent(id) {
     setSelection((sel) => sel.includes(id) ? sel.filter((x) => x !== id) : (sel.length >= MAX_SERIES ? sel : [...sel, id]));
   }
+  const openCreate = () => { setEditingConsent(null); setCreateOpen(true); };
+  const openEdit = (c) => { setOpenConsent(null); setEditingConsent(c); setCreateOpen(true); };
+
+  const toolbar = {
+    search: query,
+    onSearchChange: setQuery,
+    searchPlaceholder: 'Search a consent…',
+    // Bulk actions on the ticked consents — the same "Options" menu as Lists.
+    options: (
+      <ActionMenu
+        label={checked.length ? `Options (${checked.length})` : 'Options'}
+        size="Md"
+        align="left"
+        width={240}
+        disabled={checked.length === 0}
+        disabledTooltip="Select at least one consent to use these options"
+        items={[
+          { label: 'Compare in the chart', icon: <Ico.TrendUp s={16} c={DS.textSecondary} />,
+            onClick: () => { setSelection(checked.slice(0, MAX_SERIES)); showToast(`Chart now compares ${Math.min(checked.length, MAX_SERIES)} consent${checked.length === 1 ? '' : 's'}.`); } },
+          { label: 'Export', icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => showToast('Export generated (demo).') },
+        ]}
+      />
+    ),
+  };
 
   return (
-    <div style={{ minHeight: '100%', fontFamily: DS.ff, paddingBottom: 40 }}>
+    <div style={{ minHeight: '100%', fontFamily: DS.ff, paddingBottom: 48 }}>
       {/* Prototype state switcher — shared floating control */}
       <StatePreview groups={[{
         label: 'State', value: viewState, onChange: setViewState,
         options: ['ready', 'loading', 'empty', 'error'],
       }]} />
 
-      {/* ── Page header ─────────────────────────────────────────────── */}
+      {/* ── Page header — Secondary + one Primary, as on Lists ─────────── */}
       <PageHeader
         icon={<Ico.Scan s={20} c={DS.actionPrimary} />}
         title="Consents"
         description="Track and manage opt-in consents across your channels"
-        actions={<>
-          <Btn type="Tertiary" size="Medium" iconLeft={<Ico.AIicon />} onClick={() => {}}>Ask AI</Btn>
-          <Btn type="Primary" size="Medium" iconLeft={<Ico.Plus />} onClick={() => { setEditingConsent(null); setCreateOpen(true); }}>Create a consent</Btn>
-          <ActionMenu size="Medium" align="right" icon={<Ico.Dots s={18} c={DS.actionPrimary} />} items={[
-            { label: 'Export', icon: <Ico.Export s={16} c={DS.textSecondary} />, onClick: () => {} },
-          ]} />
-        </>}
+        actions={(
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Btn type="Tertiary" size="Medium" iconLeft={<Ico.AIicon />} onClick={() => showToast('Ask AI (demo).')}>Ask AI</Btn>
+            <Btn type="Secondary" size="Medium" iconLeft={<Ico.Download s={18} />} onClick={() => showToast('Export generated (demo).')}>Export</Btn>
+            <Btn type="Primary" size="Medium" iconLeft={<Ico.Plus s={18} />} onClick={openCreate}>Create a consent</Btn>
+          </div>
+        )}
       />
 
       {viewState === 'error' && (
@@ -214,88 +286,78 @@ export default function ConsentsV3() {
       {viewState === 'empty' && (
         <EmptyState icon={<Ico.Scan s={24} c={DS.textSecondary} />} title="No consents yet"
                     sub="Create your first consent to start tracking opt-ins over time."
-                    cta={<Btn type="Primary" size="Medium" iconLeft={<Ico.Plus />} onClick={() => setCreateOpen(true)}>Create a consent</Btn>} />
+                    cta={<Btn type="Primary" size="Medium" iconLeft={<Ico.Plus s={18} />} onClick={openCreate}>Create a consent</Btn>} />
       )}
-      {viewState === 'loading' && <OverviewSkeleton />}
 
-      {viewState === 'ready' && (
-        <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* KPI strip — 3-column grid; the charts below align to the same columns */}
+      {(viewState === 'ready' || loading) && (
+        /* No horizontal inset: AppLayout already pads the page by 32px. */
+        <div style={{ paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* KPI strip — 3 columns; the dataviz row below aligns to them */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16, alignItems: 'stretch' }}>
-            <KpiCard title="Active opt-ins" value={fmtNum(activeOptIns)}
-                     sub={`+${fmtNum(deltaVsRef)} since Jan 1`} subColor={DS.feedbackSuccess} />
-            <KpiCard title="Active consents" value={String(activeConsents)} sub="excludes deactivated" />
-            <KpiCard title="Opt-in rate" value={`${optInRate}%`} sub="avg across active consents" />
+            <KpiCard loading={loading} label="Active opt-ins" value={fmtNum(activeOptIns)}
+                     delta={`+${fmtNum(deltaVsRef)} since Jan 1`} trend="up" />
+            <KpiCard loading={loading} label="Active consents" value={String(activeConsents)}
+                     delta="Excludes deactivated" trend="flat" />
+            <KpiCard loading={loading} label="Opt-in rate" value={`${optInRate}%`}
+                     delta="Average across active consents" trend="flat" />
           </div>
 
-          {/* Dataviz row: evolution spans 2 KPI columns, channel breakdown spans 1 */}
+          {/* Dataviz row: evolution spans 2 columns, channel split 1 */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16, alignItems: 'stretch' }}>
-            <section style={{ gridColumn: 'span 2', minWidth: 0, background: DS.bgCard,
-                              border: `1px solid ${DS.borderDefault}`, borderRadius: 10, padding: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-                            gap: 12, flexWrap: 'wrap' }}>
-                <div>
-                  <div style={{ ...TY.h4, color: DS.textDefault }}>Consents evolution</div>
-                  <div style={{ ...TY.b3, color: DS.textSecondary, marginTop: 2 }}>
-                    Monthly opted-in contacts, compared over time.
-                  </div>
-                </div>
+            <SectionCard
+              style={{ gridColumn: 'span 2' }}
+              title="Consents evolution"
+              sub="Monthly opted-in contacts, compared over time"
+              right={(
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <ConsentsFilter consents={CONSENTS} selection={selection} onToggle={toggleConsent} />
-                  <RangeDropdown value={range} onChange={setRange} />
+                  <Select width={160} value={rangeId} onChange={setRangeId}
+                          options={DATE_RANGES.map((r) => ({ value: r.id, label: r.label }))} />
                 </div>
-              </div>
+              )}
+            >
+              {loading
+                ? <Skeleton width="100%" height={300} radius={8} />
+                : <EvolutionChart consents={CONSENTS} selection={selection} months={range.months} labels={MONTH_LABELS} />}
+            </SectionCard>
 
-              <div style={{ marginTop: 16 }}>
-                <EvolutionChart consents={CONSENTS} selection={selection}
-                                months={range.months} labels={MONTH_LABELS} />
-              </div>
-            </section>
-
-            <section style={{ gridColumn: 'span 1', minWidth: 0, background: DS.bgCard,
-                              border: `1px solid ${DS.borderDefault}`, borderRadius: 10, padding: 20,
-                              display: 'flex', flexDirection: 'column' }}>
-              <div style={{ ...TY.h4, color: DS.textDefault }}>Channel breakdown</div>
-              <div style={{ ...TY.b3, color: DS.textSecondary, marginTop: 2 }}>
-                Share of active opt-ins per channel.
-              </div>
-              <ChannelDonut consents={active} />
-            </section>
+            {/* DS KPI Card Type=Donut — the breakdown into categories. */}
+            <KpiCard
+              type="donut"
+              loading={loading}
+              label="Channel breakdown"
+              total={fmtNum(activeOptIns)}
+              totalLabel="opt-ins"
+              segments={channelTotals.map(({ ch, value }) => ({
+                label: ch, value, color: CHANNEL_COLORS[ch],
+                display: `${fmtNum(value)} · ${Math.round((value / Math.max(1, activeOptIns)) * 100)}%`,
+              }))}
+              note="Share of active opt-ins per channel"
+            />
           </div>
 
-          {/* List of consents */}
-          <section>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                          gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
-              <div style={{ ...TY.h4, color: DS.textDefault }}>
-                Consents list <span style={{ ...TY.b3, color: DS.textSecondary }}>{filtered.length} consents</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <SearchField value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search a consent…" />
-              </div>
-            </div>
-
-            {filtered.length === 0 ? (
-              <div style={{ ...TY.b2, color: DS.textSecondary, padding: '24px 0', textAlign: 'left' }}>
-                No consent matches “{query}”.
-              </div>
-            ) : (
-              <BannerTable
-                columns={CONSENT_COLUMNS}
-                rows={filtered}
-                rowId={(c) => c.id}
-                onRowClick={(c) => setOpenConsent(c)}
-                dim={(c) => c.status === 'deactivated'}
-                cell={consentCell}
-                actions={(c) => (
-                  <ActionMenu items={[
-                    { label: 'View details', icon: <Ico.Eye s={16} c={DS.actionPrimary} />, onClick: () => setOpenConsent(c) },
-                    { label: 'Export this consent', icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => {} },
-                  ]} />
-                )}
-              />
+          {/* Consents list — one DS Table (toolbar · rows · pagination) */}
+          <Table
+            columns={CONSENT_COLUMNS}
+            rows={loading ? SKELETON_ROWS : filtered}
+            rowId={(c) => c.id}
+            cell={loading ? skeletonCell : consentCell}
+            onRowClick={loading ? undefined : (c) => setOpenConsent(c)}
+            rowStyle={(c) => (c.status === 'deactivated' ? { opacity: 0.6 } : undefined)}
+            selectable={!loading}
+            selected={checked}
+            onSelectedChange={setChecked}
+            actions={loading ? undefined : (c) => (
+              <ActionMenu items={[
+                { label: 'View details', icon: <Ico.Eye s={16} c={DS.actionPrimary} />, onClick: () => setOpenConsent(c) },
+                { label: 'Edit', icon: <Ico.Edit s={16} c={DS.textSecondary} />, onClick: () => openEdit(c) },
+                { label: 'Export this consent', icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => showToast(`“${c.name}” exported (demo).`) },
+              ]} />
             )}
-          </section>
+            toolbar={toolbar}
+            page={0} pages={1} setPage={() => {}} total={loading ? null : filtered.length} pageSize={filtered.length || 1}
+            emptyState={<EmptyState icon={<Ico.Search s={24} />} title="No results" sub={`No consent matches “${query}”.`} />}
+          />
         </div>
       )}
 
@@ -304,139 +366,98 @@ export default function ConsentsV3() {
              variant="panel" width={540} title={openConsent?.name || ''}
              footer={openConsent ? (
                <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
-                 <Btn type="Secondary" size="Medium" iconLeft={<Ico.Edit />}
-                      onClick={() => { const c = openConsent; setOpenConsent(null); setEditingConsent(c); setCreateOpen(true); }}>Edit</Btn>
+                 <Btn type="Secondary" size="Medium" iconLeft={<Ico.EditSquare s={16} />} onClick={() => openEdit(openConsent)}>Edit</Btn>
                  <Btn type="Primary" size="Medium" onClick={() => setOpenConsent(null)}>Close</Btn>
                </div>
              ) : null}>
-        {openConsent && <DetailDrawer consent={openConsent} />}
+        {openConsent && <DetailDrawer consent={openConsent} onExport={() => showToast(`“${openConsent.name}” exported (demo).`)} />}
       </Modal>
 
       {/* ── Create / edit drawer (+ unsaved guard) ──────────────────── */}
       <CreateDrawer open={createOpen} editing={editingConsent}
+                    onSaved={(name, editing) => showToast(editing ? `“${name}” updated.` : `“${name}” created.`)}
                     onRequestClose={() => { setCreateOpen(false); setEditingConsent(null); }} />
+      <Toast toast={toast} />
     </div>
   );
 }
 
 // =====================================================================
-//  Popover  (BUILD-NEW — outside-click dropdown shell)
-// =====================================================================
-function Popover({ trigger, children, width = 280, align = 'right' }) {
-  const [open, setOpen] = React.useState(false);
-  const ref = React.useRef(null);
-  React.useEffect(() => {
-    function onDown(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
-    document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, []);
-  return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      {trigger(open, () => setOpen((o) => !o))}
-      {open && (
-        <div style={{ position: 'absolute', top: 44, [align]: 0, zIndex: 20, width,
-                      background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
-                      borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.12)', padding: 6,
-                      maxHeight: 300, overflowY: 'auto' }}>
-          {children(() => setOpen(false))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function DropdownTrigger({ open, onClick, icon, children }) {
-  return (
-    <button type="button" onClick={onClick}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 40,
-                     padding: '0 12px', background: DS.bgCard, ...TY.b2, fontFamily: DS.ff,
-                     color: DS.textDefault, cursor: 'pointer', whiteSpace: 'nowrap',
-                     border: `1px solid ${open ? DS.borderFocus : DS.borderDefault}`, borderRadius: 6 }}>
-      {icon}
-      {children}
-      <span style={{ display: 'inline-flex', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }}>
-        <Ico.ChevDown s={16} c={DS.textSecondary} />
-      </span>
-    </button>
-  );
-}
-
-// =====================================================================
-//  Consents quick-filter  (BUILD-NEW — compact multi-select)
+//  Consents quick-filter — Select's trigger box + panel + MenuItem, with
+//  the series colour dot and the 6-series cap the chart needs (MultiSelect
+//  has neither, so this stays a thin local composition).
 // =====================================================================
 function ConsentsFilter({ consents, selection, onToggle }) {
+  const [open, setOpen] = React.useState(false);
+  const [pos, setPos] = React.useState(null);
+  const trigRef = React.useRef(null);
+  const panelRef = React.useRef(null);
   const atCap = selection.length >= MAX_SERIES;
-  return (
-    <Popover width={300} align="left" trigger={(open, toggle) => (
-      <DropdownTrigger open={open} onClick={toggle}
-                       icon={<Ico.List s={16} c={DS.actionPrimary} />}>
-        Consents
-        <span style={{ ...TY.b3, fontWeight: TY.weightSemiBold, color: DS.actionPrimary,
-                       background: DS.blue100, borderRadius: 10, padding: '1px 7px' }}>
-          {selection.length}/{MAX_SERIES}
-        </span>
-      </DropdownTrigger>
-    )}>
-      {() => (
-        <>
-          <div style={{ ...TY.b3, color: DS.textSecondary, padding: '6px 10px 8px' }}>
-            Pick up to {MAX_SERIES} consents to compare.
-          </div>
-          {consents.map((c) => {
-            const on = selection.includes(c.id);
-            const lock = !on && atCap;
-            return (
-              <div key={c.id} role="button" aria-disabled={lock}
-                   title={lock ? `Remove one to add another (max ${MAX_SERIES})` : undefined}
-                   onClick={() => !lock && onToggle(c.id)}
-                   style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
-                            borderRadius: 6, cursor: lock ? 'not-allowed' : 'pointer',
-                            opacity: lock ? 0.45 : 1, ...TY.b2, color: DS.textDefault }}
-                   onMouseEnter={(e) => { if (!lock) e.currentTarget.style.background = DS.actionSecondaryHover; }}
-                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%',
-                               background: CONSENT_COLORS[c.id], flexShrink: 0 }} />
-                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {c.name}
-                </span>
-                {on && <Ico.Check s={16} c={DS.actionPrimary} />}
-              </div>
-            );
-          })}
-        </>
-      )}
-    </Popover>
-  );
-}
 
-// =====================================================================
-//  Date-range dropdown  (BUILD-NEW — single dropdown)
-// =====================================================================
-function RangeDropdown({ value, onChange }) {
+  React.useEffect(() => {
+    if (!open) return undefined;
+    const f = (e) => {
+      if (trigRef.current?.contains(e.target) || panelRef.current?.contains(e.target)) return;
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', f);
+    return () => document.removeEventListener('mousedown', f);
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open || !trigRef.current) return;
+    const r = trigRef.current.getBoundingClientRect();
+    setPos({ top: r.bottom + window.scrollY + 4, left: r.right + window.scrollX - 300 });
+  }, [open]);
+
   return (
-    <Popover width={180} align="right" trigger={(open, toggle) => (
-      <DropdownTrigger open={open} onClick={toggle}
-                       icon={<Ico.Calendar s={16} c={DS.actionPrimary} />}>
-        {value.label}
-      </DropdownTrigger>
-    )}>
-      {(close) => DATE_RANGES.map((r) => {
-        const active = r.id === value.id;
-        return (
-          <div key={r.id} role="button" onClick={() => { onChange(r); close(); }}
-               style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '8px 10px', borderRadius: 6, cursor: 'pointer', ...TY.b2,
-                        color: active ? DS.actionPrimary : DS.textDefault,
-                        fontWeight: active ? TY.weightSemiBold : 400,
-                        background: active ? DS.blue100 : 'transparent' }}
-               onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = DS.actionSecondaryHover; }}
-               onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
-            {r.label}
-            {active && <Ico.Check s={16} c={DS.actionPrimary} />}
+    <>
+      <button
+        ref={trigRef}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8, height: 36, padding: '0 12px',
+          boxSizing: 'border-box', borderRadius: DS.radiusLg, background: DS.surfaceCanvas,
+          border: `1px solid ${open ? DS.borderFocus : DS.borderField}`, cursor: 'pointer',
+          ...TY.bodyMd, fontFamily: DS.ff, color: DS.textDefault, whiteSpace: 'nowrap',
+          transition: `border-color ${DS.durFast} ${DS.ease}`,
+        }}
+      >
+        Consents
+        <Badge tone="primary">{selection.length}/{MAX_SERIES}</Badge>
+        {open ? <Ico.ArrowUpSmall s={16} c={DS.textSecondary} /> : <Ico.ArrowDownSmall s={16} c={DS.textSecondary} />}
+      </button>
+      {open && pos && createPortal(
+        <div ref={panelRef} style={{ position: 'absolute', top: pos.top, left: pos.left, zIndex: 9999 }}>
+          <div style={{ ...panelShell, width: 300, maxHeight: PANEL_MAX_H }}>
+            <div style={{ padding: '8px 12px', ...TY.labelMd, color: DS.textSecondary, fontFamily: DS.ff }}>
+              Pick up to {MAX_SERIES} consents to compare.
+            </div>
+            {consents.map((c) => {
+              const on = selection.includes(c.id);
+              const lock = !on && atCap;
+              return (
+                <div key={c.id} title={lock ? `Remove one to add another (max ${MAX_SERIES})` : undefined}
+                     style={{ opacity: lock ? 0.45 : 1, pointerEvents: lock ? 'none' : 'auto' }}>
+                  <MenuItem
+                    selected={on}
+                    onClick={() => onToggle(c.id)}
+                    label={(
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: CONSENT_COLORS[c.id], flexShrink: 0 }} />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                      </span>
+                    )}
+                  />
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
-    </Popover>
+        </div>,
+        document.body,
+      )}
+    </>
   );
 }
 
@@ -511,7 +532,7 @@ function EvolutionChart({ consents, selection, months, labels }) {
         {/* hover guide line */}
         {hoverIdx != null && selected.length > 0 && (
           <line x1={xAt(hoverIdx)} x2={xAt(hoverIdx)} y1={PAD_T} y2={H - PAD_B}
-                stroke={DS.neutral200} strokeWidth="1" strokeDasharray="3 3" />
+                stroke={DS.borderDefault} strokeWidth="1" strokeDasharray="3 3" />
         )}
         {selected.map((s) => {
           const color = CONSENT_COLORS[s.id];
@@ -529,11 +550,11 @@ function EvolutionChart({ consents, selection, months, labels }) {
               <path d={d} fill="none" stroke={color} strokeWidth="2"
                     strokeLinecap="round" strokeLinejoin="round" />
               {/* end dot */}
-              <circle cx={last.x} cy={last.y} r="3.5" fill={DS.bgCard} stroke={color} strokeWidth="2" />
+              <circle cx={last.x} cy={last.y} r="3.5" fill={DS.surfaceCanvas} stroke={color} strokeWidth="2" />
               {/* hovered point */}
               {hov && (
                 <circle cx={xAt(hoverIdx)} cy={yAt(s.points[hoverIdx])} r="6"
-                        fill={DS.bgCard} stroke={color} strokeWidth="2.5" />
+                        fill={DS.surfaceCanvas} stroke={color} strokeWidth="2.5" />
               )}
             </g>
           );
@@ -550,19 +571,19 @@ function EvolutionChart({ consents, selection, months, labels }) {
       {hoverIdx != null && selected.length > 0 && (
         <div style={{ position: 'absolute', top: 12,
                       left: `calc(${(xAt(hoverIdx) / W) * 100}% + ${xAt(hoverIdx) > W / 2 ? '-240px' : '16px'})`,
-                      background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
-                      borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.12)',
+                      background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`,
+                      borderRadius: DS.radiusLg, boxShadow: DS.shadowMd,
                       padding: 12, minWidth: 224, pointerEvents: 'none', zIndex: 5 }}>
-          <div style={{ ...TY.b3, color: DS.textSecondary, marginBottom: 8,
+          <div style={{ ...TY.labelMd, color: DS.textMuted, marginBottom: 8,
                         textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             {shownLabels[hoverIdx]}
           </div>
           {selected.map((s) => (
             <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0' }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: CONSENT_COLORS[s.id], flexShrink: 0 }} />
-              <span style={{ flex: 1, ...TY.b3, color: DS.textDefault, overflow: 'hidden',
+              <span style={{ flex: 1, ...TY.bodySm, color: DS.textDefault, overflow: 'hidden',
                              textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
-              <span style={{ ...TY.h5, color: DS.textDefault }}>{fmtNum(s.points[hoverIdx])}</span>
+              <span style={{ ...TY.bodyMdBold, color: DS.textStrong }}>{fmtNum(s.points[hoverIdx])}</span>
             </div>
           ))}
         </div>
@@ -571,70 +592,12 @@ function EvolutionChart({ consents, selection, months, labels }) {
   );
 }
 
-// =====================================================================
-//  Channel breakdown donut  (BUILD-NEW)
-// =====================================================================
-// One brand secondary colour per channel — exactly four channels, four brand hues.
+// ── Channel palette — one brand hue per channel ─────────────────────
 // CHANNEL_COLORS: pale brand hues for large solid fills (donut arcs, legend swatches).
 const CHANNEL_COLORS = { Email: DS.brandViolet, SMS: DS.brandMagenta, WhatsApp: DS.brandMint, Push: DS.brandYellow };
 // CHANNEL_INK: darkened variants for small 14px icons that need contrast on white.
 const CHANNEL_INK = { Email: DS.brandViolet, SMS: DS.brandMagenta, WhatsApp: DS.brandMintInk, Push: DS.brandYellowInk };
 
-function ChannelDonut({ consents }) {
-  const totals = {};
-  consents.forEach((c) => { totals[c.channel] = (totals[c.channel] || 0) + c.contacts; });
-  const channels = Object.keys(CHANNEL_COLORS).filter((ch) => totals[ch]);
-  const total = channels.reduce((s, ch) => s + totals[ch], 0) || 1;
-
-  const R = 70, SW = 22, C = 90, circ = 2 * Math.PI * R;
-  let offset = 0;
-  const arcs = channels.map((ch) => {
-    const frac = totals[ch] / total;
-    const seg = { ch, frac, dash: frac * circ, offset };
-    offset += frac * circ;
-    return seg;
-  });
-
-  return (
-    <div style={{ marginTop: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
-      {/* Donut — centered in the flexible space */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 180 }}>
-        <svg width={C * 2} height={C * 2} viewBox={`0 0 ${C * 2} ${C * 2}`}>
-          <circle cx={C} cy={C} r={R} fill="none" stroke={DS.bgSurface} strokeWidth={SW} />
-          {arcs.map((a) => (
-            <circle key={a.ch} cx={C} cy={C} r={R} fill="none" stroke={CHANNEL_COLORS[a.ch]}
-                    strokeWidth={SW} strokeDasharray={`${a.dash} ${circ - a.dash}`}
-                    strokeDashoffset={-a.offset} transform={`rotate(-90 ${C} ${C})`}
-                    strokeLinecap="butt" />
-          ))}
-          <text x={C} y={C - 4} textAnchor="middle" style={{ ...TY.h3 }} fill={DS.textDefault}>
-            {fmtNum(total)}
-          </text>
-          <text x={C} y={C + 16} textAnchor="middle" fontSize="11" fill={DS.textSecondary}
-                fontFamily="Inter, sans-serif">opt-ins</text>
-        </svg>
-      </div>
-      {/* Legend — rows spread with dividers so the card fills evenly */}
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
-        {channels.map((ch, i) => {
-          const pct = (totals[ch] / total) * 100;
-          return (
-            <div key={ch} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0',
-                                   borderTop: i === 0 ? 'none' : `1px solid ${DS.borderDefault}`,
-                                   ...TY.b3, color: DS.textDefault }}>
-              <span style={{ width: 10, height: 10, borderRadius: 3, background: CHANNEL_COLORS[ch], flexShrink: 0 }} />
-              <span style={{ flex: 1 }}>{ch}</span>
-              <span style={{ color: DS.textSecondary }}>{fmtNum(totals[ch])}</span>
-              <span style={{ width: 48, textAlign: 'right', fontWeight: TY.weightSemiBold }}>
-                {pct < 1 ? '<1' : pct.toFixed(0)}%
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // =====================================================================
 //  Sparkline  (reused pattern from ConsentsPage.jsx)
@@ -671,52 +634,65 @@ function Sparkline({ data, color }) {
 
 // =====================================================================
 //  Consents list — shared BannerTable (same table component as Lists)
+
+// =====================================================================
+//  Consents list — DS Table columns + cells
 // =====================================================================
 const CONSENT_COLUMNS = [
-  { key: 'name',     label: 'Consent',     basis: 'minmax(220px, 2.4fr)' },
-  { key: 'channel',  label: 'Channel',     basis: '130px' },
-  { key: 'created',  label: 'Created',     basis: '120px' },
-  { key: 'contacts', label: 'Contacts',    basis: '150px' },
-  { key: 'trend',    label: '12-mo trend', basis: '130px' },
+  // Name over purpose, in the DS two-line cell. Capped like the Lists name
+  // column so it doesn't swallow every spare pixel.
+  { key: 'name',     label: 'Consent',     type: 'titleDescription', width: 340 },
+  { key: 'channel',  label: 'Channel' },
+  { key: 'optIn',    label: 'Opt-in' },
+  { key: 'status',   label: 'Status' },
+  { key: 'created',  label: 'Creation date' },
+  // Count over its trend, right-aligned — same cell as the Lists contacts.
+  { key: 'contacts', label: 'Contacts',    type: 'titleDescription', width: 150, align: 'right' },
+  { key: 'trend',    label: '12-mo trend', width: 140 },
 ];
+
+const clip = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 
 function consentCell(c, key) {
   const ChIcon = CHANNEL_ICON[c.channel] || Ico.Mail;
   switch (key) {
     case 'name':
-      return (
-        <BannerIdentity
-          icon={<ChIcon s={20} c={DS.actionPrimary} />}
-          title={c.name}
-          badge={c.status === 'deactivated' ? <StatusBadge status="inactive">Deactivated</StatusBadge> : null}
-          description={c.purpose}
-        />
-      );
+      return { title: c.name, description: c.purpose };
     case 'channel':
       return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-          <ChIcon s={14} c={CHANNEL_INK[c.channel] || DS.textSecondary} />{c.channel}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...clip }}>
+          <ChIcon s={16} c={CHANNEL_INK[c.channel] || DS.textSecondary} />{c.channel}
         </span>
       );
+    case 'optIn':
+      return <Badge tone="neutral">{c.optIn === 'double' ? 'Double' : 'Single'}</Badge>;
+    case 'status':
+      return c.status === 'deactivated'
+        ? <StatusBadge status="inactive">Deactivated</StatusBadge>
+        : <StatusBadge status="success">Active</StatusBadge>;
     case 'created':
-      return <span style={{ color: DS.textSecondary, whiteSpace: 'nowrap' }}>{c.createdAt}</span>;
+      return fmtDate(c.createdAt);
     case 'contacts': {
       const t = trendMeta(c.netTrend);
-      return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-          <span style={{ fontWeight: 700, color: DS.textDefault }}>{fmtNum(c.contacts)}</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, ...TY.b3, color: t.color }}>
-            <t.Icon s={14} c={t.color} />{t.label}
-          </span>
-        </span>
-      );
+      return {
+        title: fmtNum(c.contacts),
+        description: <span style={{ color: t.color }}>{t.label} over 12 months</span>,
+      };
     }
     case 'trend':
-      return <Sparkline data={c.series} color={CONSENT_COLORS[c.id] || DS.actionPrimary} />;
+      return <div style={{ width: '100%' }}><Sparkline data={c.series} color={CONSENT_COLORS[c.id] || DS.actionPrimary} /></div>;
     default:
       return null;
   }
 }
+
+/* Loading keeps the table shell — toolbar, headers stay put while rows fill in. */
+const SKELETON_ROWS = [0, 1, 2, 3, 4].map((i) => ({ id: `skel-${i}` }));
+const skeletonCell = (_row, key) => {
+  if (key === 'name')     return { title: <Skeleton width={180} height={12} />, description: <Skeleton width={240} height={9} /> };
+  if (key === 'contacts') return { title: <Skeleton width={54} height={12} />, description: <Skeleton width={90} height={9} /> };
+  return <Skeleton width={80} height={12} />;
+};
 
 // =====================================================================
 //  Detail drawer body
@@ -728,73 +704,77 @@ const EVENT_META = {
   reactivated: { color: DS.feedbackWarning, label: 'Reactivated' },
 };
 
-function DetailDrawer({ consent }) {
+/* Label above value — the one field format of the prototypes. */
+function InfoItem({ label, children }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+      <span style={{ ...TY.labelMd, color: DS.textSecondary, fontFamily: DS.ff }}>{label}</span>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...TY.bodyMd, color: DS.textStrong, fontFamily: DS.ff }}>{children}</span>
+    </div>
+  );
+}
+
+function DetailDrawer({ consent, onExport }) {
   const t = trendMeta(consent.netTrend);
   const ChIcon = CHANNEL_ICON[consent.channel] || Ico.Mail;
   return (
-    <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* sub-header: tags + channel */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <Tag variant="unselected">{consent.optIn === 'double' ? 'Double opt-in' : 'Single opt-in'}</Tag>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, ...TY.b3, color: DS.textSecondary }}>
-          <ChIcon s={14} c={CHANNEL_INK[consent.channel] || DS.textSecondary} />{consent.channel}
-        </span>
-        {consent.status === 'deactivated' && <StatusBadge status="inactive">Deactivated</StatusBadge>}
+    <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <DrawerSection title="Information" />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <InfoItem label="Channel"><ChIcon s={16} c={CHANNEL_INK[consent.channel] || DS.textSecondary} />{consent.channel}</InfoItem>
+        <InfoItem label="Opt-in type">{consent.optIn === 'double' ? 'Double opt-in' : 'Single opt-in'}</InfoItem>
+        <InfoItem label="Status">
+          {consent.status === 'deactivated'
+            ? <StatusBadge status="inactive">Deactivated</StatusBadge>
+            : <StatusBadge status="success">Active</StatusBadge>}
+        </InfoItem>
+        <InfoItem label="Created">{fmtDate(consent.createdAt)} · {consent.createdBy}</InfoItem>
+      </div>
+      <InfoItem label="Purpose">{consent.purpose}</InfoItem>
+
+      <DrawerSection title="Performance" />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <InfoItem label="Contacts"><span style={{ ...TY.titleMd }}>{fmtNum(consent.contacts)}</span></InfoItem>
+        <InfoItem label="Net opt-in trend"><span style={{ ...TY.titleMd, color: t.color }}>{t.label}</span></InfoItem>
+        <InfoItem label="Opt-in rate"><span style={{ ...TY.titleMd }}>{consent.optInRate}%</span></InfoItem>
+        <InfoItem label="Opt-out rate"><span style={{ ...TY.titleMd }}>{consent.optOutRate}%</span></InfoItem>
+      </div>
+      <div style={{ ...shell, boxShadow: 'none', padding: 12 }}>
+        <EvolutionChart consents={[consent]} selection={[consent.id]} months={12} labels={MONTH_LABELS} />
       </div>
 
-      {/* per-consent KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <MiniKpi label="Net opt-in trend" value={t.label} color={t.color} />
-        <MiniKpi label="Contacts" value={fmtNum(consent.contacts)} />
-        <MiniKpi label="Opt-in rate" value={`${consent.optInRate}%`} />
-        <MiniKpi label="Opt-out rate" value={`${consent.optOutRate}%`} />
-      </div>
-
-      {/* single-consent evolution */}
-      <div>
-        <div style={{ ...TY.h5, color: DS.textDefault, marginBottom: 8 }}>Evolution (12 months)</div>
-        <div style={{ border: `1px solid ${DS.borderDefault}`, borderRadius: 8, padding: 12 }}>
-          <EvolutionChart consents={[consent]} selection={[consent.id]} months={12} labels={MONTH_LABELS} />
-        </div>
-      </div>
-
-      {/* activity log */}
-      <div>
-        <div style={{ ...TY.h5, color: DS.textDefault, marginBottom: 10 }}>Activity log</div>
-        {consent.log.length === 0 ? (
-          <div style={{ ...TY.b2, color: DS.textSecondary }}>No activity recorded yet.</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {consent.log.map((ev, i) => {
-              const m = EVENT_META[ev.event] || EVENT_META.updated;
-              const last = i === consent.log.length - 1;
-              return (
-                <div key={i} style={{ display: 'flex', gap: 12 }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: m.color, marginTop: 4 }} />
-                    {!last && <span style={{ flex: 1, width: 2, background: DS.borderDefault, margin: '2px 0' }} />}
-                  </div>
-                  <div style={{ paddingBottom: last ? 0 : 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ ...TY.b2, color: m.color, fontWeight: TY.weightSemiBold }}>{m.label}</span>
-                      <span style={{ ...TY.b3, color: DS.textSecondary }}>{ev.date}</span>
-                    </div>
-                    <div style={{ ...TY.b3, color: DS.textDefault, marginTop: 2 }}>{ev.note}</div>
-                    <div style={{ ...TY.b3, color: DS.textSecondary, marginTop: 2,
-                                  display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      <Ico.User s={12} c={DS.textSecondary} />{ev.author}
-                    </div>
-                  </div>
+      <DrawerSection title="Activity log" />
+      {consent.log.length === 0 ? (
+        <span style={{ ...TY.bodyMd, color: DS.textMuted, fontFamily: DS.ff }}>No activity recorded yet.</span>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {consent.log.map((ev, i) => {
+            const m = EVENT_META[ev.event] || EVENT_META.updated;
+            const last = i === consent.log.length - 1;
+            return (
+              <div key={i} style={{ display: 'flex', gap: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: m.color, marginTop: 5 }} />
+                  {!last && <span style={{ flex: 1, width: 2, background: DS.borderSection, margin: '2px 0' }} />}
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                <div style={{ paddingBottom: last ? 0 : 16, display: 'flex', flexDirection: 'column', gap: 2, fontFamily: DS.ff }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ ...TY.bodyMdBold, color: m.color }}>{m.label}</span>
+                    <span style={{ ...TY.labelMd, fontWeight: 400, color: DS.textMuted }}>{ev.date}</span>
+                  </div>
+                  <span style={{ ...TY.bodySm, color: DS.textDefault }}>{ev.note}</span>
+                  <span style={{ ...TY.labelMd, fontWeight: 400, color: DS.textSecondary, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Ico.User s={12} c={DS.textSecondary} />{ev.author}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* export */}
-      <div style={{ borderTop: `1px solid ${DS.borderDefault}`, paddingTop: 16 }}>
-        <Btn type="Secondary" size="Medium" iconLeft={<Ico.Download />} onClick={() => {}}>
+      <div style={{ display: 'flex' }}>
+        <Btn type="Secondary" size="Medium" iconLeft={<Ico.Download s={16} />} onClick={onExport}>
           Export this consent (CSV / PDF)
         </Btn>
       </div>
@@ -802,22 +782,14 @@ function DetailDrawer({ consent }) {
   );
 }
 
-function MiniKpi({ label, value, color = DS.textDefault }) {
-  return (
-    <div style={{ background: DS.bgSurface, border: `1px solid ${DS.borderDefault}`,
-                  borderRadius: 8, padding: 12 }}>
-      <div style={{ ...TY.b3, color: DS.textSecondary }}>{label}</div>
-      <div style={{ ...TY.h4, color, marginTop: 4 }}>{value}</div>
-    </div>
-  );
-}
-
 // =====================================================================
-//  Create drawer (+ unsaved-changes guard)
+//  Create / edit drawer (+ unsaved-changes guard)
+//  Same build as ContactFormDrawer: blue section bands, label above the
+//  field, full-width Select, Secondary Cancel + one Primary.
 // =====================================================================
 const CHANNELS = ['Email', 'SMS', 'WhatsApp', 'Push'];
 
-function CreateDrawer({ open, editing, onRequestClose }) {
+function CreateDrawer({ open, editing, onRequestClose, onSaved }) {
   const [name, setName] = React.useState('');
   const [purpose, setPurpose] = React.useState('');
   const [channel, setChannel] = React.useState('Email');
@@ -843,39 +815,39 @@ function CreateDrawer({ open, editing, onRequestClose }) {
 
   function attemptClose() { if (dirty) setConfirm(true); else onRequestClose(); }
   function discard() { setConfirm(false); onRequestClose(); }
+  function save() { onSaved?.(name.trim(), !!editing); onRequestClose(); }
 
   return (
     <>
-      <Modal open={open} onClose={attemptClose} variant="panel" width={540}
+      <Modal open={open} onClose={attemptClose} variant="panel" width={460}
              title={editing ? 'Edit consent' : 'Create a consent'}
              footer={
-               <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
-                 <Btn type="Tertiary" size="Medium" onClick={attemptClose}>Cancel</Btn>
-                 <Btn type="Primary" size="Medium" onClick={onRequestClose}>{editing ? 'Save changes' : 'Create consent'}</Btn>
+               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', width: '100%' }}>
+                 <Btn type="Secondary" size="Medium" onClick={attemptClose}>Cancel</Btn>
+                 <Btn type="Primary" size="Medium" disabled={!name.trim()} onClick={save}>{editing ? 'Save' : 'Create consent'}</Btn>
                </div>
              }>
-        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <Field label="Consent name" value={name} onChange={(e) => setName(e.target.value)}
+        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <DrawerSection title="Consent information" />
+          <Field label="Consent name" required value={name} onChange={(e) => setName(e.target.value)}
                  placeholder="e.g. Newsletter Public" />
           <TextArea label="Purpose" value={purpose} onChange={(e) => setPurpose(e.target.value)}
                     placeholder="What this consent is used for…" />
-          <div>
-            <div style={{ ...TY.b2, color: DS.textSecondary, marginBottom: 8 }}>Channel</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
-              {CHANNELS.map((ch) => (
-                <Radio key={ch} name="channel" value={ch} checked={channel === ch}
-                       onChange={() => setChannel(ch)} label={ch} />
-              ))}
-            </div>
-          </div>
-          <div>
-            <div style={{ ...TY.b2, color: DS.textSecondary, marginBottom: 8 }}>Opt-in type</div>
-            <div style={{ display: 'flex', gap: 14 }}>
+
+          <DrawerSection title="Collection" />
+          <Select label="Channel" value={channel} onChange={setChannel}
+                  options={CHANNELS.map((ch) => ({ value: ch, label: ch }))} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ ...TY.labelMd, color: DS.textStrong, fontFamily: DS.ff }}>Opt-in type</span>
+            <div style={{ display: 'flex', gap: 16 }}>
               <Radio name="optin" value="single" checked={optIn === 'single'}
                      onChange={() => setOptIn('single')} label="Single opt-in" />
               <Radio name="optin" value="double" checked={optIn === 'double'}
                      onChange={() => setOptIn('double')} label="Double opt-in" />
             </div>
+            <span style={{ ...TY.labelMd, fontWeight: 400, color: DS.textMuted, fontFamily: DS.ff }}>
+              Double opt-in asks the contact to confirm by email before the consent counts.
+            </span>
           </div>
         </div>
       </Modal>
@@ -885,53 +857,5 @@ function CreateDrawer({ open, editing, onRequestClose }) {
                      confirmLabel="Discard" cancelLabel="Keep editing" danger confirmIcon={null}
                      onConfirm={discard} onCancel={() => setConfirm(false)} />
     </>
-  );
-}
-
-// =====================================================================
-//  Loading skeleton
-// =====================================================================
-function OverviewSkeleton() {
-  return (
-    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div style={{ display: 'flex', gap: 16 }}>
-        {[0, 1, 2].map((i) => (
-          <div key={i} style={{ flex: 1, background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
-                                borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Skeleton width={110} height={12} /><Skeleton width={80} height={24} /><Skeleton width={130} height={10} />
-          </div>
-        ))}
-      </div>
-      <div style={{ display: 'flex', gap: 16 }}>
-        <div style={{ flex: '1 1 560px', background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
-                      borderRadius: 10, padding: 20, height: 360 }}>
-          <Skeleton width={200} height={16} />
-          <div style={{ marginTop: 24, display: 'flex', alignItems: 'flex-end', gap: 8, height: 250 }}>
-            {Array.from({ length: 13 }).map((_, i) => (
-              <Skeleton key={i} width={`${100 / 13}%`} height={60 + ((i * 37) % 170)} radius={6} />
-            ))}
-          </div>
-        </div>
-        <div style={{ flex: '1 1 320px', background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
-                      borderRadius: 10, padding: 20, height: 360, display: 'flex',
-                      flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          <Skeleton width={160} height={16} />
-          <div style={{ width: 160, height: 160, borderRadius: '50%', background: DS.borderDefault, opacity: 0.6, marginTop: 16 }} />
-        </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} style={{ background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
-                                borderRadius: 10, padding: '14px 20px', height: 70,
-                                display: 'flex', alignItems: 'center', gap: 20 }}>
-            <Skeleton width={40} height={40} radius={8} />
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <Skeleton width={240} height={14} /><Skeleton width={160} height={10} />
-            </div>
-            <Skeleton width={120} height={36} />
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }

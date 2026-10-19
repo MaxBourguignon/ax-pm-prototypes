@@ -90,7 +90,7 @@ export default function AddFilterModal({ open, onClose, onSelect }) {
                             onMouseEnter={e => e.currentTarget.style.background = DS.neutral100}
                             onMouseLeave={e => e.currentTarget.style.background = DS.white}
                         >
-                            <Ico.ChevL s={13} c={DS.navy} />
+                            <Ico.ArrowLeftSmall s={13} c={DS.navy} />
                         </button>
                     )}
 
@@ -176,7 +176,7 @@ export default function AddFilterModal({ open, onClose, onSelect }) {
                                                     {obj.description}
                                                 </p>
                                             </div>
-                                            <Ico.ChevRight s={15} c={isHov ? DS.neutral700 : DS.neutral300} />
+                                            <Ico.ArrowRightSmall s={15} c={isHov ? DS.neutral700 : DS.neutral300} />
                                         </div>
                                     );
                                 })}
@@ -209,7 +209,7 @@ export default function AddFilterModal({ open, onClose, onSelect }) {
                                         </p>
                                     )}
                                 </div>
-                                <Ico.ChevRight s={15} c={isHov ? DS.neutral700 : DS.neutral300} />
+                                <Ico.ArrowRightSmall s={15} c={isHov ? DS.neutral700 : DS.neutral300} />
                             </div>
                         );
                     })}

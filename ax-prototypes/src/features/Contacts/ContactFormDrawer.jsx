@@ -9,7 +9,8 @@
  *
  * Same sections, same order and same field set as the contact record's right
  * rail — personal information, coordinates, professional — so a field is filled
- * in where it is later read.
+ * in where it is later read. Notes close the form; the record shows them under
+ * the transaction table.
  *
  * Shared rather than duplicated on purpose: the create sidebar and the edit
  * drawer used to be two hand-rolled forms with different inputs, different
@@ -22,7 +23,7 @@ import Ico from "../../utils/icons";
 import Modal from "../../components/Modal";
 import { Btn } from "../../components/Btn";
 import IconBtn from "../../components/Iconbtn";
-import { Field } from "../../components/Field";
+import { Field, TextArea } from "../../components/Field";
 import Select from "../../components/Select";
 
 const EMPTY_CONTACT = {
@@ -30,6 +31,7 @@ const EMPTY_CONTACT = {
   civility: "", gender: "",
   phones: [""], addressLines: [""], postalCode: "", city: "", country: "",
   organisation: "", role: "",
+  notes: "",
 };
 
 const CIVILITIES = ["Mr.", "Ms.", "Mx."];
@@ -77,7 +79,7 @@ function splitPhone(phone, country) {
 }
 
 /* The blue band that opens each section of the drawer. */
-function DrawerSection({ title }) {
+export function DrawerSection({ title }) {
   return (
     <div style={{
       background: DS.brandPrimarySubtle, borderRadius: DS.radiusMd,
@@ -119,7 +121,7 @@ function PhoneRow({ value, country, onChange, onRemove }) {
               }}
             >
               {code}
-              <Ico.ChevDown s={16} c={DS.textSecondary} />
+              {open ? <Ico.ArrowUpSmall s={16} c={DS.textSecondary} /> : <Ico.ArrowDownSmall s={16} c={DS.textSecondary} />}
             </button>
           )}
         />
@@ -293,6 +295,15 @@ export function ContactFormDrawer({ open, onClose, mode = "edit", value = EMPTY_
                 placeholder="Select an organisation…"
                 options={organisations.map((o) => ({ value: o, label: o }))} />
         <Field label="Role" value={form.role} onChange={setText("role")} placeholder="e.g. Head of programming" />
+
+        <DrawerSection title="Notes" />
+        <TextArea
+          label="Notes"
+          value={form.notes}
+          onChange={setText("notes")}
+          placeholder="Add a note about this contact…"
+          rows={5}
+        />
       </div>
     </Modal>
   );

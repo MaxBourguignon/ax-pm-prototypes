@@ -60,13 +60,13 @@ export function Pagination({ page, pages, setPage, total = null, pageSize = null
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
         <PagBtn onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}>
-          <Ico.ChevL s={13} c={DS.neutral900} />
+          <Ico.ArrowLeftSmall s={13} c={DS.neutral900} />
         </PagBtn>
         {nums.map((n) => (
           <PagBtn key={n} active={n === cur} onClick={() => setPage(n - 1)}>{n}</PagBtn>
         ))}
         <PagBtn onClick={() => setPage(Math.min(pages - 1, page + 1))} disabled={page >= pages - 1}>
-          <Ico.ChevRight s={13} c={DS.neutral900} />
+          <Ico.ArrowRightSmall s={13} c={DS.neutral900} />
         </PagBtn>
       </div>
     </div>

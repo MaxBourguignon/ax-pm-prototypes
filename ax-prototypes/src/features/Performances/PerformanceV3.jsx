@@ -1509,7 +1509,7 @@ export default function PerformanceV3() {
         actions={<>
           <Btn type="Primary" iconLeft={<Ico.Filter s={16} />} onClick={() => setFilterOpen(true)}>Filter</Btn>
           <div ref={optRef} style={{ position: 'relative' }}>
-            <Btn type="Secondary" iconRight={<Ico.ChevDown s={16} />} onClick={() => setOptionsOpen((o) => !o)}>Options</Btn>
+            <Btn type="Secondary" iconRight={<Ico.ArrowDownSmall s={16} />} onClick={() => setOptionsOpen((o) => !o)}>Options</Btn>
             {optionsOpen && (
               <div style={{ position: 'absolute', top: 46, right: 0, zIndex: 40, width: 200, background: DS.bgCard,
                             border: `1px solid ${DS.borderDefault}`, borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.12)', padding: 6 }}>

@@ -34,9 +34,9 @@ const IcoX = {
             <path d="M3 4h14l-5.5 7v5l-3-1.5V11L3 4z" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     ),
-    ChevDown: ({ s = 14, c = '#017BFE' }) => (
+    ArrowDownSmall: ({ s = 14, c = '#017BFE' }) => (
         <svg width={s} height={s} viewBox="0 0 20 20" fill="none">
-            <path d="M5 8l5 5 5-5" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M15.8842 6.54511C15.7681 6.42895 15.6302 6.33681 15.4785 6.27394C15.3268 6.21107 15.1642 6.17871 15 6.17871C14.8358 6.17871 14.6732 6.21107 14.5214 6.27394C14.3697 6.33681 14.2319 6.42895 14.1158 6.54511L10.2942 10.3659C10.216 10.4441 10.1101 10.4879 9.99957 10.4879C9.88908 10.4879 9.78312 10.4441 9.70498 10.3659L5.88415 6.54511C5.64977 6.31062 5.33183 6.17883 5.00028 6.17875C4.66873 6.17868 4.35073 6.31031 4.11623 6.54469C3.88174 6.77908 3.74996 7.09702 3.74988 7.42857C3.7498 7.76011 3.88143 8.07812 4.11582 8.31261L7.93748 12.1343C8.20832 12.4051 8.52987 12.62 8.88376 12.7666C9.23764 12.9132 9.61694 12.9887 9.99998 12.9887C10.383 12.9887 10.7623 12.9132 11.1162 12.7666C11.4701 12.62 11.7916 12.4051 12.0625 12.1343L15.8842 8.31261C16.1185 8.0782 16.2501 7.76032 16.2501 7.42886C16.2501 7.09741 16.1185 6.77952 15.8842 6.54511Z" fill={c} />
         </svg>
     ),
 };
@@ -644,7 +644,7 @@ function FunnelView() {
                                     border: `1px solid ${DS.borderDefault}`, background: DS.bgSurface,
                                     color: DS.textDefault, fontFamily: DS.ff, fontSize: 12, cursor: 'pointer',
                                     appearance: 'none',
-                                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 8l5 5 5-5' stroke='%239A9EA5' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.8842 6.54511C15.7681 6.42895 15.6302 6.33681 15.4785 6.27394C15.3268 6.21107 15.1642 6.17871 15 6.17871C14.8358 6.17871 14.6732 6.21107 14.5214 6.27394C14.3697 6.33681 14.2319 6.42895 14.1158 6.54511L10.2942 10.3659C10.216 10.4441 10.1101 10.4879 9.99957 10.4879C9.88908 10.4879 9.78312 10.4441 9.70498 10.3659L5.88415 6.54511C5.64977 6.31062 5.33183 6.17883 5.00028 6.17875C4.66873 6.17868 4.35073 6.31031 4.11623 6.54469C3.88174 6.77908 3.74996 7.09702 3.74988 7.42857C3.7498 7.76011 3.88143 8.07812 4.11582 8.31261L7.93748 12.1343C8.20832 12.4051 8.52987 12.62 8.88376 12.7666C9.23764 12.9132 9.61694 12.9887 9.99998 12.9887C10.383 12.9887 10.7623 12.9132 11.1162 12.7666C11.4701 12.62 11.7916 12.4051 12.0625 12.1343L15.8842 8.31261C16.1185 8.0782 16.2501 7.76032 16.2501 7.42886C16.2501 7.09741 16.1185 6.77952 15.8842 6.54511Z' fill='%239A9EA5'/%3E%3C/svg%3E")`,
                                     backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center',
                                 }}>
                                 <option value="all">All types</option>
@@ -861,7 +861,7 @@ function SectionHeader({ label, open, onToggle }) {
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer', borderBottom: `0.5px solid ${DS.borderDefault}`, marginBottom: 4 }}>
             <span style={{ fontFamily: DS.ff, ...TY.h4, color: DS.blue600, textAlign: 'left' }}>{label}</span>
             <span style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', display: 'inline-flex' }}>
-                <Ico.ChevDown s={16} c={DS.blue600} />
+                <Ico.ArrowDown s={14} c={DS.blue600} />
             </span>
         </button>
     );

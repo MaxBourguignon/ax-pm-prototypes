@@ -171,7 +171,7 @@ const AccordionGroup = ({ group, selected, onToggle, onToggleGroup, open, onOpen
           transform: open ? "rotate(180deg)" : "none",
           transition: `transform ${DS.durBase} ${DS.ease}`,
         }}>
-          <Ico.ChevDown s={16} c={DS.textSecondary} />
+          <Ico.ArrowDown s={14} c={DS.textSecondary} />
         </span>
       </div>
 

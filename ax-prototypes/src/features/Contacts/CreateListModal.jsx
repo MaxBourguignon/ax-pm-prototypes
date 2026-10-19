@@ -274,7 +274,7 @@ export default function CreateListModal({ open, onClose, onCreated, contactCount
     actions = (
       <>
         <Btn type="Secondary" size="Md" onClick={onClose}>Cancel</Btn>
-        <Btn type="Primary" size="Md" iconRight={<Ico.ChevRight />} disabled={!step1Valid} onClick={() => setStep(2)}>
+        <Btn type="Primary" size="Md" iconRight={<Ico.ArrowRightSmall />} disabled={!step1Valid} onClick={() => setStep(2)}>
           Next
         </Btn>
       </>

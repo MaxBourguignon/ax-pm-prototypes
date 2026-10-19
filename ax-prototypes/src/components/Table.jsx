@@ -138,7 +138,7 @@ export function TableToolbar({
               }}>
                 {folderLabel}
               </span>
-              <Ico.ChevDown s={16} c={DS.textDefault} />
+              <Ico.ArrowDownSmall s={16} c={DS.textDefault} />
             </button>
             {onAddFolder && (
               <button
@@ -669,7 +669,7 @@ export function Table({
                     display: 'flex', transition: `transform ${DS.durFast} ${DS.ease}`,
                     transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
                   }}>
-                    <Ico.ChevDown s={16} c={DS.textSecondary} />
+                    <Ico.ArrowDownSmall s={16} c={DS.textSecondary} />
                   </span>
                 )}
               </div>
@@ -770,7 +770,7 @@ export function PaginationBar({ page = 0, pages = 1, setPage, total = null, page
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
         {arrow(<Ico.ChevFirst s={16} c={DS.textMuted} />, 0, page === 0, 'First page')}
-        {arrow(<Ico.ChevL s={16} c={DS.textMuted} />, page - 1, page === 0, 'Previous page')}
+        {arrow(<Ico.ArrowLeftSmall s={16} c={DS.textMuted} />, page - 1, page === 0, 'Previous page')}
 
         {shown.map((p) => {
           const active = p === page;
@@ -800,7 +800,7 @@ export function PaginationBar({ page = 0, pages = 1, setPage, total = null, page
           }}>…</span>
         )}
 
-        {arrow(<Ico.ChevRight s={16} c={DS.textMuted} />, page + 1, page >= pages - 1, 'Next page')}
+        {arrow(<Ico.ArrowRightSmall s={16} c={DS.textMuted} />, page + 1, page >= pages - 1, 'Next page')}
         {arrow(<Ico.ChevLast s={16} c={DS.textMuted} />, pages - 1, page >= pages - 1, 'Last page')}
       </div>
     </div>

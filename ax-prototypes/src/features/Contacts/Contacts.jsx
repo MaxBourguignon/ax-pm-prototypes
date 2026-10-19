@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import contactsData from "../../../contacts.json";
 import AddFilterModal from "./AddFilterModal";
 import ContactFormDrawer from "./ContactFormDrawer";
+import MergeContactsModal from "./MergeContactsModal";
 import { DS, TY } from "../../utils/designSystem";
 import Ico from '../../utils/icons';
 import { Btn } from '../../components/Btn';
@@ -12,6 +13,7 @@ import { StatusBadge, Badge } from '../../components/Tag';
 import PageHeader from '../../components/PageHeader';
 import Table from '../../components/Table';
 import Select from '../../components/Select';
+import MultiSelect from '../../components/MultiSelect';
 import DATA_OBJECTS from "../../utils/dataObject";
 import ListActionModal from "./ListActionModal";
 import CreateListModal from "./CreateListModal";
@@ -281,7 +283,16 @@ const makeSeg = () => ({ topLogic: "AND", blocks: [] });
 // 6. EVALUATOR
 // ─────────────────────────────────────────────────────────────────────────────
 
+/* Several values: a positive operator matches ANY of them ("is A or B"), a
+   negative one must hold for ALL ("is neither A nor B"). */
+const NEGATIVE_OPS = ["is_not", "not_contains", "not in"];
 const evalCond = (contact, cond) => {
+  if (Array.isArray(cond.val)) {
+    if (!cond.val.length) return true;
+    const op = { in: "is", "not in": "is_not" }[cond.op] ?? cond.op;
+    const one = (v) => evalCond(contact, { ...cond, op, val: v });
+    return NEGATIVE_OPS.includes(cond.op) ? cond.val.every(one) : cond.val.some(one);
+  }
   const field = getField(cond.objId, cond.fieldId);
   const raw = contact[cond.fieldId] ?? contact[field.id];
   const op = cond.op;
@@ -444,15 +455,20 @@ const ValInput = ({ field, value, op, onChange }) => {
     );
   }
 
-  if (field.type === "enum") {
+  /* List and text fields take several values — "is Buyer or Beneficiary",
+     "event is A or B". A list field picks from its choices; a text field has no
+     fixed list, so its values are typed in. Presets still store a plain string,
+     hence the normalisation. */
+  if (field.type === "enum" || field.type === "string") {
+    const values = Array.isArray(value) ? value : value ? [value] : [];
     return (
-      <Select
-        portal
+      <MultiSelect
         minWidth={240}
         width={240}
-        value={value || null}
-        placeholder="Choose…"
-        options={field.choices.map(c => ({ value: c, label: c }))}
+        value={values}
+        placeholder={field.type === "enum" ? "Choose…" : "Values…"}
+        options={(field.choices ?? []).map(c => ({ value: c, label: c }))}
+        creatable={field.type === "string"}
         onChange={onChange}
       />
     );
@@ -555,7 +571,7 @@ const AnchorRow = ({ objId, filter, onPatch, onRemove }) => {
             style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 36, padding: "0 12px", boxSizing: "border-box", borderRadius: DS.radiusLg, background: obj.surface, border: `1.5px solid ${obj.border}`, cursor: "pointer", fontFamily: DS.ff, ...TY.labelMd, color: obj.text, whiteSpace: "nowrap", boxShadow: open ? `0 0 0 2px ${obj.border}66` : "none", transition: "box-shadow .15s" }}>
             <ObjIcon id={objId} s={14} />
             {config.label}
-            <Ico.ChevDown s={16} c={obj.text} />
+            {open ? <Ico.ArrowUpSmall s={16} c={obj.text} /> : <Ico.ArrowDownSmall s={16} c={obj.text} />}
           </button>
         )}
       />
@@ -904,6 +920,10 @@ const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
   const [consentAddOpen, setConsentAddOpen] = useState(false);
   const [consentRemoveOpen, setConsentRemoveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  /* A merge is one pair: the first ticked contact is kept; a second one, when
+     ticked, is preselected as the contact to merge. More than two can't merge. */
+  const [mergeKeep, mergeOther] = [...selected];
 
   const STATIC_LISTS = [
     { id: 1, name: "VIP Subscribers", count: 1240 },
@@ -941,7 +961,7 @@ const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
         disabledTooltip="Select at least one contact to use these options"
         items={[
           { label: "Export contacts", icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => setExportOpen(true) },
-          { label: "Merge contact records", icon: <Ico.Merge s={16} c={DS.textSecondary} /> },
+          { label: selected.size > 2 ? "Merge contact records (2 max.)" : "Merge contact records", icon: <Ico.Merge s={16} c={DS.textSecondary} />, onClick: () => setMergeOpen(true), disabled: selected.size > 2 },
           { label: "Add to a list", icon: <Ico.UserPlus s={16} c={DS.textSecondary} />, onClick: () => setAddOpen(true) },
           { label: "Add to a consent", icon: <Ico.UserPlus s={16} c={DS.textSecondary} />, onClick: () => setConsentAddOpen(true) },
           { label: "Remove from a list", icon: <Ico.UserMinus s={16} c={DS.textSecondary} />, onClick: () => setRemoveOpen(true) },
@@ -955,6 +975,13 @@ const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
       <ListActionModal mode="remove" open={removeOpen} lists={STATIC_LISTS} selectedContactIds={[...selected]} onClose={() => setRemoveOpen(false)} onConfirm={() => { }} />
       <ConsentActionModal mode="add" open={consentAddOpen} consents={STATIC_CONSENTS} selectedContactIds={[...selected]} onClose={() => setConsentAddOpen(false)} onConfirm={() => { }} />
       <ConsentActionModal mode="remove" open={consentRemoveOpen} consents={STATIC_CONSENTS} selectedContactIds={[...selected]} onClose={() => setConsentRemoveOpen(false)} onConfirm={() => { }} />
+      <MergeContactsModal
+        open={mergeOpen}
+        onClose={() => setMergeOpen(false)}
+        primaryId={mergeKeep}
+        secondaryId={mergeOther}
+        onConfirm={(merged, removed) => console.log("Merged (simulated):", removed?.id, "into", mergeKeep, merged)}
+      />
       <DeleteContactsModal open={deleteOpen} count={selected.size} onClose={() => setDeleteOpen(false)} onConfirm={() => { }} />
       <ExportContactsModal open={exportOpen} onClose={() => setExportOpen(false)} selectedCount={selected.size} />
       <AssociateStructureModal

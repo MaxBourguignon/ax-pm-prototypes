@@ -252,6 +252,7 @@ function ListsTable({
   data, sortKey, sortDir, onSort, canManage, loading,
   onOpen, onEdit, onDuplicate, onDelete, onToast,
   toolbar, page, pages, setPage, total, pageSize, emptyState,
+  checked, onCheckedChange,
 }) {
   return (
     <Table
@@ -261,6 +262,11 @@ function ListsTable({
       cell={loading ? skeletonCell : listCell}
       sortKey={sortKey} sortDir={sortDir} onSort={loading ? undefined : onSort}
       onRowClick={loading ? undefined : (l) => onOpen(l.id)}
+      /* Row checkboxes feed the bulk actions, which are admin-only — a viewer
+         has nothing to do with a selection, so they get no checkbox column. */
+      selectable={canManage && !loading}
+      selected={checked}
+      onSelectedChange={onCheckedChange}
       actions={loading ? undefined : (l) => (
         <ActionMenu items={[
           { label: 'View', icon: <Ico.Eye s={16} c={DS.actionPrimary} />, onClick: () => onOpen(l.id) },
@@ -583,6 +589,35 @@ function OptionsMenu({ items }) {
 }
 
 /* ── Full-page List record ──────────────────────────────────────────────────── */
+/* Bulk "Move to another folder" — pick the destination for the ticked lists. */
+function MoveToFolderModal({ open, count, folders, onClose, onConfirm }) {
+  const [folder, setFolder] = useState(null);
+  const close = () => { setFolder(null); onClose(); };
+  return (
+    <Modal
+      open={open}
+      onClose={close}
+      title="Move to another folder"
+      variant="center"
+      size="sm"
+      footer={(
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', width: '100%' }}>
+          <Btn type="Tertiary" size="Medium" onClick={close}>Cancel</Btn>
+          <Btn type="Primary" size="Medium" disabled={!folder} onClick={() => { onConfirm(folder); setFolder(null); }}>Move</Btn>
+        </div>
+      )}
+    >
+      <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <span style={{ ...TY.bodyMd, fontFamily: DS.ff, color: DS.textDefault }}>
+          <strong>{count} list{count > 1 ? 's' : ''}</strong> will be moved to the folder you choose.
+        </span>
+        <Select portal label="Folder" value={folder} onChange={setFolder} placeholder="Select a folder…"
+                options={folders.map((f) => ({ value: f, label: f }))} />
+      </div>
+    </Modal>
+  );
+}
+
 function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewContacts, onToast }) {
   const t = TYPES[l.type] || TYPES.static;
   const TypeIcon = t.icon;
@@ -877,6 +912,9 @@ export default function ListsV3() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [checked, setChecked] = useState([]);   // ids ticked for bulk actions
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [moveOpen, setMoveOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [sortKey, setSortKey] = useState('created');
   const [sortDir, setSortDir] = useState('desc');
@@ -957,7 +995,21 @@ export default function ListsV3() {
     }
     setFormOpen(false); setEditing(null);
   };
-  const confirmDelete = () => { const t = deleteTarget; setLists((ls) => ls.filter((l) => l.id !== t.id)); setDeleteTarget(null); setSelected(null); showToast('List deleted.'); };
+  const confirmDelete = () => { const t = deleteTarget; setLists((ls) => ls.filter((l) => l.id !== t.id)); setChecked((ids) => ids.filter((id) => id !== t.id)); setDeleteTarget(null); setSelected(null); showToast('List deleted.'); };
+  const confirmMove = (folder) => {
+    const n = checked.length;
+    setLists((ls) => ls.map((l) => (checked.includes(l.id) ? { ...l, folder, updated: '2026-06-05' } : l)));
+    setChecked([]);
+    setMoveOpen(false);
+    showToast(`${n} list${n > 1 ? 's' : ''} moved to “${folder}”.`);
+  };
+  const confirmBulkDelete = () => {
+    const n = checked.length;
+    setLists((ls) => ls.filter((l) => !checked.includes(l.id)));
+    setChecked([]);
+    setBulkDeleteOpen(false);
+    showToast(`${n} list${n > 1 ? 's' : ''} deleted.`);
+  };
 
   const recordList = selected ? lists.find((x) => x.id === selected) : null;
 
@@ -1006,6 +1058,21 @@ export default function ListsV3() {
     search: query,
     onSearchChange: (v) => { setQuery(v); setPage(0); },
     searchPlaceholder: 'Search a list…',
+    // Bulk actions on the ticked lists — the same "Options" menu as Contacts.
+    options: canManage ? (
+      <ActionMenu
+        label={checked.length ? `Options (${checked.length})` : 'Options'}
+        size="Md"
+        align="left"
+        width={240}
+        disabled={checked.length === 0}
+        disabledTooltip="Select at least one list to use these options"
+        items={[
+          { label: 'Move to another folder', icon: <Ico.Inbox s={16} c={DS.textSecondary} />, onClick: () => setMoveOpen(true) },
+          { label: checked.length > 1 ? `Delete ${checked.length} lists` : 'Delete list', icon: <Ico.Trash s={16} c={DS.actionDanger} />, onClick: () => setBulkDeleteOpen(true), danger: true },
+        ]}
+      />
+    ) : undefined,
   };
 
   const body = () => {
@@ -1024,6 +1091,7 @@ export default function ListsV3() {
         toolbar={tableToolbar}
         page={pageSafe} pages={pages} setPage={setPage}
         total={sorted.length} pageSize={pageSize}
+        checked={checked} onCheckedChange={setChecked}
         emptyState={<EmptyState icon={<Ico.Search s={24} />} title="No results" sub="No list matches your search or the selected filter." />}
       />
     );
@@ -1058,12 +1126,8 @@ export default function ListsV3() {
             meta={`${lists.length} list${lists.length === 1 ? '' : 's'} in ${folders.length} folder${folders.length === 1 ? '' : 's'} in total`}
             actions={(
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Btn type="Secondary" size="Medium" iconLeft={<Ico.Download s={18} />} onClick={() => showToast('Import a list (demo).')}>Import a list</Btn>
                 <Btn type="Primary" size="Medium" iconLeft={<Ico.Plus s={18} />} onClick={openCreate}>Create a list</Btn>
-                <OptionsMenu items={[
-                  { label: 'Import a list',    icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => showToast('Import a list (demo).') },
-                  { label: 'Export all lists', icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => showToast('Export of all lists (demo).') },
-                  { label: 'Manage folders',   icon: <Ico.Inbox s={16} c={DS.textSecondary} />,    onClick: () => showToast('Manage folders (demo).') },
-                ]} />
               </div>
             )}
           />
@@ -1090,6 +1154,20 @@ export default function ListsV3() {
         onClose={() => setFolderModal(false)}
         onSubmit={addFolder}
       />
+      <MoveToFolderModal open={moveOpen} count={checked.length} folders={folders}
+        onClose={() => setMoveOpen(false)} onConfirm={confirmMove} />
+      {bulkDeleteOpen && (() => {
+        const names = lists.filter((l) => checked.includes(l.id)).map((l) => `“${l.name}”`);
+        const shown = names.slice(0, 3).join(', ') + (names.length > 3 ? ` and ${names.length - 3} more` : '');
+        return (
+          <ConfirmDialog
+            title={`Delete ${names.length} list${names.length > 1 ? 's' : ''}?`}
+            body={`${shown} will be permanently deleted. The contacts are not deleted — only the lists are.`}
+            confirmLabel="Delete" cancelLabel="Cancel" danger
+            onConfirm={confirmBulkDelete} onCancel={() => setBulkDeleteOpen(false)}
+          />
+        );
+      })()}
       {deleteTarget && <ConfirmDialog title="Delete this list?" body={`“${deleteTarget.name}” will be permanently deleted. The contacts are not deleted — only the list is.`} confirmLabel="Delete" cancelLabel="Cancel" danger onConfirm={confirmDelete} onCancel={() => setDeleteTarget(null)} />}
       {folderPendingDelete && (() => {
         const cnt = folderCounts[folderPendingDelete] || 0;

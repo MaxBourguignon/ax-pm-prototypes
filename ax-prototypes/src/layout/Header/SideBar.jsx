@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 
 import { DS } from "../../utils/designSystem";
-import { Link } from "react-router-dom";
+import Ico from "../../utils/icons";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ADMIN_GROUPS } from "../../features/Admin/adminTools";
+import { useFavorites, toggleFavorite } from "../../features/Admin/favorites";
 
 // ── Light-theme palette (2026 rebrand) ────────────────────────────────────────
 const ACCENT       = "#3B6FF5"; // active fill / brand blue
@@ -13,20 +16,35 @@ const ICON_REST    = "#3B6FF5"; // resting icon tint
 const BORDER       = "#EAECEF"; // hairline dividers
 const LOGO_INK     = "#180636"; // brand navy (wordmark + logo mark)
 
+/* Two skins of the same sidebar. The admin (CS back-office) one runs on the
+   brand navy so nobody mistakes it for the client app; only the sidebar
+   changes — header, pages and components stay the client ones. */
+const THEMES = {
+  client: {
+    bg: DS.white, text: TEXT_MAIN, sub: TEXT_SUB, icon: ICON_REST, accent: ACCENT,
+    hover: SOFT_BG, subHover: "#F5F6F8", subActiveBg: SOFT_BG, subActiveText: ACCENT,
+    border: BORDER, muted: "#B6BAC2", mutedBg: "#F3F4F6", logo: LOGO_INK,
+    card: DS.white, cardHover: "#FBFBFC",
+  },
+  admin: {
+    bg: LOGO_INK, text: DS.white, sub: "rgba(255,255,255,0.68)", icon: "#9DB6FF", accent: ACCENT,
+    hover: "rgba(255,255,255,0.08)", subHover: "rgba(255,255,255,0.06)",
+    subActiveBg: "rgba(255,255,255,0.12)", subActiveText: DS.white,
+    border: "rgba(255,255,255,0.12)", muted: "rgba(255,255,255,0.38)", mutedBg: "rgba(255,255,255,0.06)",
+    logo: DS.white, card: "rgba(255,255,255,0.06)", cardHover: "rgba(255,255,255,0.1)",
+  },
+};
+const ThemeCtx = createContext(THEMES.client);
+const useT = () => useContext(ThemeCtx);
+
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
-const IconChevron = ({ c }) => (
-  <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
-    <path d="M8 5l5 5-5 5" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
 // Just the mountain mark from logo_2026_logo-dark.svg (wordmark cropped out).
-const IconLogo = ({ s = 30 }) => (
+const IconLogo = ({ s = 30, ink = LOGO_INK }) => (
   <svg width={s} height={s} viewBox="40 35 360 300" fill="none">
     <path
       d="M48.69,327.47h106.51c5.19,0,10.05-2.52,13.05-6.75l44.58-62.97,46.71,59.49c3.03,3.86,7.67,6.11,12.57,6.11h104.11c5.22,0,10.06-2.55,13.03-6.74.43-.6.83-1.22,1.18-1.89,2.78-5.21,2.45-11.53-.84-16.43l-65.81-97.94s-.09.08-.13.13L221.23,48.08c-2.97-4.42-7.95-7.07-13.27-7.07-.09,0-.17,0-.26,0-1.81.03-3.58.37-5.24.98-.02,0-.05.02-.07.03-.91.34-1.79.76-2.62,1.26-.02.01-.04.02-.06.04-.83.5-1.61,1.08-2.34,1.72-.02.02-.04.04-.06.05-.72.65-1.39,1.36-1.99,2.14-.02.02-.04.05-.05.07-.3.39-.59.8-.85,1.22l-117.78,188.26s-.03-.02-.04-.03l-41.46,66.27c-3.08,4.93-3.25,11.14-.43,16.22,2.82,5.08,8.17,8.24,13.98,8.24ZM77.6,295.5l17.82-28.49s0,0,0,0l55.28-88.37,41.51,52.87-36.2,51.13s-.04,0-.06,0l-9.1,12.85h-69.26ZM346.1,291.23h-66.12l-11.8-15.03c-.07,0-.14.02-.21.03l-35.88-45.69,37.57-53.06,76.44,113.76ZM211.5,204.29l-42.76-54.46,39.7-63.46,42.14,62.71-39.09,55.21Z"
-      fill={LOGO_INK}
+      fill={ink}
     />
   </svg>
 );
@@ -67,6 +85,16 @@ const IcoSSO = ({ s = 20, c }) => (
 const IcoAdmin = ({ s = 20, c }) => (
   <svg width={s} height={s} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fillRule="evenodd" clipRule="evenodd" d="M7.25 3.25C7.25 2.00736 8.25736 1 9.5 1H10.5C11.7426 1 12.75 2.00736 12.75 3.25V3.36087L12.8284 3.28244C13.7071 2.40376 15.1317 2.40376 16.0104 3.28244L16.7175 3.98955C17.5962 4.86823 17.5962 6.29285 16.7175 7.17153L16.639 7.25H16.75C17.9926 7.25 19 8.25736 19 9.5V10.5C19 11.7426 17.9926 12.75 16.75 12.75H16.6391L16.7175 12.8284C17.5962 13.7071 17.5962 15.1317 16.7175 16.0104L16.0104 16.7175C15.1317 17.5962 13.7071 17.5962 12.8284 16.7175L12.75 16.6391V16.75C12.75 17.9926 11.7426 19 10.5 19H9.5C8.25736 19 7.25 17.9926 7.25 16.75V16.639L7.17157 16.7175C6.29289 17.5962 4.86827 17.5962 3.98959 16.7175L3.28248 16.0104C2.40381 15.1317 2.4038 13.7071 3.28248 12.8284L3.36087 12.75H3.25C2.00736 12.75 1 11.7426 1 10.5L1 9.5C1 8.25736 2.00736 7.25 3.25 7.25H3.3609L3.28249 7.17159C2.40381 6.29291 2.40381 4.86829 3.28249 3.98961L3.9896 3.2825C4.86828 2.40382 6.2929 2.40382 7.17158 3.2825L7.25 3.36092V3.25ZM10 7C8.34315 7 7 8.34315 7 10C7 11.6569 8.34315 13 10 13C11.6569 13 13 11.6569 13 10C13 8.34315 11.6569 7 10 7Z" fill={c} />
+  </svg>
+);
+
+// Admin console home — four tiles, the "all tools" grid.
+const IcoGrid = ({ s = 20, c }) => (
+  <svg width={s} height={s} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="1.5" y="1.5" width="7.5" height="7.5" rx="2" fill={c} />
+    <rect x="11" y="1.5" width="7.5" height="7.5" rx="2" fill={c} />
+    <rect x="1.5" y="11" width="7.5" height="7.5" rx="2" fill={c} />
+    <rect x="11" y="11" width="7.5" height="7.5" rx="2" fill={c} />
   </svg>
 );
 
@@ -130,16 +158,16 @@ const NAV_TABS_L1 = [
     Icon: IcoSSO,
     subitems: [],
   },
-  {
-    // Back-office section — CS only, never shown to a client account.
-    id: "admin",
-    label: "Admin (CS)",
-    Icon: IcoAdmin,
-    subitems: [
-      { id: "entity-merge", label: "Entity merge", link: "/admin/entity-merge" },
-    ],
-  },
 ];
+
+/* Back-office menu — CS only, never shown to a client account. Reached through
+   the "Admin console" switch at the foot of the client sidebar. It holds the
+   console (every tool) and the user's favourites only — not every back-office
+   page — so the menu stays short. Tools are starred from the console home. */
+const ADMIN_TABS_L1 = [
+  { id: "admin-console", label: "Admin console", Icon: IcoGrid, link: "/admin", subitems: [] },
+];
+const ADMIN_TOOLS = ADMIN_GROUPS.flatMap((g) => g.tools);
 
 const NAV_TABS_BOTTOM = [
   { id: "academy", label: "Academy",   Icon: IcoAcademy,    link: "/academy",  disabled: true },
@@ -149,6 +177,7 @@ const NAV_TABS_BOTTOM = [
 // ── SubItem ───────────────────────────────────────────────────────────────────
 
 function SubItem({ label, isActive, onClick, link, disabled }) {
+  const t = useT();
   const [hovered, setHovered] = useState(false);
   if (disabled) {
     return (
@@ -163,7 +192,7 @@ function SubItem({ label, isActive, onClick, link, disabled }) {
           fontSize: 14,
           fontWeight: 400,
           lineHeight: "18px",
-          color: "#B6BAC2",
+          color: t.muted,
           width: "100%",
           textAlign: "left",
           fontFamily: DS.ff,
@@ -176,9 +205,9 @@ function SubItem({ label, isActive, onClick, link, disabled }) {
           fontWeight: 600,
           letterSpacing: "0.04em",
           textTransform: "uppercase",
-          color: "#B6BAC2",
-          background: "#F3F4F6",
-          border: `1px solid ${BORDER}`,
+          color: t.muted,
+          background: t.mutedBg,
+          border: `1px solid ${t.border}`,
           borderRadius: 4,
           padding: "1px 5px",
         }}>
@@ -201,8 +230,8 @@ function SubItem({ label, isActive, onClick, link, disabled }) {
         fontSize: 14,
         fontWeight: isActive ? 600 : 400,
         lineHeight: "18px",
-        color: isActive ? ACCENT : hovered ? TEXT_MAIN : TEXT_SUB,
-        background: isActive ? SOFT_BG : hovered ? "#F5F6F8" : "transparent",
+        color: isActive ? t.subActiveText : hovered ? t.text : t.sub,
+        background: isActive ? t.subActiveBg : hovered ? t.subHover : "transparent",
         border: "none",
         cursor: "pointer",
         width: "100%",
@@ -223,7 +252,8 @@ function NavItem({ item, isOpen, onToggle, activeL2, onL2Click }) {
   const [hovered, setHovered] = useState(false);
   const hasChildren = item.subitems && item.subitems.length > 0;
   const Icon = item.Icon;
-  const iconColor = isOpen ? DS.white : ICON_REST;
+  const t = useT();
+  const iconColor = isOpen ? DS.white : t.icon;
 
   return (
     <div>
@@ -239,7 +269,7 @@ function NavItem({ item, isOpen, onToggle, activeL2, onL2Click }) {
           gap: 12,
           padding: "0 12px",
           borderRadius: 10,
-          background: isOpen ? ACCENT : hovered ? SOFT_BG : "transparent",
+          background: isOpen ? t.accent : hovered ? t.hover : "transparent",
           border: "none",
           cursor: "pointer",
           transition: `background ${DS.durBase} ${DS.ease}`,
@@ -254,7 +284,7 @@ function NavItem({ item, isOpen, onToggle, activeL2, onL2Click }) {
           fontSize: 16,
           fontWeight: isOpen ? 600 : 600,
           lineHeight: "24px",
-          color: isOpen ? DS.white : TEXT_MAIN,
+          color: isOpen ? DS.white : t.text,
           textAlign: "left",
           transition: `color ${DS.durBase} ${DS.ease}`,
           fontFamily: DS.ffn,
@@ -269,7 +299,7 @@ function NavItem({ item, isOpen, onToggle, activeL2, onL2Click }) {
             transition: `transform 200ms ${DS.ease}`,
             flexShrink: 0,
           }}>
-            <IconChevron c={isOpen ? DS.white : "#B6BAC2"} />
+            <Ico.ArrowRight s={14} c={isOpen ? DS.white : t.muted} />
           </span>
         )}
       </button>
@@ -300,19 +330,20 @@ function NavItem({ item, isOpen, onToggle, activeL2, onL2Click }) {
 // ── Bottom link (Academy / Support) ──────────────────────────────────────────
 
 function BottomLink({ item }) {
+  const t = useT();
   const [hovered, setHovered] = useState(false);
   const Icon = item.Icon;
   const content = (
     <>
       <span style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-        <Icon s={20} c={ICON_REST} />
+        <Icon s={20} c={t.icon} />
       </span>
       <span style={{
         flex: 1,
         fontSize: 14,
         fontWeight: 500,
         lineHeight: "20px",
-        color: TEXT_MAIN,
+        color: t.text,
         textAlign: "left",
         fontFamily: DS.ff,
       }}>
@@ -328,7 +359,7 @@ function BottomLink({ item }) {
     gap: 12,
     padding: "0 12px",
     borderRadius: 10,
-    background: hovered ? SOFT_BG : "transparent",
+    background: hovered ? t.hover : "transparent",
     border: "none",
     cursor: item.disabled ? "not-allowed" : "pointer",
     opacity: item.disabled ? 0.55 : 1,
@@ -354,6 +385,7 @@ function BottomLink({ item }) {
 // ── Footer: client card ───────────────────────────────────────────────────────
 
 function ClientCard() {
+  const t = useT();
   const [hovered, setHovered] = useState(false);
   return (
     <div
@@ -365,8 +397,8 @@ function ClientCard() {
         gap: 12,
         padding: "10px 12px",
         borderRadius: 12,
-        border: `1px solid ${BORDER}`,
-        background: hovered ? "#FBFBFC" : DS.white,
+        border: `1px solid ${t.border}`,
+        background: hovered ? t.cardHover : t.card,
         cursor: "pointer",
         transition: `background ${DS.durFast} ${DS.ease}`,
       }}
@@ -392,7 +424,7 @@ function ClientCard() {
         fontSize: 14,
         fontWeight: 600,
         lineHeight: "18px",
-        color: TEXT_MAIN,
+        color: t.text,
         fontFamily: DS.ff,
       }}>
         Nom du client
@@ -401,11 +433,134 @@ function ClientCard() {
   );
 }
 
+// ── Admin favourites ──────────────────────────────────────────────────────────
+
+/* One pinned tool. Hover reveals a filled star to unpin it in place. A tool
+   that isn't prototyped yet stays visible (it was pinned on purpose) but
+   greyed and inert, like the client menu's unbuilt pages. */
+function FavoriteLink({ tool, active }) {
+  const t = useT();
+  const [hovered, setHovered] = useState(false);
+  const { Icon } = tool;
+  const off = !tool.link;
+  const row = {
+    display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0,
+    padding: "8px 12px", textDecoration: "none", fontFamily: DS.ff,
+    fontSize: 14, lineHeight: "18px", fontWeight: active ? 600 : 500,
+    color: off ? t.muted : active ? t.subActiveText : hovered ? t.text : t.sub,
+    cursor: off ? "not-allowed" : "pointer",
+  };
+  const body = (
+    <>
+      <Icon s={16} c={off ? t.muted : active ? t.subActiveText : t.icon} />
+      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tool.name}</span>
+    </>
+  );
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: "flex", alignItems: "center", borderRadius: 8,
+        background: active ? t.subActiveBg : hovered ? t.subHover : "transparent",
+        transition: `background ${DS.durFast} ${DS.ease}`,
+      }}
+    >
+      {off
+        ? <div title="Coming soon" style={row}>{body}</div>
+        : <Link to={tool.link} style={row}>{body}</Link>}
+      <button
+        type="button"
+        title="Remove from favorites"
+        aria-label={`Remove ${tool.name} from favorites`}
+        onClick={() => toggleFavorite(tool.id)}
+        style={{
+          width: 28, height: 28, marginRight: 4, flexShrink: 0, border: "none", borderRadius: 6,
+          background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          opacity: hovered ? 1 : 0, transition: `opacity ${DS.durFast} ${DS.ease}`,
+        }}
+      >
+        <Ico.Star s={14} filled c={DS.brandYellow} />
+      </button>
+    </div>
+  );
+}
+
+function AdminFavorites() {
+  const t = useT();
+  const { pathname } = useLocation();
+  const favorites = useFavorites();
+  const tools = favorites.map((id) => ADMIN_TOOLS.find((x) => x.id === id)).filter(Boolean);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 12 }}>
+      <span style={{
+        padding: "0 12px 6px", fontSize: 11, fontWeight: 600, letterSpacing: ".06em",
+        textTransform: "uppercase", color: t.sub, fontFamily: DS.ff,
+      }}>
+        Favorites
+      </span>
+      {tools.length ? tools.map((tool) => (
+        <FavoriteLink key={tool.id} tool={tool} active={pathname === tool.link} />
+      )) : (
+        <span style={{ padding: "4px 12px", fontSize: 13, lineHeight: "18px", color: t.sub, fontFamily: DS.ff }}>
+          Star a tool in the Admin console to pin it here.
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ── Mode switch (client ⇄ admin) ──────────────────────────────────────────────
+
+/* The one door between the two apps. In the client sidebar it opens the admin
+   console; in the admin one it leads back. Outlined so it reads as a way out
+   of the menu, not as another menu entry. */
+function ModeSwitch({ admin }) {
+  const t = useT();
+  const navigate = useNavigate();
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => navigate(admin ? "/home" : "/admin")}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: "100%", height: 40, display: "flex", alignItems: "center", gap: 10,
+        padding: "0 12px", boxSizing: "border-box", borderRadius: 10, cursor: "pointer",
+        border: `1px solid ${t.border}`, background: hovered ? t.hover : "transparent",
+        fontFamily: DS.ff, fontSize: 14, fontWeight: 600, lineHeight: "20px", color: t.text,
+        textAlign: "left", transition: `background ${DS.durFast} ${DS.ease}`,
+      }}
+    >
+      {admin ? <Ico.ArrowLeftSmall s={16} c={t.icon} /> : <IcoAdmin s={16} c={t.icon} />}
+      <span style={{ flex: 1 }}>{admin ? "Back to client app" : "Admin console"}</span>
+      {!admin && <Ico.ArrowRightSmall s={16} c={t.muted} />}
+    </button>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
+/* Admin mode = any /admin/* route, so the skin follows the URL with no extra
+   state. Keyed on the mode so switching resets which group is open. */
 function Sidebar() {
-  const [openItem, setOpenItem] = useState("contacts");
-  const [activeL2, setActiveL2] = useState("contacts-contacts");
+  const { pathname } = useLocation();
+  const admin = pathname.startsWith("/admin");
+  return (
+    <ThemeCtx.Provider value={admin ? THEMES.admin : THEMES.client}>
+      <SidebarView key={admin ? "admin" : "client"} admin={admin} />
+    </ThemeCtx.Provider>
+  );
+}
+
+function SidebarView({ admin }) {
+  const t = useT();
+  const tabs = admin ? ADMIN_TABS_L1 : NAV_TABS_L1;
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const [openItem, setOpenItem] = useState(admin ? null : "contacts");
+  const [activeL2, setActiveL2] = useState(admin ? null : "contacts-contacts");
 
   const toggle = (id) => setOpenItem((prev) => (prev === id ? null : id));
 
@@ -416,13 +571,14 @@ function Sidebar() {
       width: 288,
       height: "100%",
       minHeight: "100%",
-      background: DS.white,
+      background: t.bg,
       borderRadius: "0 24px 24px 0",
       boxShadow: "6px 0 11px rgba(16,24,40,0.06), 16px 0 40px rgba(16,24,40,0.04)",
       display: "flex",
       flexDirection: "column",
       fontFamily: DS.ff,
       overflow: "hidden",
+      transition: `background ${DS.durBase} ${DS.ease}`,
     }}>
 
       {/* Logo */}
@@ -431,19 +587,29 @@ function Sidebar() {
         display: "flex",
         alignItems: "center",
         gap: 10,
-        borderBottom: `1px solid ${BORDER}`,
+        borderBottom: `1px solid ${t.border}`,
       }}>
-        <IconLogo s={30} />
+        <IconLogo s={30} ink={t.logo} />
         <span style={{
           fontSize: 21,
           fontWeight: 700,
           lineHeight: "24px",
-          color: LOGO_INK,
+          color: t.logo,
           letterSpacing: "-0.5px",
           fontFamily: DS.ff,
         }}>
           arenametrix
         </span>
+        {/* The one warm accent on the navy — says "back-office" at a glance. */}
+        {admin && (
+          <span style={{
+            marginLeft: "auto", padding: "2px 8px", borderRadius: 999,
+            background: DS.orange, color: LOGO_INK,
+            fontSize: 10, fontWeight: 700, lineHeight: "16px", letterSpacing: "0.06em",
+          }}>
+            ADMIN
+          </span>
+        )}
       </div>
 
       {/* Nav */}
@@ -455,29 +621,40 @@ function Sidebar() {
         gap: 4,
         overflowY: "auto",
       }}>
-        {NAV_TABS_L1.map((item) => (
+        {tabs.map((item) => (
           <NavItem
             key={item.id}
             item={item}
-            isOpen={openItem === item.id}
-            onToggle={() => toggle(item.id)}
+            // A direct-link entry (the Admin console) has no group to unfold:
+            // it navigates, and stays highlighted while its page is shown.
+            isOpen={item.link ? pathname === item.link : openItem === item.id}
+            onToggle={item.link
+              ? () => { setActiveL2(null); navigate(item.link); }
+              : () => toggle(item.id)}
             activeL2={activeL2}
             onL2Click={setActiveL2}
           />
         ))}
+        {admin && <AdminFavorites />}
 
         {/* Bottom group pinned under the scrollable nav */}
         <div style={{ marginTop: "auto", paddingTop: 12, display: "flex", flexDirection: "column", gap: 4 }}>
-          {NAV_TABS_BOTTOM.map((item) => (
+          {!admin && NAV_TABS_BOTTOM.map((item) => (
             <BottomLink key={item.id} item={item} />
           ))}
+          <div style={{ paddingTop: admin ? 0 : 8 }}>
+            <ModeSwitch admin={admin} />
+          </div>
         </div>
       </nav>
 
-      {/* Footer */}
-      <div style={{ padding: "12px" }}>
-        <ClientCard />
-      </div>
+      {/* Footer — the client card. In admin the tenant moves to the top
+          header instead, so the footer goes. */}
+      {!admin && (
+        <div style={{ padding: "12px" }}>
+          <ClientCard />
+        </div>
+      )}
     </aside>
   );
 }

@@ -254,7 +254,7 @@ function DateRange({ value, onChange }) {
         borderRadius: 6, fontFamily: DS.ff, ...TY.b2, color: DS.textDefault }}>
         <Ico.Calendar s={16} c={DS.textSecondary} />
         {sel.display}
-        <Ico.ChevDown s={16} c={DS.textSecondary} />
+        {open ? <Ico.ArrowUpSmall s={16} c={DS.textSecondary} /> : <Ico.ArrowDownSmall s={16} c={DS.textSecondary} />}
       </button>
       {open && (
         <div style={{ position: 'absolute', top: 44, left: 0, minWidth: 180, background: DS.bgCard,

@@ -184,7 +184,7 @@ function RangePicker({ value, onChange }) {
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
           <Ico.Calendar s={16} c={DS.textSecondary} />{current ? current.label : `Last ${value} months`}
         </span>
-        <Ico.ChevDown s={16} c={DS.textSecondary} />
+        {open ? <Ico.ArrowUpSmall s={16} c={DS.textSecondary} /> : <Ico.ArrowDownSmall s={16} c={DS.textSecondary} />}
       </button>
       {open && (
         <div style={{ position: 'absolute', top: 46, right: 0, zIndex: 50, width: 220, background: DS.bgCard,

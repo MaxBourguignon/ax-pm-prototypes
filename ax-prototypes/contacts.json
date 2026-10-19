@@ -4600,5 +4600,88 @@
         "action": "Opt-in"
       }
     ]
+  },
+  {
+    "id": "lena-moreau",
+    "initials": "LM",
+    "identity": {
+      "firstName": "Lena",
+      "lastName": "Moreau",
+      "email": "lena.moreau@example.com",
+      "age": 29,
+      "gender": "Female",
+      "dateOfBirth": "1997-04-22",
+      "civility": "Ms."
+    },
+    "coordinates": {
+      "phone": "+33 6 12 48 90 37",
+      "address": "8 Rue des Lilas",
+      "postalCode": "69003",
+      "country": "France",
+      "city": "Lyon"
+    },
+    "source": {
+      "createdAt": "2026-03-18",
+      "acquisitionSource": "Newsletter form"
+    },
+    "structure": "Institute D",
+    "loyalty": 0,
+    "lists": [
+      "Newsletter subscribers"
+    ],
+    "consents": [
+      {
+        "label": "Newsletter",
+        "grantedSince": "2026-03-18"
+      }
+    ],
+    "preferences": [
+      {
+        "label": "Favorite music genre",
+        "value": "Jazz"
+      }
+    ],
+    "stats": {
+      "totalSpending": {
+        "amount": 0,
+        "currency": "EUR",
+        "purchaseCount": 0
+      },
+      "engagement": {
+        "rate": 0.5,
+        "campaignsOpened": 1,
+        "campaignsTotal": 2
+      },
+      "lastPurchase": null
+    },
+    "tickets": [],
+    "campaigns": [
+      {
+        "name": "Newsletter April 2026",
+        "type": "Email",
+        "sentAt": "2026-04-10T09:00:00",
+        "receivedAt": "2026-04-10T09:02:00",
+        "openedAt": "2026-04-11T19:14:00",
+        "clickedAt": null
+      },
+      {
+        "name": "Newsletter May 2026",
+        "type": "Email",
+        "sentAt": "2026-05-12T09:00:00",
+        "receivedAt": "2026-05-12T09:01:00",
+        "openedAt": null,
+        "clickedAt": null
+      }
+    ],
+    "contributions": [],
+    "accessControls": [],
+    "consentHistory": [
+      {
+        "consent": "Newsletter",
+        "date": "2026-03-18",
+        "origin": "Newsletter form",
+        "action": "Opt-in"
+      }
+    ]
   }
 ]
