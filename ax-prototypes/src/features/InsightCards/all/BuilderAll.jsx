@@ -173,7 +173,11 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
 
   const save = () => {
     if (!form.source) { setError('Choose a source first.'); return; }
-    if (!form.conditions.length) { setError('Add at least one condition.'); return; }
+    /* Conditions are optional: none means everything in the source. Two
+       formats do need one: a share of all needs a part to compare, and a
+       countdown needs to know which event. */
+    if (form.kind === 'share' && !form.conditions.length) { setError('A share needs a condition: the part you compare with all.'); return; }
+    if (isCountdown && !form.conditions.some((c) => c.label.startsWith('Event is '))) { setError('Choose the event with a condition.'); return; }
     if (form.kind === 'target' && !Number(form.target)) { setError('Set a target.'); return; }
     if (!form.title.trim()) { setError('Give the card a title.'); return; }
     if (form.conditions.some((c) => c.flagged)) { setError('Confirm the orange condition first.'); return; }
@@ -205,7 +209,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
       event: eventValue(eventCond?.label.slice(9)),
     };
   })();
-  const ready = form.source && form.conditions.length > 0;
+  const ready = !!form.source;
 
   const footer = (
     <>
@@ -262,8 +266,11 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
                   <Select value={form.measure} options={measures} onChange={chooseMeasure} />
                 </Step>
 
-                <Step n={3} title="Conditions" hint={`${src.label.toLowerCase()} fields only`}>
+                <Step n={3} title="Conditions" hint={`optional, ${src.label.toLowerCase()} fields only`}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                    {!form.conditions.length && (
+                      <span style={{ ...TY.bodySm, color: DS.textSecondary }}>No conditions: the card counts all {src.noun}.</span>
+                    )}
                     {form.conditions.map((c, i) => (
                       <React.Fragment key={c.id}>
                         {i > 0 && <span style={{ ...TY.captionSm, color: DS.textMuted }}>AND</span>}
