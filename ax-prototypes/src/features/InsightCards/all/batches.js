@@ -16,7 +16,7 @@ export const BATCHES = [
 export const FEATURES = [
   { batch: 1, id: 'page', label: 'Insights page with tabs and a card grid' },
   { batch: 1, id: 'segLogic', label: 'Count profiles from one shop (Ticketing, Subscriptions, Registrations, E-commerce), with that source\'s fields as conditions; a card instead of a list' },
-  { batch: 1, id: 'number', label: 'Format: number with variation against the previous count' },
+  { batch: 1, id: 'number', label: 'Format: number with a fixed comparison per shop, labelled on the card (tickets and e-commerce: vs. yesterday; subscriptions and registrations: vs. this date last season)' },
   { batch: 1, id: 'breakdown', label: 'Format: breakdown, top 5 plus "Other"' },
   { batch: 1, id: 'share', label: 'Format: share of all (same source, without the conditions), with a % bar (third format, to decide)' },
   { batch: 1, id: 'definition', label: 'The definition behind every card' },
@@ -29,7 +29,7 @@ export const FEATURES = [
   { batch: 2, id: 'manualText', label: 'Manual entry, content: a card with plain text (to confirm)' },
   { batch: 3, id: 'ai', label: 'AI builder: describe a card in a sentence' },
   { batch: 3, id: 'dnd', label: 'Drag-and-drop: arrange cards on the page' },
-  { batch: 3, id: 'compareChoice', label: 'Compare per card: choose nothing, the previous count, or the same day last year' },
+  { batch: 3, id: 'compareChoice', label: 'Compare per card: nothing, yesterday, the same date last season, or another value of one of its conditions (in total)' },
   { batch: 3, id: 'segment', label: 'Card to segment: open a profile card in the segmentation engine' },
 ];
 

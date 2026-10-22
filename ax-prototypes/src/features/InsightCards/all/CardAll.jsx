@@ -1,7 +1,7 @@
 /**
  * CardAll: one card on the all-batches Insights page.
  *
- *   number      value + variation against the previous count          Batch 1
+ *   number      value + a fixed comparison per shop                   Batch 1
  *   breakdown   top 5 + "Other" as bars                                Batch 1
  *   share       value as a share of a base, % bar (third format, TBD)  Batch 1
  *   perDay      bar series per day                                     Batch 2

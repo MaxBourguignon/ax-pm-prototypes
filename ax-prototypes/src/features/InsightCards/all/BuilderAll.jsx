@@ -26,7 +26,7 @@ import Chip from '../../../components/Chip';
 import Skeleton from '../../../components/Skeleton';
 import Card from '../../../components/Card';
 import { CardBodyAll } from './CardAll';
-import { SOURCES, sourceOf, kindsFor, EVENTS, AI_PROMPTS, AI_SCRIPTS_ALL, COMPARISONS } from './mockDataAll';
+import { SOURCES, sourceOf, kindsFor, EVENTS, AI_PROMPTS, AI_SCRIPTS_ALL, COMPARISONS, defaultCompare } from './mockDataAll';
 import { has } from './batches';
 
 let _k = 1;
@@ -163,7 +163,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
 
   const chooseSource = (v) => {
     if (v === form.source) return;
-    setForm((f) => startFrom(v, { title: f.title, subtitle: f.subtitle, compare: f.compare }));
+    setForm((f) => startFrom(v, { title: f.title, subtitle: f.subtitle, compare: defaultCompare(v) }));
     setPicker(false); setError('');
   };
   const chooseMeasure = (v) => {
@@ -358,7 +358,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
                           <span style={{ ...TY.labelLg, color: DS.textStrong }}>{form.title || 'Untitled card'}</span>
                           {form.subtitle && <span style={{ ...TY.bodySm, color: DS.textSecondary }}>{form.subtitle}</span>}
                         </div>
-                        <CardBodyAll card={preview} comparison={has(batch, 'compareChoice') ? form.compare : 'yesterday'} />
+                        <CardBodyAll card={preview} comparison={has(batch, 'compareChoice') ? form.compare : defaultCompare(form.source)} />
                       </Card>
                     ) : (
                       <div style={{ padding: 20, textAlign: 'center', ...TY.bodySm, color: DS.textMuted }}>Choose a source to see your number</div>

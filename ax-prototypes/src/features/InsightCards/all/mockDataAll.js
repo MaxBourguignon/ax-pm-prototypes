@@ -20,21 +20,25 @@ export const USERS = {
 /* What a card's variation compares with. */
 export const COMPARISONS = [
   { value: 'none', label: 'Nothing' },
-  { value: 'yesterday', label: 'Previous count (yesterday)' },
-  { value: 'lastYear', label: 'Same day last year' },
+  { value: 'yesterday', label: 'Yesterday' },
+  { value: 'lastYear', label: 'Same date last season' },
   { value: 'condition', label: 'Another value of a condition' },
 ];
 
-/* Before Batch 3 every card compares with the previous count (Batch 1 spec).
+/* Before Batch 3 every card gets a fixed comparison per shop, and the label
+   says exactly what it is (Joost, 22 October): tickets and e-commerce sell
+   every day, so they compare with yesterday; subscriptions and registrations
+   are bought once a season, so they compare with this date last season.
    From Batch 3 the card's own choice applies; there is no page-wide filter,
    so the page stays a set of cards rather than a dashboard. */
-export const comparisonOf = (card, batch) => (batch >= 3 ? (card.compare ?? 'yesterday') : 'yesterday');
-export const COMPARISON_SHORT = { yesterday: 'vs. yesterday', lastYear: 'vs. last year' };
+export const DEFAULT_COMPARE = { ticket: 'yesterday', ecommerce: 'yesterday', subscription: 'lastYear', registration: 'lastYear' };
+export const defaultCompare = (source) => DEFAULT_COMPARE[source] ?? 'yesterday';
+export const comparisonOf = (card, batch) => (batch >= 3 ? (card.compare ?? defaultCompare(card.source)) : defaultCompare(card.source));
+export const COMPARISON_SHORT = { yesterday: 'vs. yesterday', lastYear: 'vs. this date last season' };
 
 /* Compare with another value of one of the card's own conditions (Joost,
    22 October): a card on "Season is 26/27" compared with the same card on
-   "Season is 25/26". Whether that is the other value in total or at the same
-   point in time is not decided yet. */
+   "Season is 25/26", counted in total (Joost, 22 October). */
 export const compareShort = (card, comparison) => (comparison === 'condition'
   ? `vs. ${card.compareWith?.value ?? 'other value'}` : COMPARISON_SHORT[comparison]);
 export const compareLabel = (card, comparison) => (comparison === 'condition'
@@ -47,6 +51,8 @@ export const compareLabel = (card, comparison) => (comparison === 'condition'
 
    The sources are the four shops: Ticketing, Subscriptions, Registrations and
    E-commerce. There is no Contacts dataset in the new set-up (Joost, 22
+   October). Each shop carries the contact details of its buyers, such as
+   city and country, so a card can filter or split on them (Joost, 22
    October). Fields per shop are illustrative; the real list comes from the AX
    segmentation engine (nobody knows it in full yet).
 
@@ -69,6 +75,8 @@ export const SOURCES = [
       { field: 'Section', values: ['Section A', 'Section B', 'Main stand', 'Family zone'] },
       { field: 'Sales channel', values: ['Online', 'Box office', 'Partner resale', 'Mobile app'] },
       { field: 'Scanned at entry', values: ['Yes', 'No'] },
+      { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
+      { field: 'Country', values: ['France', 'Belgium', 'Netherlands', 'Switzerland'] },
     ],
   },
   {
@@ -84,6 +92,8 @@ export const SOURCES = [
       { field: 'Product', values: ['Season pass', 'Multi-year pass', 'Membership', 'Supporters club'] },
       { field: 'Section', values: ['Section A', 'Section B', 'Main stand', 'Family zone'] },
       { field: 'Renewed for next season', values: ['Yes', 'No'] },
+      { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
+      { field: 'Country', values: ['France', 'Belgium', 'Netherlands', 'Switzerland'] },
     ],
   },
   {
@@ -91,12 +101,15 @@ export const SOURCES = [
     measures: [
       { value: 'people', label: 'Count registrants (profiles)', needs: 'segLogic' },
       { value: 'registrations', label: 'Count registrations', needs: 'tx' },
+      { value: 'revenue', label: 'Sum of revenue (paid registrations)', needs: 'tx' },
     ],
     fields: [
       { field: 'Registration type', values: ['Kidsclub', 'Newsletter', 'Open day', 'Season gala'] },
       { field: 'Season', values: ['25/26', '26/27'] },
       { field: 'Status', values: ['Confirmed', 'Cancelled'] },
       { field: 'Attended', values: ['Yes', 'No'] },
+      { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
+      { field: 'Country', values: ['France', 'Belgium', 'Netherlands', 'Switzerland'] },
     ],
   },
   {
@@ -112,6 +125,8 @@ export const SOURCES = [
       { field: 'Product category', values: ['Jerseys', 'Fan articles', 'Clothing', 'Kids'] },
       { field: 'Order status', values: ['Paid', 'Refunded'] },
       { field: 'Discount code used', values: ['Yes', 'No'] },
+      { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
+      { field: 'Country', values: ['France', 'Belgium', 'Netherlands', 'Switzerland'] },
     ],
   },
 ];
@@ -140,6 +155,10 @@ export const EVENTS = [
 
 /* Breakdown rows per field; fields without fixed rows get rows made from their values. */
 export const BREAKDOWNS = {
+  City: [
+    { label: 'Paris', value: 3920 }, { label: 'Lyon', value: 1310 }, { label: 'Lille', value: 980 },
+    { label: 'Marseille', value: 640 }, { label: 'Bordeaux', value: 510 }, { label: 'Other', value: 1854 },
+  ],
   'Registration type': [
     { label: 'Newsletter', value: 18420 }, { label: 'Kidsclub', value: 1860 },
     { label: 'Open day', value: 1240 }, { label: 'Season gala', value: 610 },
@@ -235,6 +254,9 @@ export const INITIAL_CARDS = [
     title: 'Unique buyers, main event', subtitle: 'Fans with at least one ticket',
     conditions: ['Event is Main event, 8 November'], value: 9214, prev: { yesterday: 9050, lastYear: 8630 }, compare: 'none',
     createdBy: 'camille', createdAt: '7 Oct' },
+  { id: 'm7', tab: 'matchday', kind: 'breakdown', measure: 'people', source: 'ticket', split: 'City',
+    title: 'Where the buyers live', subtitle: 'Main event, top 5 cities',
+    conditions: ['Event is Main event, 8 November'], createdBy: 'camille', createdAt: '8 Oct' },
   { id: 'm6', tab: 'matchday', kind: 'breakdown', measure: 'tickets', source: 'ticket', split: 'Sales channel',
     title: 'Sales by channel', subtitle: 'Main event tickets',
     conditions: ['Event is Main event, 8 November'], createdBy: 'hugo', createdAt: '7 Oct' },
