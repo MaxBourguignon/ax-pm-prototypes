@@ -119,6 +119,19 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
   /* Split by a field you have not already fixed with a condition. */
   const usedFields = form.conditions.map((c) => c.label.split(' is ')[0]);
   const splitFields = (src?.fields ?? []).filter((f) => !usedFields.includes(f.field));
+  /* Compare with another value of one of your own conditions: pick the
+     condition, then the value to compare with (e.g. Season 26/27 vs. 25/26). */
+  const condFields = [...new Set(form.conditions.map((c) => c.label.split(' is ')[0]))]
+    .filter((f) => src?.fields.some((x) => x.field === f));
+  const otherValues = (field) => {
+    const current = form.conditions.filter((c) => c.label.startsWith(`${field} is `)).map((c) => c.label.slice(field.length + 4));
+    return (src?.fields.find((x) => x.field === field)?.values ?? []).filter((v) => !current.includes(v));
+  };
+  const compareOptions = COMPARISONS.filter((c) => c.value !== 'condition' || condFields.length);
+  const chooseCompare = (v) => patch(v === 'condition'
+    ? { compare: v, compareWith: { field: condFields[0], value: otherValues(condFields[0])[0] } }
+    : { compare: v, compareWith: undefined });
+  const showCompare = has(batch, 'compareChoice') && ['number', 'share', 'perDay'].includes(form.kind);
   React.useEffect(() => {
     if (form.kind === 'breakdown' && splitFields.length && !splitFields.some((f) => f.field === form.split)) {
       setForm((f) => ({ ...f, split: splitFields[0].field }));
@@ -179,6 +192,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
     if (form.kind === 'share' && !form.conditions.length) { setError('A share needs a condition: the part you compare with all.'); return; }
     if (isCountdown && !form.conditions.some((c) => c.label.startsWith('Event is '))) { setError('Choose the event with a condition.'); return; }
     if (form.kind === 'target' && !Number(form.target)) { setError('Set a target.'); return; }
+    if (showCompare && form.compare === 'condition' && !condFields.includes(form.compareWith?.field)) { setError('Compare with: choose one of your conditions.'); return; }
     if (!form.title.trim()) { setError('Give the card a title.'); return; }
     if (form.conditions.some((c) => c.flagged)) { setError('Confirm the orange condition first.'); return; }
     const v = previewValue(form);
@@ -192,8 +206,8 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
       event: isCountdown ? eventValue(eventCond?.label.slice(9)) : undefined,
       base: form.kind === 'share' ? { label: src.noun, value: Math.round(v / 0.45) } : undefined,
       target: form.kind === 'target' ? Number(form.target) : undefined,
-      compare: form.compare,
-      value: v, prev: { yesterday: Math.round(v * 0.995), lastYear: Math.round(v * 0.92) },
+      compare: form.compare, compareWith: form.compare === 'condition' ? form.compareWith : undefined,
+      value: v, prev: { yesterday: Math.round(v * 0.995), lastYear: Math.round(v * 0.92), condition: Math.round(v * 0.9) },
       createdBy: initial?.createdBy ?? 'camille', createdAt: initial?.createdAt ?? 'today',
     }, tab);
   };
@@ -203,7 +217,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
     const eventCond = form.conditions.find((c) => c.label.startsWith('Event is '));
     return {
       ...form, value: v, conditions: form.conditions.map((c) => c.label),
-      prev: { yesterday: Math.round(v * 0.995), lastYear: Math.round(v * 0.92) },
+      prev: { yesterday: Math.round(v * 0.995), lastYear: Math.round(v * 0.92), condition: Math.round(v * 0.9) },
       base: { label: src?.noun, value: Math.round(v / 0.45) },
       target: Number(form.target) || Math.round(v * 1.2),
       event: eventValue(eventCond?.label.slice(9)),
@@ -221,7 +235,6 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
     </>
   );
 
-  const showCompare = has(batch, 'compareChoice') && ['number', 'share', 'perDay'].includes(form.kind);
 
   return (
     <Modal open={open} onClose={onClose} title={initial?.id ? 'Edit card' : 'New custom card'} footer={footer} width={480}>
@@ -318,7 +331,16 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
 
                 {showCompare && (
                   <Step n={5} title="Compare with">
-                    <Select value={form.compare} options={COMPARISONS} onChange={(v) => patch({ compare: v })} />
+                    <Select value={form.compare} options={compareOptions} onChange={chooseCompare} />
+                    {form.compare === 'condition' && form.compareWith && (
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <Select value={form.compareWith.field} width={180} options={condFields.map((f) => ({ value: f, label: f }))}
+                          onChange={(f) => patch({ compareWith: { field: f, value: otherValues(f)[0] } })} />
+                        <span style={{ ...TY.bodySm, color: DS.textSecondary }}>is</span>
+                        <Select value={form.compareWith.value} width={180} options={otherValues(form.compareWith.field).map((v) => ({ value: v, label: v }))}
+                          onChange={(v) => patch({ compareWith: { ...form.compareWith, value: v } })} />
+                      </div>
+                    )}
                   </Step>
                 )}
 
@@ -332,11 +354,14 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
                   <div style={{ border: `1px dashed ${DS.borderDefault}`, borderRadius: DS.radiusXl, padding: 4 }}>
                     {ready ? (
                       <Card style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        <span style={{ ...TY.labelLg, color: DS.textStrong }}>{form.title || 'Untitled card'}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <span style={{ ...TY.labelLg, color: DS.textStrong }}>{form.title || 'Untitled card'}</span>
+                          {form.subtitle && <span style={{ ...TY.bodySm, color: DS.textSecondary }}>{form.subtitle}</span>}
+                        </div>
                         <CardBodyAll card={preview} comparison={has(batch, 'compareChoice') ? form.compare : 'yesterday'} />
                       </Card>
                     ) : (
-                      <div style={{ padding: 20, textAlign: 'center', ...TY.bodySm, color: DS.textMuted }}>Add a condition to see your number</div>
+                      <div style={{ padding: 20, textAlign: 'center', ...TY.bodySm, color: DS.textMuted }}>Choose a source to see your number</div>
                     )}
                   </div>
                 </div>

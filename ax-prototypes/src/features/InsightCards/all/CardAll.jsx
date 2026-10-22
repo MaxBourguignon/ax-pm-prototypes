@@ -23,7 +23,7 @@ import Tooltip from '../../../components/Tooltip';
 import ActionMenu from '../../../components/ActionMenu';
 import { PerDayChart } from '../InsightCard';
 import {
-  USERS, COMPARISON_SHORT, COMPARISONS, EVENTS, OPS, manualResult, comparisonOf, sourceOf, measureOf, rowsFor,
+  USERS, compareShort, compareLabel, EVENTS, OPS, manualResult, comparisonOf, sourceOf, measureOf, rowsFor,
 } from './mockDataAll';
 import { has } from './batches';
 
@@ -93,7 +93,7 @@ export function CardBodyAll({ card, comparison }) {
   const prev = card.prev?.[comparison];
   const variation = comparison === 'none' ? null : (
     <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-      <Variation value={card.value} prev={prev} /> <Small>{COMPARISON_SHORT[comparison]}</Small>
+      <Variation value={card.value} prev={prev} /> <Small>{compareShort(card, comparison)}</Small>
     </span>
   );
 
@@ -220,7 +220,7 @@ function Definition({ card, batch }) {
       {card.kind === 'breakdown' && row('Split by', card.split)}
       {card.kind === 'perDay' && row('Per day of', sourceOf(card.source)?.dateField)}
       {card.kind === 'share' && row('Share of', `all ${card.base?.label ?? sourceOf(card.source)?.noun}`)}
-      {card.prev && row('Compared with', labelOf(COMPARISONS, comparisonOf(card, batch)))}
+      {card.prev && row('Compared with', compareLabel(card, comparisonOf(card, batch)))}
       {card.kind !== 'manualData' && card.target && row('Target', fmtValue(card.target, card.measure ?? card.unit))}
       {card.kind === 'manualData' && row('Calculation', labelOf(OPS, card.op))}
       {user && row(manual ? 'Entered by' : 'Created by', `${user.name}, ${card.createdAt}`)}

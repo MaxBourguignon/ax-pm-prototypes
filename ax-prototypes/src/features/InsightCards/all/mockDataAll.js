@@ -22,6 +22,7 @@ export const COMPARISONS = [
   { value: 'none', label: 'Nothing' },
   { value: 'yesterday', label: 'Previous count (yesterday)' },
   { value: 'lastYear', label: 'Same day last year' },
+  { value: 'condition', label: 'Another value of a condition' },
 ];
 
 /* Before Batch 3 every card compares with the previous count (Batch 1 spec).
@@ -29,6 +30,16 @@ export const COMPARISONS = [
    so the page stays a set of cards rather than a dashboard. */
 export const comparisonOf = (card, batch) => (batch >= 3 ? (card.compare ?? 'yesterday') : 'yesterday');
 export const COMPARISON_SHORT = { yesterday: 'vs. yesterday', lastYear: 'vs. last year' };
+
+/* Compare with another value of one of the card's own conditions (Joost,
+   22 October): a card on "Season is 26/27" compared with the same card on
+   "Season is 25/26". Whether that is the other value in total or at the same
+   point in time is not decided yet. */
+export const compareShort = (card, comparison) => (comparison === 'condition'
+  ? `vs. ${card.compareWith?.value ?? 'other value'}` : COMPARISON_SHORT[comparison]);
+export const compareLabel = (card, comparison) => (comparison === 'condition'
+  ? `The same card with ${card.compareWith?.field} is ${card.compareWith?.value}`
+  : COMPARISONS.find((c) => c.value === comparison)?.label);
 
 /* A card starts from one source. Everything after that comes from the same
    source: what you can count (measures), what you can filter on (fields), what
@@ -171,7 +182,7 @@ export const INITIAL_CARDS = [
   // Subscriptions
   { id: 's1', tab: 'season', kind: 'number', measure: 'people', source: 'subscription',
     title: 'Subscribers 26/27', subtitle: 'Unique fans with an active subscription',
-    conditions: ['Season is 26/27', 'Status is Active'], value: 12447, prev: { yesterday: 12401, lastYear: 11980 }, compare: 'lastYear',
+    conditions: ['Season is 26/27', 'Status is Active'], value: 12447, prev: { yesterday: 12401, lastYear: 11980, condition: 11890 }, compare: 'condition', compareWith: { field: 'Season', value: '25/26' },
     createdBy: 'hugo', createdAt: '1 Sep' },
   { id: 's2', tab: 'season', kind: 'number', measure: 'people', source: 'subscription',
     title: 'Not renewed yet', subtitle: 'Holders 25/26 without a 26/27 subscription',
