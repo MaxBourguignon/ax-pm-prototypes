@@ -21,9 +21,9 @@ import { Btn } from '../../../components/Btn';
 import IconBtn from '../../../components/Iconbtn';
 import Tooltip from '../../../components/Tooltip';
 import ActionMenu from '../../../components/ActionMenu';
-import { BreakdownBars, PerDayChart } from '../InsightCard';
+import { PerDayChart } from '../InsightCard';
 import {
-  BREAKDOWNS, SOURCES, MEASURES, USERS, COMPARISON_SHORT, COMPARISONS, EVENTS, OPS, SPLIT_FIELDS, manualResult, comparisonOf,
+  USERS, COMPARISON_SHORT, COMPARISONS, EVENTS, OPS, manualResult, comparisonOf, sourceOf, measureOf, rowsFor,
 } from './mockDataAll';
 import { has } from './batches';
 
@@ -72,6 +72,23 @@ const Small = ({ children, style }) => (
   <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary, ...style }}>{children}</span>
 );
 
+function BreakdownBars({ rows, measure }) {
+  const max = Math.max(...rows.map((r) => r.value));
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {rows.map((r) => (
+        <div key={r.label} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 2fr auto', alignItems: 'center', gap: 10 }}>
+          <span title={r.label} style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.label}</span>
+          <div style={{ height: 6, borderRadius: 3, background: DS.surfaceMuted }}>
+            <div style={{ width: `${Math.max(2, (r.value / max) * 100)}%`, height: '100%', borderRadius: 3, background: DS.textMuted }} />
+          </div>
+          <span style={{ ...TY.bodySmBold, fontFamily: DS.ff, color: DS.textStrong, textAlign: 'right' }}>{fmtValue(r.value, measure)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function CardBodyAll({ card, comparison }) {
   const prev = card.prev?.[comparison];
   const variation = comparison === 'none' ? null : (
@@ -82,7 +99,7 @@ export function CardBodyAll({ card, comparison }) {
 
   switch (card.kind) {
     case 'breakdown':
-      return <BreakdownBars rows={BREAKDOWNS[card.split] ?? BREAKDOWNS.city} />;
+      return <BreakdownBars rows={rowsFor(card.source, card.split)} measure={card.measure} />;
 
     case 'share': {
       const pct = card.base?.value ? (card.value / card.base.value) * 100 : 0;
@@ -197,13 +214,14 @@ function Definition({ card, batch }) {
   const manual = card.kind === 'manualData' || card.kind === 'text';
   return (
     <div style={{ background: DS.surfaceSubtle, borderRadius: DS.radiusLg, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 4, ...TY.bodySm, fontFamily: DS.ff }}>
-      {manual ? row('Source', 'Manual entry') : row('Source', labelOf(SOURCES, card.source))}
+      {manual ? row('Source', 'Manual entry') : row('Source', sourceOf(card.source)?.label ?? card.source)}
       {card.conditions && row('Conditions', card.conditions.join(' AND '))}
-      {card.measure && row('Measure', labelOf(MEASURES, card.measure))}
-      {card.split && row('Split by', labelOf(SPLIT_FIELDS, card.split))}
-      {card.kind === 'share' && row('Share of', card.base?.label)}
+      {card.measure && row('Measure', measureOf(card.source, card.measure)?.label ?? card.measure)}
+      {card.kind === 'breakdown' && row('Split by', card.split)}
+      {card.kind === 'perDay' && row('Per day of', sourceOf(card.source)?.dateField)}
+      {card.kind === 'share' && row('Share of', `all ${card.base?.label ?? sourceOf(card.source)?.noun}`)}
       {card.prev && row('Compared with', labelOf(COMPARISONS, comparisonOf(card, batch)))}
-      {card.target && row('Target', fmtValue(card.target, card.measure ?? card.unit))}
+      {card.kind !== 'manualData' && card.target && row('Target', fmtValue(card.target, card.measure ?? card.unit))}
       {card.kind === 'manualData' && row('Calculation', labelOf(OPS, card.op))}
       {user && row(manual ? 'Entered by' : 'Created by', `${user.name}, ${card.createdAt}`)}
     </div>

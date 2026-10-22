@@ -28,82 +28,110 @@ export const COMPARISONS = [
 export const comparisonOf = (card, batch) => (batch >= 3 ? (card.compare ?? 'yesterday') : 'yesterday');
 export const COMPARISON_SHORT = { yesterday: 'vs. yesterday', lastYear: 'vs. last year' };
 
-/* Sources as in the segmentation engine (people) plus the transaction data of Batch 2. */
+/* A card starts from one source. Everything after that comes from the same
+   source: what you can count (measures), what you can filter on (fields), what
+   you can split by and which date a series runs on (Joost, 22 October).
+
+   Measures: "Count profiles" is Batch 1 (the segmentation engine counts
+   profiles on any of these sources); counting transactions or summing revenue
+   is Batch 2 ('tx'). Events (days until an event) is Batch 2 ('countdown'). */
 export const SOURCES = [
-  { value: 'contact', label: 'Contacts', people: true },
-  { value: 'subscription', label: 'Subscriptions', people: true },
-  { value: 'ticket', label: 'Tickets', people: true },
-  { value: 'order', label: 'Orders', people: false },
-  { value: 'webshop', label: 'Webshop', people: false },
+  {
+    value: 'contact', label: 'Contacts', noun: 'fans', dateField: 'Created date',
+    measures: [{ value: 'people', label: 'Count profiles', needs: 'segLogic' }],
+    fields: [
+      { field: 'Gender', values: ['Male', 'Female', 'Unknown'] },
+      { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
+      { field: 'Age group', values: ['Under 18', '18 to 25', '26 to 40', '41 and over'] },
+      { field: 'Commercial opt-in', values: ['Yes', 'No'] },
+      { field: 'Has e-mail address', values: ['Yes', 'No'] },
+      { field: 'Has phone number', values: ['Yes', 'No'] },
+      { field: 'Has birth date', values: ['Yes', 'No'] },
+      { field: 'Has full address', values: ['Yes', 'No'] },
+      { field: 'Created', values: ['Last 7 days', 'Last 31 days', 'This season'] },
+    ],
+  },
+  {
+    value: 'subscription', label: 'Subscriptions', noun: 'subscriptions', dateField: 'Purchase date',
+    measures: [
+      { value: 'people', label: 'Count holders (profiles)', needs: 'segLogic' },
+      { value: 'subscriptions', label: 'Count subscriptions', needs: 'tx' },
+      { value: 'revenue', label: 'Sum of revenue', needs: 'tx' },
+    ],
+    fields: [
+      { field: 'Season', values: ['24/25', '25/26', '26/27'] },
+      { field: 'Status', values: ['Active', 'Expired', 'Cancelled'] },
+      { field: 'Product', values: ['Regular season ticket', 'Multi-year season ticket', 'Family pass', 'Kidsclub membership'] },
+      { field: 'Tribune', values: ['Tribune Nord', 'Tribune Présidentielle', 'Virage Sud', 'Family zone'] },
+      { field: 'Renewed for next season', values: ['Yes', 'No'] },
+    ],
+  },
+  {
+    value: 'ticket', label: 'Tickets', noun: 'tickets', dateField: 'Sale date',
+    measures: [
+      { value: 'people', label: 'Count buyers (profiles)', needs: 'segLogic' },
+      { value: 'tickets', label: 'Count tickets', needs: 'tx' },
+      { value: 'revenue', label: 'Sum of revenue', needs: 'tx' },
+    ],
+    fields: [
+      { field: 'Event', values: ['FC Demo vs. Olympique Exemple', 'Cup quarter-final', 'All home matches'] },
+      { field: 'Ticket type', values: ['Single match', 'Kids', 'VIP', 'Invitation'] },
+      { field: 'Tribune', values: ['Tribune Nord', 'Tribune Présidentielle', 'Virage Sud', 'Family zone'] },
+      { field: 'Sales channel', values: ['Online', 'Box office', 'Partner resale', 'Mobile app'] },
+      { field: 'Scanned at the gate', values: ['Yes', 'No'] },
+    ],
+  },
+  {
+    value: 'order', label: 'Orders', noun: 'orders', dateField: 'Order date',
+    measures: [
+      { value: 'people', label: 'Count buyers (profiles)', needs: 'segLogic' },
+      { value: 'orders', label: 'Count orders', needs: 'tx' },
+      { value: 'revenue', label: 'Sum of revenue', needs: 'tx' },
+    ],
+    fields: [
+      { field: 'Season', values: ['25/26', '26/27'] },
+      { field: 'Product type', values: ['Season ticket', 'Match ticket', 'Hospitality'] },
+      { field: 'Sales channel', values: ['Online', 'Box office', 'Partner resale'] },
+      { field: 'Order status', values: ['Paid', 'Refunded'] },
+    ],
+  },
+  {
+    value: 'webshop', label: 'Webshop orders', noun: 'webshop orders', dateField: 'Order date',
+    measures: [
+      { value: 'people', label: 'Count buyers (profiles)', needs: 'segLogic' },
+      { value: 'orders', label: 'Count orders', needs: 'tx' },
+      { value: 'items', label: 'Count products sold', needs: 'tx' },
+      { value: 'revenue', label: 'Sum of revenue', needs: 'tx' },
+    ],
+    fields: [
+      { field: 'Season', values: ['25/26', '26/27'] },
+      { field: 'Product category', values: ['Match shirts', 'Fan articles', 'Training wear', 'Kids'] },
+      { field: 'Order status', values: ['Paid', 'Refunded'] },
+      { field: 'Discount code used', values: ['Yes', 'No'] },
+    ],
+  },
+  {
+    value: 'event', label: 'Events', noun: 'events', needs: 'countdown',
+    measures: [{ value: 'days', label: 'Days until the event', needs: 'countdown' }],
+    fields: [{ field: 'Event', values: ['FC Demo vs. Olympique Exemple', 'Cup quarter-final', 'Season gala'] }],
+  },
 ];
 
-/* Conditions per source: a card filters only on fields of its own source,
-   so a subscription card filters on subscription fields only (Joost,
-   22 October). Keeps cards simple; combining sources is not a card's job. */
-export const SOURCE_FIELDS = {
-  contact: [
-    { field: 'Gender', values: ['Male', 'Female', 'Unknown'] },
-    { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
-    { field: 'Age', values: ['Under 18', '18 to 25', '26 to 40', '41 and over'] },
-    { field: 'Commercial opt-in', values: ['Yes', 'No'] },
-    { field: 'Has e-mail address', values: ['Yes', 'No'] },
-    { field: 'Has phone number', values: ['Yes', 'No'] },
-    { field: 'Has birth date', values: ['Yes', 'No'] },
-    { field: 'Has full address', values: ['Yes', 'No'] },
-    { field: 'Created', values: ['Last 7 days', 'Last 31 days', 'This season'] },
-  ],
-  subscription: [
-    { field: 'Season', values: ['24/25', '25/26', '26/27'] },
-    { field: 'Status', values: ['Active', 'Expired', 'Cancelled'] },
-    { field: 'Product', values: ['Regular season ticket', 'Multi-year season ticket', 'Family pass', 'Kidsclub membership'] },
-    { field: 'Tribune', values: ['Tribune Nord', 'Tribune Présidentielle', 'Virage Sud', 'Family zone'] },
-    { field: 'Renewed for next season', values: ['Yes', 'No'] },
-  ],
-  ticket: [
-    { field: 'Event', values: ['FC Demo vs. Olympique Exemple', 'Cup quarter-final', 'All home matches'] },
-    { field: 'Ticket type', values: ['Single match', 'Kids', 'VIP', 'Invitation'] },
-    { field: 'Tribune', values: ['Tribune Nord', 'Tribune Présidentielle', 'Virage Sud', 'Family zone'] },
-    { field: 'Sales channel', values: ['Online', 'Box office', 'Partner resale', 'Mobile app'] },
-    { field: 'Scanned at the gate', values: ['Yes', 'No'] },
-  ],
-  order: [
-    { field: 'Season', values: ['25/26', '26/27'] },
-    { field: 'Product type', values: ['Season ticket', 'Match ticket', 'Hospitality'] },
-    { field: 'Sales channel', values: ['Online', 'Box office', 'Partner resale'] },
-    { field: 'Order status', values: ['Paid', 'Refunded'] },
-  ],
-  webshop: [
-    { field: 'Season', values: ['25/26', '26/27'] },
-    { field: 'Product category', values: ['Match shirts', 'Fan articles', 'Training wear', 'Kids'] },
-    { field: 'Order status', values: ['Paid', 'Refunded'] },
-    { field: 'Discount code used', values: ['Yes', 'No'] },
-  ],
-};
+export const sourceOf = (v) => SOURCES.find((s) => s.value === v);
+export const measureOf = (source, m) => sourceOf(source)?.measures.find((x) => x.value === m);
 
-export const MEASURES = [
-  { value: 'people', label: 'Count profiles' },
-  { value: 'tickets', label: 'Count tickets' },
-  { value: 'orders', label: 'Count orders' },
-  { value: 'subscriptions', label: 'Count subscriptions sold' },
-  { value: 'revenue', label: 'Sum of revenue' },
-];
-
+/* How a card shows its number. Which formats a measure allows follows from
+   the measure; the batch decides which are available. */
 export const KINDS = [
   { value: 'number', label: 'Number' },
-  { value: 'breakdown', label: 'Breakdown' },
-  { value: 'share', label: 'Share of a base' },
+  { value: 'breakdown', label: 'Breakdown (split by a field)' },
+  { value: 'share', label: 'Share of all' },
   { value: 'perDay', label: 'Per day' },
   { value: 'target', label: 'Progress to a target' },
-  { value: 'countdown', label: 'Countdown' },
 ];
-
-export const SPLIT_FIELDS = [
-  { value: 'gender', label: 'Gender' },
-  { value: 'city', label: 'City' },
-  { value: 'tribune', label: 'Tribune' },
-  { value: 'channel', label: 'Sales channel' },
-  { value: 'category', label: 'Product category' },
-];
+export const kindsFor = (measure) => (measure === 'days'
+  ? [{ value: 'countdown', label: 'Countdown' }]
+  : KINDS.filter((k) => !(k.value === 'share' && measure === 'revenue')));
 
 export const EVENTS = [
   { value: 'derby', label: 'FC Demo vs. Olympique Exemple', date: '2026-11-08' },
@@ -111,27 +139,32 @@ export const EVENTS = [
   { value: 'gala', label: 'Season gala', date: '2026-12-12' },
 ];
 
+/* Breakdown rows per field; fields without fixed rows get rows made from their values. */
 export const BREAKDOWNS = {
-  gender: [
+  Gender: [
     { label: 'Male', value: 118240 }, { label: 'Female', value: 76410 }, { label: 'Unknown', value: 26859 },
   ],
-  city: [
+  City: [
     { label: 'Paris', value: 64120 }, { label: 'Lyon', value: 21480 }, { label: 'Lille', value: 15310 },
     { label: 'Marseille', value: 11020 }, { label: 'Bordeaux', value: 8760 }, { label: 'Other', value: 100819 },
   ],
-  tribune: [
+  Tribune: [
     { label: 'Tribune Nord', value: 5890 }, { label: 'Tribune Présidentielle', value: 2120 },
     { label: 'Virage Sud', value: 2760 }, { label: 'Family zone', value: 1265 }, { label: 'Other', value: 412 },
   ],
-  channel: [
+  'Sales channel': [
     { label: 'Online', value: 15820 }, { label: 'Box office', value: 3410 },
     { label: 'Partner resale', value: 1980 }, { label: 'Mobile app', value: 1640 }, { label: 'Other', value: 290 },
   ],
-  category: [
+  'Product category': [
     { label: 'Match shirts', value: 14224 }, { label: 'Fan articles', value: 9489 },
     { label: 'Training wear', value: 7426 }, { label: 'Kids', value: 3120 }, { label: 'Other', value: 1840 },
   ],
 };
+
+export const rowsFor = (source, field) => BREAKDOWNS[field]
+  ?? (sourceOf(source)?.fields.find((f) => f.field === field)?.values ?? ['A', 'B', 'C'])
+    .map((label, i) => ({ label, value: Math.round(4200 / (i + 1.4)) }));
 
 export const SERIES = [
   120, 95, 80, 0, 140, 210, 160, 130, 115, 90, 2480, 610, 380, 300, 260,
@@ -149,7 +182,7 @@ export const INITIAL_TABS = [
 let _id = 500;
 export const newId = () => `a${_id++}`;
 
-const ALL_FANS = { label: 'all fans', value: 221509 };
+const ALL_FANS = { label: 'fans', value: 221509 };
 
 export const INITIAL_CARDS = [
   // Fanbase: Batch 1 profile cards
@@ -169,10 +202,10 @@ export const INITIAL_CARDS = [
     title: 'Fans with a complete address', subtitle: 'Known birth date, city, address and postcode',
     conditions: ['Has birth date is Yes', 'Has full address is Yes'], value: 52028, base: ALL_FANS, prev: { yesterday: 51990, lastYear: 49870 },
     createdBy: 'sarah', createdAt: '4 Sep' },
-  { id: 'f5', tab: 'fanbase', kind: 'breakdown', measure: 'people', source: 'contact', split: 'gender',
+  { id: 'f5', tab: 'fanbase', kind: 'breakdown', measure: 'people', source: 'contact', split: 'Gender',
     title: 'Fans by gender', subtitle: 'Male, female and unknown',
     conditions: ['Has e-mail address is Yes'], createdBy: 'camille', createdAt: '5 Sep' },
-  { id: 'f6', tab: 'fanbase', kind: 'breakdown', measure: 'people', source: 'contact', split: 'city',
+  { id: 'f6', tab: 'fanbase', kind: 'breakdown', measure: 'people', source: 'contact', split: 'City',
     title: 'Where our fans live', subtitle: 'Top 5 cities',
     conditions: ['Has e-mail address is Yes'], createdBy: 'camille', createdAt: '5 Sep' },
   { id: 'f7', tab: 'fanbase', kind: 'perDay', measure: 'people', source: 'contact',
@@ -189,12 +222,12 @@ export const INITIAL_CARDS = [
     title: 'Not renewed yet', subtitle: 'Holders 25/26 without a 26/27 season ticket',
     conditions: ['Season is 25/26', 'Renewed for next season is No'], value: 1284, prev: { yesterday: 1330, lastYear: 1459 },
     createdBy: 'hugo', createdAt: '12 Sep' },
-  { id: 's3', tab: 'season', kind: 'breakdown', measure: 'people', source: 'subscription', split: 'tribune',
+  { id: 's3', tab: 'season', kind: 'breakdown', measure: 'people', source: 'subscription', split: 'Tribune',
     title: 'Season ticket holders by tribune', subtitle: 'Season 26/27',
     conditions: ['Season is 26/27', 'Status is Active'], createdBy: 'hugo', createdAt: '12 Sep' },
-  { id: 's4', tab: 'season', kind: 'target', measure: 'subscriptions', source: 'order',
+  { id: 's4', tab: 'season', kind: 'target', measure: 'subscriptions', source: 'subscription',
     title: 'Season tickets sold 26/27', subtitle: 'Regular and multi-year season tickets',
-    conditions: ['Product type is Season ticket', 'Season is 26/27'], value: 12447, target: 14000, prev: { yesterday: 12401, lastYear: 11980 },
+    conditions: ['Season is 26/27', 'Status is Active'], value: 12447, target: 14000, prev: { yesterday: 12401, lastYear: 11980 },
     createdBy: 'hugo', createdAt: '14 Sep' },
   { id: 's5', tab: 'season', kind: 'target', measure: 'revenue', source: 'order',
     title: 'Season ticket revenue 26/27', subtitle: 'Net, excluding VAT',
@@ -216,7 +249,8 @@ export const INITIAL_CARDS = [
     ], createdBy: 'sarah', createdAt: '16 Oct' },
 
   // Matchday
-  { id: 'm1', tab: 'matchday', kind: 'countdown', event: 'derby',
+  { id: 'm1', tab: 'matchday', kind: 'countdown', event: 'derby', source: 'event', measure: 'days',
+    conditions: ['Event is FC Demo vs. Olympique Exemple'],
     title: 'Days until the derby', subtitle: 'Next home match',
     createdBy: 'hugo', createdAt: '6 Oct' },
   { id: 'm2', tab: 'matchday', kind: 'target', measure: 'tickets', source: 'ticket',
@@ -235,7 +269,7 @@ export const INITIAL_CARDS = [
     title: 'Unique buyers for the derby', subtitle: 'Fans with at least one ticket',
     conditions: ['Event is FC Demo vs. Olympique Exemple'], value: 9214, prev: { yesterday: 9050, lastYear: 8630 }, compare: 'none',
     createdBy: 'camille', createdAt: '7 Oct' },
-  { id: 'm6', tab: 'matchday', kind: 'breakdown', measure: 'tickets', source: 'ticket', split: 'channel',
+  { id: 'm6', tab: 'matchday', kind: 'breakdown', measure: 'tickets', source: 'ticket', split: 'Sales channel',
     title: 'Sales by channel', subtitle: 'Derby tickets',
     conditions: ['Event is FC Demo vs. Olympique Exemple'], createdBy: 'hugo', createdAt: '7 Oct' },
 
@@ -254,7 +288,7 @@ export const INITIAL_CARDS = [
       { label: 'Merchandise revenue', value: 450779 },
       { label: 'Webshop orders', value: 5762 },
     ], createdBy: 'sarah', createdAt: '3 Oct' },
-  { id: 'w4', tab: 'shop', kind: 'breakdown', measure: 'orders', source: 'webshop', split: 'category',
+  { id: 'w4', tab: 'shop', kind: 'breakdown', measure: 'items', source: 'webshop', split: 'Product category',
     title: 'Products sold per category', subtitle: 'Season 26/27',
     conditions: ['Season is 26/27'], createdBy: 'sarah', createdAt: '3 Oct' },
   { id: 'w5', tab: 'shop', kind: 'perDay', measure: 'revenue', source: 'webshop',
@@ -277,16 +311,14 @@ export const INITIAL_CARDS = [
     createdBy: 'hugo', createdAt: '12 Oct' },
 ];
 
-const TX = ['tickets', 'orders', 'subscriptions', 'revenue'];
-
 /** The features a card needs before it can exist. */
 export function needsOf(card) {
   const n = ['page'];
-  if (card.kind === 'manualData') n.push('manualData');
-  else if (card.kind === 'text') n.push('manualText');
-  else if (card.kind === 'countdown') n.push('countdown');
-  else n.push(card.kind);
-  if (TX.includes(card.measure)) n.push('tx');
+  if (card.kind === 'manualData') return [...n, 'manualData'];
+  if (card.kind === 'text') return [...n, 'manualText'];
+  n.push(card.kind);
+  const m = measureOf(card.source, card.measure);
+  if (m) n.push(m.needs);
   return n;
 }
 
@@ -317,4 +349,23 @@ export const AI_PROMPTS = [
   'season ticket holders who did not renew yet',
   'tickets sold per day for the next home match',
   'where do our fans live',
+];
+
+/* Scripted stand-in for the AI (Batch 3): it fills the same steps a person
+   fills by hand, from one source, with "field is value" conditions. */
+export const AI_SCRIPTS_ALL = [
+  { match: ['renew'], fill: {
+    source: 'subscription', measure: 'people', kind: 'number', title: 'Not renewed yet', value: 1284,
+    conditions: [{ label: 'Season is 25/26' }, { label: 'Renewed for next season is No', flagged: true }] } },
+  { match: ['per day', 'next home match', 'daily'], fill: {
+    source: 'ticket', measure: 'tickets', kind: 'perDay', title: 'Tickets sold per day, next home match', value: 9480,
+    conditions: [{ label: 'Event is FC Demo vs. Olympique Exemple', flagged: true }] } },
+  { match: ['live', 'city', 'cities', 'where'], fill: {
+    source: 'contact', measure: 'people', kind: 'breakdown', split: 'City', title: 'Where our fans live',
+    conditions: [{ label: 'Has e-mail address is Yes' }] } },
+  { match: ['revenue', 'turnover'], fill: {
+    source: 'order', measure: 'revenue', kind: 'number', title: 'Revenue this season', value: 1523000,
+    conditions: [{ label: 'Season is 26/27' }] } },
+  { match: ['instagram', 'likes', 'tv', 'weather'],
+    refuse: 'Arenametrix holds no social media, TV or weather data, so this card cannot be built. Try: tickets sold per day for the next home match.' },
 ];
