@@ -142,6 +142,7 @@ const NAV_TABS_L1 = [
     Icon: IcoInsights,
     subitems: [
       { id: "insights", label: "My cards", link: "/insights" },
+      { id: "insights-all", label: "All batches (mockup)", link: "/insights/all-batches" },
     ],
   },
   {
