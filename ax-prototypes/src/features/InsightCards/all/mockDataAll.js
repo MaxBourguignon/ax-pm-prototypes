@@ -53,7 +53,10 @@ export const compareLabel = (card, comparison) => (comparison === 'condition'
    E-commerce. There is no Contacts dataset in the new set-up (Joost, 22
    October). Each shop carries the contact details of its buyers, such as
    city and country, so a card can filter or split on them (Joost, 22
-   October). Fields per shop are illustrative; the real list comes from the AX
+   October). Next to the standard fields, each shop shows the client's own
+   fields (custom params, marked "custom"): the segmentation engine lists
+   them per client with their type, from templates per organisation type.
+   Fields per shop are illustrative; the real list comes from the AX
    segmentation engine (nobody knows it in full yet).
 
    Measures: "Count profiles" is Batch 1 (the segmentation engine counts
@@ -75,6 +78,7 @@ export const SOURCES = [
       { field: 'Section', values: ['Section A', 'Section B', 'Main stand', 'Family zone'] },
       { field: 'Sales channel', values: ['Online', 'Box office', 'Partner resale', 'Mobile app'] },
       { field: 'Scanned at entry', values: ['Yes', 'No'] },
+      { field: 'Supporter group (custom)', values: ['Ultras', 'Family club', 'Business club', 'None'] },
       { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
       { field: 'Country', values: ['France', 'Belgium', 'Netherlands', 'Switzerland'] },
     ],
@@ -92,6 +96,7 @@ export const SOURCES = [
       { field: 'Product', values: ['Season pass', 'Multi-year pass', 'Membership', 'Supporters club'] },
       { field: 'Section', values: ['Section A', 'Section B', 'Main stand', 'Family zone'] },
       { field: 'Renewed for next season', values: ['Yes', 'No'] },
+      { field: 'Member since (custom)', values: ['Before 2015', '2015 to 2020', 'After 2020'] },
       { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
       { field: 'Country', values: ['France', 'Belgium', 'Netherlands', 'Switzerland'] },
     ],
@@ -108,6 +113,7 @@ export const SOURCES = [
       { field: 'Season', values: ['25/26', '26/27'] },
       { field: 'Status', values: ['Confirmed', 'Cancelled'] },
       { field: 'Attended', values: ['Yes', 'No'] },
+      { field: 'Federation role (custom)', values: ['Volunteer', 'Coach', 'Board member', 'None'] },
       { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
       { field: 'Country', values: ['France', 'Belgium', 'Netherlands', 'Switzerland'] },
     ],
@@ -125,6 +131,7 @@ export const SOURCES = [
       { field: 'Product category', values: ['Jerseys', 'Fan articles', 'Clothing', 'Kids'] },
       { field: 'Order status', values: ['Paid', 'Refunded'] },
       { field: 'Discount code used', values: ['Yes', 'No'] },
+      { field: 'Shirt size (custom)', values: ['S', 'M', 'L', 'XL'] },
       { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
       { field: 'Country', values: ['France', 'Belgium', 'Netherlands', 'Switzerland'] },
     ],
