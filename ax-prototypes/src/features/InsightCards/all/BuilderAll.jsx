@@ -8,6 +8,10 @@
  *            target, countdown.
  *   Batch 3  + "Describe your number" (scripted AI stand-in) and dragging a
  *            field onto "Split by".
+ *
+ * Conditions only use fields of the chosen source (a subscription card filters
+ * on subscription fields only), so a card stays simple. Changing the source
+ * clears the conditions.
  */
 import React from 'react';
 import { DS, TY } from '../../../utils/designSystem';
@@ -19,10 +23,9 @@ import Select from '../../../components/Select';
 import Chip from '../../../components/Chip';
 import Skeleton from '../../../components/Skeleton';
 import Card from '../../../components/Card';
-import AddFilterModal from '../../Contacts/AddFilterModal';
 import { AI_SCRIPTS } from '../mockData';
 import { CardBodyAll } from './CardAll';
-import { SOURCES, MEASURES, KINDS, SPLIT_FIELDS, EVENTS, AI_PROMPTS, COMPARISONS } from './mockDataAll';
+import { SOURCES, MEASURES, KINDS, SPLIT_FIELDS, EVENTS, AI_PROMPTS, COMPARISONS, SOURCE_FIELDS } from './mockDataAll';
 import { has } from './batches';
 
 let _k = 1;
@@ -60,6 +63,28 @@ const Label = ({ children }) => (
   <div style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary, marginBottom: 6 }}>{children}</div>
 );
 
+/* Pick one field of the card's own source and one value: "Status is Active". */
+function ConditionPicker({ source, onAdd, onCancel }) {
+  const fields = SOURCE_FIELDS[source] ?? [];
+  const [field, setField] = React.useState(fields[0]?.field ?? '');
+  const values = fields.find((f) => f.field === field)?.values ?? [];
+  const [value, setValue] = React.useState(values[0] ?? '');
+  React.useEffect(() => { setValue(values[0] ?? ''); }, [field]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <div style={{ alignSelf: 'stretch', display: 'flex', flexDirection: 'column', gap: 8, padding: 10, borderRadius: DS.radiusLg, border: `1px solid ${DS.borderDefault}`, background: DS.surfaceCanvas }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 8, alignItems: 'center' }}>
+        <Select value={field} options={fields.map((f) => ({ value: f.field, label: f.field }))} onChange={setField} />
+        <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary }}>is</span>
+        <Select value={value} options={values.map((v) => ({ value: v, label: v }))} onChange={setValue} />
+      </div>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <Btn type="Ghost" size="Sm" onClick={onCancel}>Cancel</Btn>
+        <Btn type="Secondary" size="Sm" disabled={!field || !value} onClick={() => onAdd(`${field} is ${value}`)}>Add</Btn>
+      </div>
+    </div>
+  );
+}
+
 function CondChip({ cond, onConfirm, onRemove }) {
   return (
     <span style={{
@@ -86,6 +111,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
   const [phase, setPhase] = React.useState('idle');
   const [note, setNote] = React.useState(null);
   const [picker, setPicker] = React.useState(false);
+  const sourceLabel = SOURCES.find((x) => x.value === form.source)?.label ?? '';
   const [dragOver, setDragOver] = React.useState(false);
   const [error, setError] = React.useState('');
 
@@ -205,7 +231,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
           {!tx && (
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: DS.feedbackInfoBg, borderRadius: DS.radiusLg, padding: '10px 12px', ...TY.bodySm, color: DS.textDefault }}>
               <Ico.Info s={16} c={DS.feedbackInfo} />
-              Same conditions as the segmentation engine. The result is a card with a number of profiles, not a list.
+              Same fields as the segmentation engine, one source per card. The result is a card with a number of profiles, not a list.
             </div>
           )}
 
@@ -223,12 +249,13 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
               ) : (
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <Select label="Source" value={form.source} placeholder="Choose a source" options={sources} onChange={(v) => patch({ source: v })} />
+                    <Select label="Source" value={form.source} placeholder="Choose a source" options={sources}
+                            onChange={(v) => { if (v !== form.source) { patch({ source: v, conditions: [] }); setPicker(false); } }} />
                     <Select label="Measure" value={form.measure} options={form.kind === 'share' ? measures.filter((m) => m.value === 'people') : measures} onChange={(v) => patch({ measure: v })} />
                   </div>
 
                   <div>
-                    <Label>Conditions</Label>
+                    <Label>Conditions{sourceLabel ? ` (${sourceLabel.toLowerCase()} fields only)` : ''}</Label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
                       {!form.conditions.length && <span style={{ ...TY.bodySm, color: DS.textMuted }}>No conditions yet.</span>}
                       {form.conditions.map((c, i) => (
@@ -241,9 +268,18 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
                           />
                         </React.Fragment>
                       ))}
-                      <Btn type="Ghost" size="Sm" iconLeft={<Ico.Plus s={14} c={DS.actionPrimary} />} style={{ color: DS.actionPrimary }} onClick={() => setPicker(true)}>
-                        Add condition
-                      </Btn>
+                      {picker ? (
+                        <ConditionPicker
+                          key={form.source} source={form.source} onCancel={() => setPicker(false)}
+                          onAdd={(label) => { patch({ conditions: [...form.conditions, { id: kid(), label, flagged: false }] }); setPicker(false); }}
+                        />
+                      ) : form.source ? (
+                        <Btn type="Ghost" size="Sm" iconLeft={<Ico.Plus s={14} c={DS.actionPrimary} />} style={{ color: DS.actionPrimary }} onClick={() => setPicker(true)}>
+                          Add condition
+                        </Btn>
+                      ) : (
+                        <span style={{ ...TY.bodySm, color: DS.textMuted }}>Choose a source first.</span>
+                      )}
                     </div>
                   </div>
 
@@ -316,8 +352,6 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
           )}
         </div>
       </Modal>
-      <AddFilterModal open={picker} onClose={() => setPicker(false)}
-                      onSelect={(uc) => patch({ conditions: [...form.conditions, { id: kid(), label: uc.label, flagged: false }] })} />
     </>
   );
 }
