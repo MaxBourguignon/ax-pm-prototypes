@@ -29,6 +29,7 @@ export const FEATURES = [
   { batch: 2, id: 'manualText', label: 'Manual entry, content: a card with plain text (to confirm)' },
   { batch: 3, id: 'ai', label: 'AI builder: describe a card in a sentence' },
   { batch: 3, id: 'dnd', label: 'Drag-and-drop: arrange cards, drag a field onto "Split by"' },
+  { batch: 3, id: 'compareChoice', label: 'Compare per card: choose nothing, the previous count, or the same day last year' },
   { batch: 3, id: 'segment', label: 'Card to segment: open a profile card in the segmentation engine' },
 ];
 

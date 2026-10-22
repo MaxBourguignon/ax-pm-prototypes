@@ -23,13 +23,13 @@ import Tooltip from '../../../components/Tooltip';
 import ActionMenu from '../../../components/ActionMenu';
 import { BreakdownBars, PerDayChart } from '../InsightCard';
 import {
-  BREAKDOWNS, SOURCES, MEASURES, USERS, REFRESHED_AT, COMPARISON_SHORT, EVENTS, OPS, SPLIT_FIELDS, manualResult,
+  BREAKDOWNS, SOURCES, MEASURES, USERS, REFRESHED_AT, COMPARISON_SHORT, COMPARISONS, EVENTS, OPS, SPLIT_FIELDS, manualResult, comparisonOf,
 } from './mockDataAll';
 import { has } from './batches';
 
 const labelOf = (list, v) => list.find((o) => o.value === v)?.label ?? v;
 
-export const fmtValue = (n, measureOrUnit) => {
+const fmtValue = (n, measureOrUnit) => {
   if (n === null || n === undefined || Number.isNaN(n)) return '–';
   if (measureOrUnit === 'revenue' || measureOrUnit === 'eur') {
     const decimals = Math.abs(n) < 1000 && n % 1 !== 0 ? 2 : 0;
@@ -39,7 +39,7 @@ export const fmtValue = (n, measureOrUnit) => {
   return n.toLocaleString('en-US', { maximumFractionDigits: n % 1 === 0 ? 0 : 2 });
 };
 
-export const pctColor = (pct) => (pct < 30 ? DS.feedbackDanger : pct < 70 ? DS.actionPrimary : DS.feedbackSuccess);
+const pctColor = (pct) => (pct < 30 ? DS.feedbackDanger : pct < 70 ? DS.actionPrimary : DS.feedbackSuccess);
 
 export function ProgressBar({ pct }) {
   return (
@@ -74,7 +74,7 @@ const Small = ({ children, style }) => (
 
 export function CardBodyAll({ card, comparison }) {
   const prev = card.prev?.[comparison];
-  const variation = (
+  const variation = comparison === 'none' ? null : (
     <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
       <Variation value={card.value} prev={prev} /> <Small>{COMPARISON_SHORT[comparison]}</Small>
     </span>
@@ -186,7 +186,7 @@ export function CardBodyAll({ card, comparison }) {
   }
 }
 
-function Definition({ card }) {
+function Definition({ card, batch }) {
   const user = USERS[card.createdBy];
   const row = (k, v) => (
     <div style={{ display: 'flex', gap: 6 }}>
@@ -202,6 +202,7 @@ function Definition({ card }) {
       {card.measure && row('Measure', labelOf(MEASURES, card.measure))}
       {card.split && row('Split by', labelOf(SPLIT_FIELDS, card.split))}
       {card.kind === 'share' && row('Share of', card.base?.label)}
+      {card.prev && row('Compared with', labelOf(COMPARISONS, comparisonOf(card, batch)))}
       {card.target && row('Target', fmtValue(card.target, card.measure ?? card.unit))}
       {card.kind === 'manualData' && row('Calculation', labelOf(OPS, card.op))}
       {user && row(manual ? 'Entered by' : 'Created by', `${user.name}, ${card.createdAt}`)}
@@ -210,7 +211,7 @@ function Definition({ card }) {
 }
 
 export default function CardAll({
-  card, comparison, batch, tabs, highlight, onEdit, onDuplicate, onMove, onDelete, onOpenSegment,
+  card, batch, tabs, highlight, onEdit, onDuplicate, onMove, onDelete, onOpenSegment,
   dragProps, dragging, dropHint,
 }) {
   const [showDef, setShowDef] = React.useState(false);
@@ -254,9 +255,9 @@ export default function CardAll({
           <ActionMenu items={menu} size="Sm" width={220} />
         </div>
 
-        <CardBodyAll card={card} comparison={comparison} />
+        <CardBodyAll card={card} comparison={comparisonOf(card, batch)} />
 
-        {showDef && <Definition card={card} />}
+        {showDef && <Definition card={card} batch={batch} />}
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 28 }}>
           <span style={{ ...TY.captionSm, fontFamily: DS.ff, color: DS.textMuted }}>

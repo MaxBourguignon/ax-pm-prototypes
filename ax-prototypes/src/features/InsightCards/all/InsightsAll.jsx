@@ -18,7 +18,6 @@ import { Btn } from '../../../components/Btn';
 import IconBtn from '../../../components/Iconbtn';
 import Tooltip from '../../../components/Tooltip';
 import Tabs from '../../../components/Tabs';
-import Select from '../../../components/Select';
 import Modal from '../../../components/Modal';
 import Card from '../../../components/Card';
 import Toast from '../../../components/Toast';
@@ -27,7 +26,7 @@ import CardAll from './CardAll';
 import BuilderAll from './BuilderAll';
 import { NewCardChooser, ManualEditor } from './NewCard';
 import { BATCHES, FEATURES, has } from './batches';
-import { ACCOUNT, INITIAL_TABS, INITIAL_CARDS, COMPARISONS, cardAvailable, newId } from './mockDataAll';
+import { ACCOUNT, INITIAL_TABS, INITIAL_CARDS, cardAvailable, newId } from './mockDataAll';
 
 const CHECK_KEY = 'insights-all-checklist';
 const BATCH_KEY = 'insights-all-batch';
@@ -100,7 +99,6 @@ export default function InsightsAll() {
   const [tabs] = React.useState(INITIAL_TABS);
   const [activeTab, setActiveTab] = React.useState(() => query().get('tab') || 'fanbase');
   const [cards, setCards] = React.useState(INITIAL_CARDS);
-  const [comparison, setComparison] = React.useState('yesterday');
   const [chooser, setChooser] = React.useState(false);
   const [builder, setBuilder] = React.useState(null);  // null | { initial }
   const [manual, setManual] = React.useState(null);    // null | { initial }
@@ -186,14 +184,11 @@ export default function InsightsAll() {
         </Tooltip>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
-        <Select label="Compare with" value={comparison} options={COMPARISONS} width={260} onChange={setComparison} />
-        {has(batch, 'dnd') && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...TY.bodySm, color: DS.textSecondary, paddingBottom: 8 }}>
-            <Ico.Drag s={14} c={DS.textMuted} /> Drag a card to move it
-          </span>
-        )}
-      </div>
+      {has(batch, 'dnd') && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...TY.bodySm, color: DS.textSecondary }}>
+          <Ico.Drag s={14} c={DS.textMuted} /> Drag a card to move it
+        </span>
+      )}
 
       {tabCards.length === 0 ? (
         <Card style={{ padding: 8 }}>
@@ -203,7 +198,7 @@ export default function InsightsAll() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, alignItems: 'start' }}>
           {tabCards.map((c) => (
             <CardAll
-              key={c.id} card={c} comparison={comparison} batch={batch} tabs={visibleTabs}
+              key={c.id} card={c} batch={batch} tabs={visibleTabs}
               highlight={highlight === c.id}
               onEdit={edit} onDuplicate={duplicate} onMove={move} onDelete={setDeleteCard} onOpenSegment={openSegment}
               dragProps={dragProps(c.id)} dragging={drag.id === c.id} dropHint={drag.id && drag.over === c.id && drag.id !== c.id}
@@ -223,7 +218,7 @@ export default function InsightsAll() {
         onChoose={(c) => { setChooser(false); if (c.kind === 'custom') setBuilder({ initial: null }); else setManual({ initial: { kind: c.kind } }); }}
       />
       <BuilderAll
-        open={!!builder} initial={builder?.initial} batch={batch} tabs={visibleTabs} defaultTab={tab.id} comparison={comparison}
+        open={!!builder} initial={builder?.initial} batch={batch} tabs={visibleTabs} defaultTab={tab.id}
         onClose={() => setBuilder(null)} onSave={saveCard}
       />
       <ManualEditor

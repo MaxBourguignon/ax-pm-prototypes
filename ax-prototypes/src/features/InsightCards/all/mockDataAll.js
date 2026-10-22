@@ -17,12 +17,17 @@ export const USERS = {
 
 export const REFRESHED_AT = '07:00';
 
-/* What the variation compares with. Which one the product uses is not decided
-   yet (spec, open question): both are offered here so it can be shown. */
+/* What a card's variation compares with. */
 export const COMPARISONS = [
+  { value: 'none', label: 'Nothing' },
   { value: 'yesterday', label: 'Previous count (yesterday)' },
   { value: 'lastYear', label: 'Same day last year' },
 ];
+
+/* Before Batch 3 every card compares with the previous count (Batch 1 spec).
+   From Batch 3 the card's own choice applies; there is no page-wide filter,
+   so the page stays a set of cards rather than a dashboard. */
+export const comparisonOf = (card, batch) => (batch >= 3 ? (card.compare ?? 'yesterday') : 'yesterday');
 export const COMPARISON_SHORT = { yesterday: 'vs. yesterday', lastYear: 'vs. last year' };
 
 /* Sources as in the segmentation engine (people) plus the transaction data of Batch 2. */
@@ -137,7 +142,7 @@ export const INITIAL_CARDS = [
   // Season tickets
   { id: 's1', tab: 'season', kind: 'number', measure: 'people', source: 'subscription',
     title: 'Season ticket holders 26/27', subtitle: 'Unique fans with an active season ticket',
-    conditions: ['Season 26/27', 'Status is Active'], value: 12447, prev: { yesterday: 12401, lastYear: 11980 },
+    conditions: ['Season 26/27', 'Status is Active'], value: 12447, prev: { yesterday: 12401, lastYear: 11980 }, compare: 'lastYear',
     createdBy: 'hugo', createdAt: '1 Sep' },
   { id: 's2', tab: 'season', kind: 'number', measure: 'people', source: 'subscription',
     title: 'Not renewed yet', subtitle: 'Holders 25/26 without a 26/27 season ticket',
@@ -187,7 +192,7 @@ export const INITIAL_CARDS = [
     createdBy: 'hugo', createdAt: '6 Oct' },
   { id: 'm5', tab: 'matchday', kind: 'number', measure: 'people', source: 'ticket',
     title: 'Unique buyers for the derby', subtitle: 'Fans with at least one ticket',
-    conditions: ['Event: FC Demo vs. Olympique Exemple'], value: 9214, prev: { yesterday: 9050, lastYear: 8630 },
+    conditions: ['Event: FC Demo vs. Olympique Exemple'], value: 9214, prev: { yesterday: 9050, lastYear: 8630 }, compare: 'none',
     createdBy: 'camille', createdAt: '7 Oct' },
   { id: 'm6', tab: 'matchday', kind: 'breakdown', measure: 'tickets', source: 'ticket', split: 'channel',
     title: 'Sales by channel', subtitle: 'Derby tickets',
@@ -200,7 +205,7 @@ export const INITIAL_CARDS = [
     createdBy: 'sarah', createdAt: '2 Oct' },
   { id: 'w2', tab: 'shop', kind: 'number', measure: 'orders', source: 'webshop',
     title: 'Webshop orders this season', subtitle: 'Season 26/27',
-    conditions: ['Season 26/27'], value: 5762, prev: { yesterday: 5731, lastYear: 4980 },
+    conditions: ['Season 26/27'], value: 5762, prev: { yesterday: 5731, lastYear: 4980 }, compare: 'lastYear',
     createdBy: 'sarah', createdAt: '2 Oct' },
   { id: 'w3', tab: 'shop', kind: 'manualData', unit: 'eur', op: 'divide',
     title: 'Average order value', subtitle: 'Revenue divided by orders',

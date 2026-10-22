@@ -22,7 +22,7 @@ import Card from '../../../components/Card';
 import AddFilterModal from '../../Contacts/AddFilterModal';
 import { AI_SCRIPTS } from '../mockData';
 import { CardBodyAll } from './CardAll';
-import { SOURCES, MEASURES, KINDS, SPLIT_FIELDS, EVENTS, AI_PROMPTS } from './mockDataAll';
+import { SOURCES, MEASURES, KINDS, SPLIT_FIELDS, EVENTS, AI_PROMPTS, COMPARISONS } from './mockDataAll';
 import { has } from './batches';
 
 let _k = 1;
@@ -30,7 +30,7 @@ const kid = () => `q${_k++}`;
 
 const EMPTY = {
   source: '', conditions: [], measure: 'people', kind: 'number', split: 'gender', base: 'fans',
-  target: '', event: 'derby', title: '', subtitle: '', value: null,
+  target: '', event: 'derby', title: '', subtitle: '', value: null, compare: 'yesterday',
 };
 
 const BASES = [
@@ -79,7 +79,7 @@ function CondChip({ cond, onConfirm, onRemove }) {
   );
 }
 
-export default function BuilderAll({ open, initial, batch, tabs, defaultTab, comparison, onClose, onSave }) {
+export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onClose, onSave }) {
   const [form, setForm] = React.useState(EMPTY);
   const [tab, setTab] = React.useState(defaultTab);
   const [prompt, setPrompt] = React.useState('');
@@ -146,7 +146,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, com
       kind: form.kind, measure: countdown ? undefined : form.measure, source: countdown ? undefined : form.source,
       title: form.title.trim(), subtitle: form.subtitle,
       conditions: countdown ? undefined : form.conditions.map((c) => c.label),
-      split: form.split, event: form.event,
+      split: form.split, event: form.event, compare: form.compare,
       base: form.kind === 'share' ? { label: base.label.toLowerCase(), value: base.count } : undefined,
       target: form.kind === 'target' ? Number(form.target) : undefined,
       value: v, prev: { yesterday: Math.round(v * 0.995), lastYear: Math.round(v * 0.92) },
@@ -287,6 +287,9 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, com
                   {form.kind === 'share' && (
                     <Select label="Share of" value={form.base} options={BASES} onChange={(v) => patch({ base: v })} />
                   )}
+                  {has(batch, 'compareChoice') && ['number', 'share', 'perDay'].includes(form.kind) && (
+                    <Select label="Compare with" value={form.compare} options={COMPARISONS} onChange={(v) => patch({ compare: v })} />
+                  )}
                   {form.kind === 'target' && (
                     <Field label="Target" value={String(form.target)} onChange={(e) => patch({ target: e.target.value.replace(/[^0-9]/g, '') })} placeholder="e.g. 14000" />
                   )}
@@ -302,7 +305,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, com
                   {ready ? (
                     <Card style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <span style={{ ...TY.labelLg, color: DS.textStrong }}>{form.title || 'Untitled card'}</span>
-                      <CardBodyAll card={preview} comparison={comparison} />
+                      <CardBodyAll card={preview} comparison={has(batch, 'compareChoice') ? form.compare : 'yesterday'} />
                     </Card>
                   ) : (
                     <div style={{ padding: 20, textAlign: 'center', ...TY.bodySm, color: DS.textMuted }}>Add a source and a condition to see your number</div>
