@@ -20,7 +20,7 @@ export const FEATURES = [
   { batch: 1, id: 'breakdown', label: 'Format: breakdown, top 5 plus "Other"' },
   { batch: 1, id: 'share', label: 'Format: share of a base, with a % bar (third format, to decide)' },
   { batch: 1, id: 'definition', label: 'The definition behind every card' },
-  { batch: 1, id: 'refresh', label: 'Cards refresh every morning' },
+  { batch: 1, id: 'refresh', label: 'Cards run on the data in our warehouse; no refresh time on the card (it depends on the import from the client)' },
   { batch: 2, id: 'tx', label: 'Transaction measures: tickets, orders, revenue, webshop, subscriptions sold' },
   { batch: 2, id: 'perDay', label: 'Format: series per day (bar chart)' },
   { batch: 2, id: 'target', label: 'Format: progress bar towards a target the client sets' },

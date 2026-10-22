@@ -23,7 +23,7 @@ import Tooltip from '../../../components/Tooltip';
 import ActionMenu from '../../../components/ActionMenu';
 import { BreakdownBars, PerDayChart } from '../InsightCard';
 import {
-  BREAKDOWNS, SOURCES, MEASURES, USERS, REFRESHED_AT, COMPARISON_SHORT, COMPARISONS, EVENTS, OPS, SPLIT_FIELDS, manualResult, comparisonOf,
+  BREAKDOWNS, SOURCES, MEASURES, USERS, COMPARISON_SHORT, COMPARISONS, EVENTS, OPS, SPLIT_FIELDS, manualResult, comparisonOf,
 } from './mockDataAll';
 import { has } from './batches';
 
@@ -259,17 +259,21 @@ export default function CardAll({
 
         {showDef && <Definition card={card} batch={batch} />}
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 28 }}>
-          <span style={{ ...TY.captionSm, fontFamily: DS.ff, color: DS.textMuted }}>
-            {manual ? `Manual entry · ${USERS[card.createdBy]?.name ?? ''}` : card.kind === 'countdown' ? 'Updates daily' : `Refreshed daily at ${REFRESHED_AT}`}
-          </span>
-          {canSegment && (
-            <Btn type="Ghost" size="Sm" iconRight={<Ico.ChevRight s={14} c={DS.actionPrimary} />} style={{ color: DS.actionPrimary }}
-                 onClick={() => onOpenSegment(card)}>
-              Open as segment
-            </Btn>
-          )}
-        </div>
+        {/* No refresh time on the card: cards run on the warehouse copy of the
+            client's data, so freshness depends on the import, not the card run. */}
+        {(manual || canSegment) && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 28 }}>
+            <span style={{ ...TY.captionSm, fontFamily: DS.ff, color: DS.textMuted }}>
+              {manual ? `Manual entry · ${USERS[card.createdBy]?.name ?? ''}` : ''}
+            </span>
+            {canSegment && (
+              <Btn type="Ghost" size="Sm" iconRight={<Ico.ChevRight s={14} c={DS.actionPrimary} />} style={{ color: DS.actionPrimary }}
+                   onClick={() => onOpenSegment(card)}>
+                Open as segment
+              </Btn>
+            )}
+          </div>
+        )}
       </Card>
     </div>
   );

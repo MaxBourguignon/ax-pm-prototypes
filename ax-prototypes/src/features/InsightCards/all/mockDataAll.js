@@ -15,8 +15,6 @@ export const USERS = {
   sarah: { name: 'Sarah Benali', role: 'CRM officer' },
 };
 
-export const REFRESHED_AT = '07:00';
-
 /* What a card's variation compares with. */
 export const COMPARISONS = [
   { value: 'none', label: 'Nothing' },
