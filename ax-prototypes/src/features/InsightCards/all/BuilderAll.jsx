@@ -2,7 +2,7 @@
  * BuilderAll: the side panel that builds a custom card.
  *
  * Everything follows from the source (Joost, 22 October):
- *   1 Source          where the card starts: Contacts, Subscriptions, Tickets...
+ *   1 Source          where the card starts: one of the four shops
  *   2 What to count   only the measures of that source
  *   3 Conditions      only the fields of that source, "field is value"
  *   4 Show as         the formats that fit the measure; Split by uses a field
@@ -12,7 +12,7 @@
  *
  * The batch limits each step: Batch 1 counts profiles only (number,
  * breakdown, share of all); Batch 2 adds counting transactions, revenue,
- * per day, progress to a target and the Events source (countdown); Batch 3
+ * per day, progress to a target and days until an event (countdown); Batch 3
  * adds "Describe your number" (a scripted AI stand-in) and Compare with.
  */
 import React from 'react';
@@ -43,7 +43,7 @@ const previewValue = (f) => {
   return Math.round((BASE_VALUE[f.measure] ?? 8000) * Math.pow(0.58, Math.max(0, f.conditions.length - 1)));
 };
 
-const eventValue = (label) => EVENTS.find((e) => e.label === label)?.value ?? 'derby';
+const eventValue = (label) => EVENTS.find((e) => e.label === label)?.value ?? 'main';
 
 function Step({ n, title, hint, children }) {
   return (
@@ -230,7 +230,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
                 <Ico.AIicon s={16} c={DS.actionPrimary} /> Describe your number
               </div>
               <span style={{ ...TY.bodySm, color: DS.textSecondary }}>The AI fills in the steps below. Check them, then save.</span>
-              <TextArea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={2} placeholder="e.g. season ticket holders who did not renew yet"
+              <TextArea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={2} placeholder="e.g. subscribers who did not renew yet"
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (prompt.trim()) runAI(prompt); } }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 {!prompt && AI_PROMPTS.map((p) => <Chip key={p} label={p} onClick={() => setPrompt(p)} />)}

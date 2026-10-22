@@ -97,7 +97,7 @@ export default function InsightsAll() {
   const [checks, setChecksState] = React.useState(() => readStore(CHECK_KEY, {}));
   const [checklistOpen, setChecklistOpen] = React.useState(false);
   const [tabs] = React.useState(INITIAL_TABS);
-  const [activeTab, setActiveTab] = React.useState(() => query().get('tab') || 'fanbase');
+  const [activeTab, setActiveTab] = React.useState(() => query().get('tab') || 'season');
   const [cards, setCards] = React.useState(INITIAL_CARDS);
   const [chooser, setChooser] = React.useState(false);
   const [builder, setBuilder] = React.useState(null);  // null | { initial }

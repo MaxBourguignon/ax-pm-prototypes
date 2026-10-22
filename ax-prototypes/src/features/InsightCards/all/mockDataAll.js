@@ -1,13 +1,15 @@
 /**
  * Mock data for the all-batches Insights mockup.
  *
- * Everything belongs to FC Demo, a fictional club, so the mockup resembles no
- * real client. Card ideas come from the Fanalists Insights list (2,364 cards)
+ * Everything belongs to a fictional demo organisation, so the mockup resembles
+ * no real client. Field names and values are kept generic on purpose: clients
+ * are football clubs, but also cycling teams with a fan peloton, events and
+ * venues; the real field list comes from Joost. Card ideas come from the Fanalists Insights list (2,364 cards)
  * and the current Fanalists start page; the numbers are made up.
  */
 import { has } from './batches';
 
-export const ACCOUNT = { name: 'FC Demo' };
+export const ACCOUNT = { name: 'Demo organisation' };
 
 export const USERS = {
   camille: { name: 'Camille Martin', role: 'Marketing manager' },
@@ -32,23 +34,30 @@ export const COMPARISON_SHORT = { yesterday: 'vs. yesterday', lastYear: 'vs. las
    source: what you can count (measures), what you can filter on (fields), what
    you can split by and which date a series runs on (Joost, 22 October).
 
+   The sources are the four shops: Ticketing, Subscriptions, Registrations and
+   E-commerce. There is no Contacts dataset in the new set-up (Joost, 22
+   October). Fields per shop are illustrative; the real list comes from the AX
+   segmentation engine (nobody knows it in full yet).
+
    Measures: "Count profiles" is Batch 1 (the segmentation engine counts
-   profiles on any of these sources); counting transactions or summing revenue
-   is Batch 2 ('tx'). Events (days until an event) is Batch 2 ('countdown'). */
+   profiles on any shop); counting transactions or summing revenue is Batch 2
+   ('tx'). Days until an event sits on Ticketing, Batch 2 ('countdown'). */
 export const SOURCES = [
   {
-    value: 'contact', label: 'Contacts', noun: 'fans', dateField: 'Created date',
-    measures: [{ value: 'people', label: 'Count profiles', needs: 'segLogic' }],
+    value: 'ticket', label: 'Ticketing', noun: 'tickets', dateField: 'Sale date',
+    measures: [
+      { value: 'people', label: 'Count buyers (profiles)', needs: 'segLogic' },
+      { value: 'tickets', label: 'Count tickets', needs: 'tx' },
+      { value: 'revenue', label: 'Sum of revenue', needs: 'tx' },
+      { value: 'days', label: 'Days until the event', needs: 'countdown' },
+    ],
     fields: [
-      { field: 'Gender', values: ['Male', 'Female', 'Unknown'] },
-      { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
-      { field: 'Age group', values: ['Under 18', '18 to 25', '26 to 40', '41 and over'] },
-      { field: 'Commercial opt-in', values: ['Yes', 'No'] },
-      { field: 'Has e-mail address', values: ['Yes', 'No'] },
-      { field: 'Has phone number', values: ['Yes', 'No'] },
-      { field: 'Has birth date', values: ['Yes', 'No'] },
-      { field: 'Has full address', values: ['Yes', 'No'] },
-      { field: 'Created', values: ['Last 7 days', 'Last 31 days', 'This season'] },
+      { field: 'Event', values: ['Main event, 8 November', 'Final, 24 January', 'All events'] },
+      { field: 'Season', values: ['25/26', '26/27'] },
+      { field: 'Ticket type', values: ['Single event', 'Kids', 'VIP', 'Hospitality', 'Invitation'] },
+      { field: 'Section', values: ['Section A', 'Section B', 'Main stand', 'Family zone'] },
+      { field: 'Sales channel', values: ['Online', 'Box office', 'Partner resale', 'Mobile app'] },
+      { field: 'Scanned at entry', values: ['Yes', 'No'] },
     ],
   },
   {
@@ -61,42 +70,26 @@ export const SOURCES = [
     fields: [
       { field: 'Season', values: ['24/25', '25/26', '26/27'] },
       { field: 'Status', values: ['Active', 'Expired', 'Cancelled'] },
-      { field: 'Product', values: ['Regular season ticket', 'Multi-year season ticket', 'Family pass', 'Kidsclub membership'] },
-      { field: 'Tribune', values: ['Tribune Nord', 'Tribune Présidentielle', 'Virage Sud', 'Family zone'] },
+      { field: 'Product', values: ['Season pass', 'Multi-year pass', 'Membership', 'Supporters club'] },
+      { field: 'Section', values: ['Section A', 'Section B', 'Main stand', 'Family zone'] },
       { field: 'Renewed for next season', values: ['Yes', 'No'] },
     ],
   },
   {
-    value: 'ticket', label: 'Tickets', noun: 'tickets', dateField: 'Sale date',
+    value: 'registration', label: 'Registrations', noun: 'registrations', dateField: 'Registration date',
     measures: [
-      { value: 'people', label: 'Count buyers (profiles)', needs: 'segLogic' },
-      { value: 'tickets', label: 'Count tickets', needs: 'tx' },
-      { value: 'revenue', label: 'Sum of revenue', needs: 'tx' },
+      { value: 'people', label: 'Count registrants (profiles)', needs: 'segLogic' },
+      { value: 'registrations', label: 'Count registrations', needs: 'tx' },
     ],
     fields: [
-      { field: 'Event', values: ['FC Demo vs. Olympique Exemple', 'Cup quarter-final', 'All home matches'] },
-      { field: 'Ticket type', values: ['Single match', 'Kids', 'VIP', 'Invitation'] },
-      { field: 'Tribune', values: ['Tribune Nord', 'Tribune Présidentielle', 'Virage Sud', 'Family zone'] },
-      { field: 'Sales channel', values: ['Online', 'Box office', 'Partner resale', 'Mobile app'] },
-      { field: 'Scanned at the gate', values: ['Yes', 'No'] },
-    ],
-  },
-  {
-    value: 'order', label: 'Orders', noun: 'orders', dateField: 'Order date',
-    measures: [
-      { value: 'people', label: 'Count buyers (profiles)', needs: 'segLogic' },
-      { value: 'orders', label: 'Count orders', needs: 'tx' },
-      { value: 'revenue', label: 'Sum of revenue', needs: 'tx' },
-    ],
-    fields: [
+      { field: 'Registration type', values: ['Kidsclub', 'Newsletter', 'Open day', 'Season gala'] },
       { field: 'Season', values: ['25/26', '26/27'] },
-      { field: 'Product type', values: ['Season ticket', 'Match ticket', 'Hospitality'] },
-      { field: 'Sales channel', values: ['Online', 'Box office', 'Partner resale'] },
-      { field: 'Order status', values: ['Paid', 'Refunded'] },
+      { field: 'Status', values: ['Confirmed', 'Cancelled'] },
+      { field: 'Attended', values: ['Yes', 'No'] },
     ],
   },
   {
-    value: 'webshop', label: 'Webshop orders', noun: 'webshop orders', dateField: 'Order date',
+    value: 'ecommerce', label: 'E-commerce', noun: 'orders', dateField: 'Order date',
     measures: [
       { value: 'people', label: 'Count buyers (profiles)', needs: 'segLogic' },
       { value: 'orders', label: 'Count orders', needs: 'tx' },
@@ -105,15 +98,10 @@ export const SOURCES = [
     ],
     fields: [
       { field: 'Season', values: ['25/26', '26/27'] },
-      { field: 'Product category', values: ['Match shirts', 'Fan articles', 'Training wear', 'Kids'] },
+      { field: 'Product category', values: ['Jerseys', 'Fan articles', 'Clothing', 'Kids'] },
       { field: 'Order status', values: ['Paid', 'Refunded'] },
       { field: 'Discount code used', values: ['Yes', 'No'] },
     ],
-  },
-  {
-    value: 'event', label: 'Events', noun: 'events', needs: 'countdown',
-    measures: [{ value: 'days', label: 'Days until the event', needs: 'countdown' }],
-    fields: [{ field: 'Event', values: ['FC Demo vs. Olympique Exemple', 'Cup quarter-final', 'Season gala'] }],
   },
 ];
 
@@ -134,31 +122,28 @@ export const kindsFor = (measure) => (measure === 'days'
   : KINDS.filter((k) => !(k.value === 'share' && measure === 'revenue')));
 
 export const EVENTS = [
-  { value: 'derby', label: 'FC Demo vs. Olympique Exemple', date: '2026-11-08' },
-  { value: 'cup', label: 'Cup quarter-final', date: '2027-01-24' },
+  { value: 'main', label: 'Main event, 8 November', date: '2026-11-08' },
+  { value: 'final', label: 'Final, 24 January', date: '2027-01-24' },
   { value: 'gala', label: 'Season gala', date: '2026-12-12' },
 ];
 
 /* Breakdown rows per field; fields without fixed rows get rows made from their values. */
 export const BREAKDOWNS = {
-  Gender: [
-    { label: 'Male', value: 118240 }, { label: 'Female', value: 76410 }, { label: 'Unknown', value: 26859 },
+  'Registration type': [
+    { label: 'Newsletter', value: 18420 }, { label: 'Kidsclub', value: 1860 },
+    { label: 'Open day', value: 1240 }, { label: 'Season gala', value: 610 },
   ],
-  City: [
-    { label: 'Paris', value: 64120 }, { label: 'Lyon', value: 21480 }, { label: 'Lille', value: 15310 },
-    { label: 'Marseille', value: 11020 }, { label: 'Bordeaux', value: 8760 }, { label: 'Other', value: 100819 },
-  ],
-  Tribune: [
-    { label: 'Tribune Nord', value: 5890 }, { label: 'Tribune Présidentielle', value: 2120 },
-    { label: 'Virage Sud', value: 2760 }, { label: 'Family zone', value: 1265 }, { label: 'Other', value: 412 },
+  Section: [
+    { label: 'Section A', value: 5890 }, { label: 'Section B', value: 2760 },
+    { label: 'Main stand', value: 2120 }, { label: 'Family zone', value: 1265 }, { label: 'Other', value: 412 },
   ],
   'Sales channel': [
     { label: 'Online', value: 15820 }, { label: 'Box office', value: 3410 },
     { label: 'Partner resale', value: 1980 }, { label: 'Mobile app', value: 1640 }, { label: 'Other', value: 290 },
   ],
   'Product category': [
-    { label: 'Match shirts', value: 14224 }, { label: 'Fan articles', value: 9489 },
-    { label: 'Training wear', value: 7426 }, { label: 'Kids', value: 3120 }, { label: 'Other', value: 1840 },
+    { label: 'Jerseys', value: 14224 }, { label: 'Fan articles', value: 9489 },
+    { label: 'Clothing', value: 7426 }, { label: 'Kids', value: 3120 }, { label: 'Other', value: 1840 },
   ],
 };
 
@@ -172,9 +157,9 @@ export const SERIES = [
 ];
 
 export const INITIAL_TABS = [
-  { id: 'fanbase', name: 'Fanbase' },
-  { id: 'season', name: 'Season tickets' },
-  { id: 'matchday', name: 'Matchday' },
+  { id: 'season', name: 'Subscriptions' },
+  { id: 'matchday', name: 'Events' },
+  { id: 'registrations', name: 'Registrations' },
   { id: 'shop', name: 'Merchandise', needs: 'tx' },
   { id: 'notes', name: 'Notes', needs: 'manualText' },
 ];
@@ -182,103 +167,90 @@ export const INITIAL_TABS = [
 let _id = 500;
 export const newId = () => `a${_id++}`;
 
-const ALL_FANS = { label: 'fans', value: 221509 };
-
 export const INITIAL_CARDS = [
-  // Fanbase: Batch 1 profile cards
-  { id: 'f1', tab: 'fanbase', kind: 'number', measure: 'people', source: 'contact',
-    title: 'Fans in the database', subtitle: 'With a unique e-mail address',
-    conditions: ['Has e-mail address is Yes'], value: 221509, prev: { yesterday: 221140, lastYear: 198300 },
-    createdBy: 'camille', createdAt: '3 Sep' },
-  { id: 'f2', tab: 'fanbase', kind: 'share', measure: 'people', source: 'contact',
-    title: 'Fans with a commercial opt-in', subtitle: 'Can be approached commercially',
-    conditions: ['Commercial opt-in is Yes'], value: 104762, base: ALL_FANS, prev: { yesterday: 104590, lastYear: 91200 },
-    createdBy: 'sarah', createdAt: '3 Sep' },
-  { id: 'f3', tab: 'fanbase', kind: 'share', measure: 'people', source: 'contact',
-    title: 'Fans with complete contact details', subtitle: 'Known e-mail and phone number',
-    conditions: ['Has e-mail address is Yes', 'Has phone number is Yes'], value: 117750, base: ALL_FANS, prev: { yesterday: 117610, lastYear: 104300 },
-    createdBy: 'sarah', createdAt: '4 Sep' },
-  { id: 'f4', tab: 'fanbase', kind: 'share', measure: 'people', source: 'contact',
-    title: 'Fans with a complete address', subtitle: 'Known birth date, city, address and postcode',
-    conditions: ['Has birth date is Yes', 'Has full address is Yes'], value: 52028, base: ALL_FANS, prev: { yesterday: 51990, lastYear: 49870 },
-    createdBy: 'sarah', createdAt: '4 Sep' },
-  { id: 'f5', tab: 'fanbase', kind: 'breakdown', measure: 'people', source: 'contact', split: 'Gender',
-    title: 'Fans by gender', subtitle: 'Male, female and unknown',
-    conditions: ['Has e-mail address is Yes'], createdBy: 'camille', createdAt: '5 Sep' },
-  { id: 'f6', tab: 'fanbase', kind: 'breakdown', measure: 'people', source: 'contact', split: 'City',
-    title: 'Where our fans live', subtitle: 'Top 5 cities',
-    conditions: ['Has e-mail address is Yes'], createdBy: 'camille', createdAt: '5 Sep' },
-  { id: 'f7', tab: 'fanbase', kind: 'perDay', measure: 'people', source: 'contact',
-    title: 'New fans per day', subtitle: 'Last 31 days',
-    conditions: ['Created is Last 31 days'], value: 7840, prev: { yesterday: 7428, lastYear: 6910 },
-    createdBy: 'camille', createdAt: '6 Sep' },
-
-  // Season tickets
+  // Subscriptions
   { id: 's1', tab: 'season', kind: 'number', measure: 'people', source: 'subscription',
-    title: 'Season ticket holders 26/27', subtitle: 'Unique fans with an active season ticket',
+    title: 'Subscribers 26/27', subtitle: 'Unique fans with an active subscription',
     conditions: ['Season is 26/27', 'Status is Active'], value: 12447, prev: { yesterday: 12401, lastYear: 11980 }, compare: 'lastYear',
     createdBy: 'hugo', createdAt: '1 Sep' },
   { id: 's2', tab: 'season', kind: 'number', measure: 'people', source: 'subscription',
-    title: 'Not renewed yet', subtitle: 'Holders 25/26 without a 26/27 season ticket',
+    title: 'Not renewed yet', subtitle: 'Holders 25/26 without a 26/27 subscription',
     conditions: ['Season is 25/26', 'Renewed for next season is No'], value: 1284, prev: { yesterday: 1330, lastYear: 1459 },
     createdBy: 'hugo', createdAt: '12 Sep' },
-  { id: 's3', tab: 'season', kind: 'breakdown', measure: 'people', source: 'subscription', split: 'Tribune',
-    title: 'Season ticket holders by tribune', subtitle: 'Season 26/27',
+  { id: 's3', tab: 'season', kind: 'breakdown', measure: 'people', source: 'subscription', split: 'Section',
+    title: 'Subscribers by section', subtitle: 'Season 26/27',
     conditions: ['Season is 26/27', 'Status is Active'], createdBy: 'hugo', createdAt: '12 Sep' },
   { id: 's4', tab: 'season', kind: 'target', measure: 'subscriptions', source: 'subscription',
-    title: 'Season tickets sold 26/27', subtitle: 'Regular and multi-year season tickets',
+    title: 'Subscriptions sold 26/27', subtitle: 'All active subscriptions',
     conditions: ['Season is 26/27', 'Status is Active'], value: 12447, target: 14000, prev: { yesterday: 12401, lastYear: 11980 },
     createdBy: 'hugo', createdAt: '14 Sep' },
-  { id: 's5', tab: 'season', kind: 'target', measure: 'revenue', source: 'order',
-    title: 'Season ticket revenue 26/27', subtitle: 'Net, excluding VAT',
-    conditions: ['Product type is Season ticket', 'Season is 26/27'], value: 2828570, target: 3250000, prev: { yesterday: 2818100, lastYear: 2651000 },
+  { id: 's5', tab: 'season', kind: 'target', measure: 'revenue', source: 'subscription',
+    title: 'Subscription revenue 26/27', subtitle: 'Net, excluding VAT',
+    conditions: ['Season is 26/27', 'Status is Active'], value: 2828570, target: 3250000, prev: { yesterday: 2818100, lastYear: 2651000 },
     createdBy: 'sarah', createdAt: '14 Sep' },
   { id: 's6', tab: 'season', kind: 'manualData', unit: 'eur', op: 'multiply',
     title: 'Revenue still to win from renewals', subtitle: 'Own estimate',
     entries: [
       { label: 'Holders not renewed yet', value: 1284 },
-      { label: 'Average season ticket price (€)', value: 228 },
+      { label: 'Average subscription price (€)', value: 228 },
       { label: 'Expected renewal rate', value: 0.6 },
     ], createdBy: 'hugo', createdAt: '15 Oct' },
   { id: 's7', tab: 'season', kind: 'manualData', unit: 'eur', op: 'sum', target: 3600000,
-    title: 'Season budget incl. partners', subtitle: 'Season tickets plus offline sales',
+    title: 'Season budget incl. partners', subtitle: 'Subscriptions plus offline sales',
     entries: [
-      { label: 'Season ticket revenue', value: 2828570 },
+      { label: 'Subscription revenue', value: 2828570 },
       { label: 'Partner packages (offline)', value: 410000 },
       { label: 'Hospitality boxes (offline)', value: 265000 },
     ], createdBy: 'sarah', createdAt: '16 Oct' },
 
-  // Matchday
-  { id: 'm1', tab: 'matchday', kind: 'countdown', event: 'derby', source: 'event', measure: 'days',
-    conditions: ['Event is FC Demo vs. Olympique Exemple'],
-    title: 'Days until the derby', subtitle: 'Next home match',
+  // Events
+  { id: 'm1', tab: 'matchday', kind: 'countdown', event: 'main', source: 'ticket', measure: 'days',
+    conditions: ['Event is Main event, 8 November'],
+    title: 'Days until the main event', subtitle: 'Next event',
     createdBy: 'hugo', createdAt: '6 Oct' },
   { id: 'm2', tab: 'matchday', kind: 'target', measure: 'tickets', source: 'ticket',
-    title: 'Tickets sold for the derby', subtitle: 'Against stadium capacity',
-    conditions: ['Event is FC Demo vs. Olympique Exemple'], value: 23140, target: 28000, prev: { yesterday: 22610, lastYear: 21480 },
+    title: 'Tickets sold for the main event', subtitle: 'Against venue capacity',
+    conditions: ['Event is Main event, 8 November'], value: 23140, target: 28000, prev: { yesterday: 22610, lastYear: 21480 },
     createdBy: 'hugo', createdAt: '6 Oct' },
   { id: 'm3', tab: 'matchday', kind: 'target', measure: 'tickets', source: 'ticket',
-    title: 'Virage Sud sold', subtitle: 'Against block capacity',
-    conditions: ['Event is FC Demo vs. Olympique Exemple', 'Tribune is Virage Sud'], value: 1380, target: 4800, prev: { yesterday: 1302, lastYear: 2210 },
+    title: 'Section B sold', subtitle: 'Against section capacity',
+    conditions: ['Event is Main event, 8 November', 'Section is Section B'], value: 1380, target: 4800, prev: { yesterday: 1302, lastYear: 2210 },
     createdBy: 'hugo', createdAt: '6 Oct' },
   { id: 'm4', tab: 'matchday', kind: 'perDay', measure: 'tickets', source: 'ticket',
-    title: 'Tickets sold per day for the derby', subtitle: 'Last 31 days',
-    conditions: ['Event is FC Demo vs. Olympique Exemple'], value: 9480, prev: { yesterday: 9068, lastYear: 8120 },
+    title: 'Tickets sold per day, main event', subtitle: 'Last 31 days',
+    conditions: ['Event is Main event, 8 November'], value: 9480, prev: { yesterday: 9068, lastYear: 8120 },
     createdBy: 'hugo', createdAt: '6 Oct' },
   { id: 'm5', tab: 'matchday', kind: 'number', measure: 'people', source: 'ticket',
-    title: 'Unique buyers for the derby', subtitle: 'Fans with at least one ticket',
-    conditions: ['Event is FC Demo vs. Olympique Exemple'], value: 9214, prev: { yesterday: 9050, lastYear: 8630 }, compare: 'none',
+    title: 'Unique buyers, main event', subtitle: 'Fans with at least one ticket',
+    conditions: ['Event is Main event, 8 November'], value: 9214, prev: { yesterday: 9050, lastYear: 8630 }, compare: 'none',
     createdBy: 'camille', createdAt: '7 Oct' },
   { id: 'm6', tab: 'matchday', kind: 'breakdown', measure: 'tickets', source: 'ticket', split: 'Sales channel',
-    title: 'Sales by channel', subtitle: 'Derby tickets',
-    conditions: ['Event is FC Demo vs. Olympique Exemple'], createdBy: 'hugo', createdAt: '7 Oct' },
+    title: 'Sales by channel', subtitle: 'Main event tickets',
+    conditions: ['Event is Main event, 8 November'], createdBy: 'hugo', createdAt: '7 Oct' },
+
+  // Registrations
+  { id: 'r1', tab: 'registrations', kind: 'number', measure: 'people', source: 'registration',
+    title: 'Kidsclub members 26/27', subtitle: 'Unique registrants, confirmed',
+    conditions: ['Registration type is Kidsclub', 'Season is 26/27', 'Status is Confirmed'], value: 1860, prev: { yesterday: 1852, lastYear: 1610 },
+    createdBy: 'camille', createdAt: '10 Oct' },
+  { id: 'r2', tab: 'registrations', kind: 'breakdown', measure: 'people', source: 'registration', split: 'Registration type',
+    title: 'Registrants by type', subtitle: 'Season 26/27',
+    conditions: ['Season is 26/27'], createdBy: 'camille', createdAt: '10 Oct' },
+  { id: 'r3', tab: 'registrations', kind: 'share', measure: 'people', source: 'registration',
+    title: 'Open day: showed up', subtitle: 'Share of all registrants',
+    conditions: ['Registration type is Open day', 'Attended is Yes'], value: 868, base: { label: 'registrations', value: 1240 }, prev: { yesterday: 868, lastYear: 790 },
+    createdBy: 'camille', createdAt: '11 Oct' },
+  { id: 'r4', tab: 'registrations', kind: 'perDay', measure: 'registrations', source: 'registration',
+    title: 'Season gala registrations per day', subtitle: 'Last 31 days',
+    conditions: ['Registration type is Season gala'], value: 610, prev: { yesterday: 596, lastYear: 540 },
+    createdBy: 'sarah', createdAt: '12 Oct' },
 
   // Merchandise: Batch 2
-  { id: 'w1', tab: 'shop', kind: 'target', measure: 'revenue', source: 'webshop',
+  { id: 'w1', tab: 'shop', kind: 'target', measure: 'revenue', source: 'ecommerce',
     title: 'Merchandise revenue this season', subtitle: 'Season 26/27',
     conditions: ['Season is 26/27'], value: 450779, target: 410000, prev: { yesterday: 448200, lastYear: 391000 },
     createdBy: 'sarah', createdAt: '2 Oct' },
-  { id: 'w2', tab: 'shop', kind: 'number', measure: 'orders', source: 'webshop',
+  { id: 'w2', tab: 'shop', kind: 'number', measure: 'orders', source: 'ecommerce',
     title: 'Webshop orders this season', subtitle: 'Season 26/27',
     conditions: ['Season is 26/27'], value: 5762, prev: { yesterday: 5731, lastYear: 4980 }, compare: 'lastYear',
     createdBy: 'sarah', createdAt: '2 Oct' },
@@ -288,10 +260,10 @@ export const INITIAL_CARDS = [
       { label: 'Merchandise revenue', value: 450779 },
       { label: 'Webshop orders', value: 5762 },
     ], createdBy: 'sarah', createdAt: '3 Oct' },
-  { id: 'w4', tab: 'shop', kind: 'breakdown', measure: 'items', source: 'webshop', split: 'Product category',
+  { id: 'w4', tab: 'shop', kind: 'breakdown', measure: 'items', source: 'ecommerce', split: 'Product category',
     title: 'Products sold per category', subtitle: 'Season 26/27',
     conditions: ['Season is 26/27'], createdBy: 'sarah', createdAt: '3 Oct' },
-  { id: 'w5', tab: 'shop', kind: 'perDay', measure: 'revenue', source: 'webshop',
+  { id: 'w5', tab: 'shop', kind: 'perDay', measure: 'revenue', source: 'ecommerce',
     title: 'Webshop revenue per day', subtitle: 'Last 31 days',
     conditions: ['Order status is Paid'], value: 61240, prev: { yesterday: 59980, lastYear: 52100 },
     createdBy: 'sarah', createdAt: '4 Oct' },
@@ -303,7 +275,7 @@ export const INITIAL_CARDS = [
     createdBy: 'camille', createdAt: '10 Oct' },
   { id: 'n2', tab: 'notes', kind: 'text',
     title: 'Personalisation of buyers', subtitle: 'Offline purchases and several tickets on one name',
-    text: 'Fans with several season tickets on the same name.\nFans with several tickets for one match.\nOffline purchases in the fan shop: club card, barcode scan, QR code in the app.',
+    text: 'Fans with several subscriptions on the same name.\nFans with several tickets for one event.\nOffline purchases in the fan shop: club card, barcode scan, QR code in the app.',
     createdBy: 'hugo', createdAt: '11 Oct' },
   { id: 'n3', tab: 'season', kind: 'text',
     title: 'Renewal campaign', subtitle: 'Key moments',
@@ -346,9 +318,9 @@ export const UNITS = [
 ];
 
 export const AI_PROMPTS = [
-  'season ticket holders who did not renew yet',
-  'tickets sold per day for the next home match',
-  'where do our fans live',
+  'subscribers who did not renew yet',
+  'tickets sold per day for the next event',
+  'kidsclub members this season',
 ];
 
 /* Scripted stand-in for the AI (Batch 3): it fills the same steps a person
@@ -357,15 +329,15 @@ export const AI_SCRIPTS_ALL = [
   { match: ['renew'], fill: {
     source: 'subscription', measure: 'people', kind: 'number', title: 'Not renewed yet', value: 1284,
     conditions: [{ label: 'Season is 25/26' }, { label: 'Renewed for next season is No', flagged: true }] } },
-  { match: ['per day', 'next home match', 'daily'], fill: {
-    source: 'ticket', measure: 'tickets', kind: 'perDay', title: 'Tickets sold per day, next home match', value: 9480,
-    conditions: [{ label: 'Event is FC Demo vs. Olympique Exemple', flagged: true }] } },
-  { match: ['live', 'city', 'cities', 'where'], fill: {
-    source: 'contact', measure: 'people', kind: 'breakdown', split: 'City', title: 'Where our fans live',
-    conditions: [{ label: 'Has e-mail address is Yes' }] } },
+  { match: ['per day', 'next event', 'daily'], fill: {
+    source: 'ticket', measure: 'tickets', kind: 'perDay', title: 'Tickets sold per day, next event', value: 9480,
+    conditions: [{ label: 'Event is Main event, 8 November', flagged: true }] } },
+  { match: ['kidsclub', 'members', 'registr'], fill: {
+    source: 'registration', measure: 'people', kind: 'number', title: 'Kidsclub members this season', value: 1860,
+    conditions: [{ label: 'Registration type is Kidsclub' }, { label: 'Season is 26/27', flagged: true }] } },
   { match: ['revenue', 'turnover'], fill: {
-    source: 'order', measure: 'revenue', kind: 'number', title: 'Revenue this season', value: 1523000,
+    source: 'ecommerce', measure: 'revenue', kind: 'number', title: 'Merchandise revenue this season', value: 1523000,
     conditions: [{ label: 'Season is 26/27' }] } },
   { match: ['instagram', 'likes', 'tv', 'weather'],
-    refuse: 'Arenametrix holds no social media, TV or weather data, so this card cannot be built. Try: tickets sold per day for the next home match.' },
+    refuse: 'Arenametrix holds no social media, TV or weather data, so this card cannot be built. Try: tickets sold per day for the next event.' },
 ];
