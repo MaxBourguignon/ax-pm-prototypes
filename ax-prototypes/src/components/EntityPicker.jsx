@@ -57,7 +57,7 @@ export const PortalDropdown = ({ anchorRef, children }) => {
  * something to clear. A select you can type into is the honest shape for a
  * control that both opens a list and narrows it.
  */
-export const SearchBox = ({ value, onChange, onFocus, inputRef, placeholder }) => {
+export const SearchBox = ({ value, onChange, onFocus, inputRef, placeholder, open = false }) => {
   const [focused, setFocused] = useState(false);
   return (
     <div style={{
@@ -86,7 +86,7 @@ export const SearchBox = ({ value, onChange, onFocus, inputRef, placeholder }) =
             <Ico.Cross s={16} c={DS.textMuted} />
           </span>
         )
-        : <Ico.ChevDown s={16} c={DS.textSecondary} />}
+        : open ? <Ico.ArrowUp s={14} c={DS.textSecondary} /> : <Ico.ArrowDown s={14} c={DS.textSecondary} />}
     </div>
   );
 };
@@ -206,7 +206,8 @@ export function EntityPicker({
   const picked = selectedIds ?? new Set();
   const trimmed = search.trim().toLowerCase();
   const filtered = entities.filter((e) =>
-    (!trimmed || e.name.toLowerCase().includes(trimmed)) &&
+    // The hint is searchable too — for contacts it holds the email.
+    (!trimmed || [e.name, e.hint].some((t) => String(t ?? '').toLowerCase().includes(trimmed))) &&
     (!hideSelected || !picked.has(e.id)));
 
   const handleSelect = (id) => {
@@ -238,6 +239,7 @@ export function EntityPicker({
         placeholder={placeholder}
         onChange={(v) => { setSearch(v); setOpen(true); }}
         onFocus={() => setOpen(true)}
+        open={open}
         inputRef={inputRef}
       />
       {open && (

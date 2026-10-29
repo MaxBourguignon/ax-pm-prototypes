@@ -1,7 +1,9 @@
 // ─── USE CASES — V1 ────────────────────────────────────────────────────────
 //
-// Scope: contact, consumptions, ticket (top 3), campaign, consent.
-// order, subscription, accessControl deferred to a later release.
+// Scope: every object in the Add a filter modal has at least 3 use cases, so
+// each category can be entered — contact, consumptions (All purchases),
+// ticket, order (E-commerce), registration, subscription, accessControl,
+// campaign, consent.
 //
 // Each use case carries anchorLevel and (for consumptions) channelScope
 // on the anchor filter, so the AnchorRow renders the correct sentence
@@ -33,9 +35,23 @@ const USE_CASES = {
         filter: { objId: "contact", fieldId: "createdAt", op: "last_n_time", val: "30|days" } },
       { id: "contact_birthday", label: "Contacts with a birthday tomorrow",
         filter: { objId: "contact", fieldId: "birthdate", op: "next_n_days", val: "1" } },
+      { id: "contact_emailable", label: "Contacts I can email",
+        hint: "Email opt-in and a valid email address",
+        filters: [
+            { objId: "contact", fieldId: "emailOptIn", op: "is", val: ["Yes"], isAnchor: false },
+            { objId: "contact", fieldId: "validEmail", op: "is", val: ["Yes"], isAnchor: false },
+        ] },
   ],
 
   consumptions: [
+      { id: "cons_coupon",
+        label: "Contacts who used a coupon",
+        hint: "Any channel, last 12 months",
+        filters: [
+            { objId: "consumptions", fieldId: "purchaseCount", op: "gte",         val: "1",         isAnchor: true, anchorPolarity: "positive", anchorLevel: "purchase", channelScope: "all" },
+            { objId: "consumptions", fieldId: "coupon",        op: "is_set",      val: "",          isAnchor: false },
+            { objId: "consumptions", fieldId: "orderDate",     op: "last_n_time", val: "12|months", isAnchor: false },
+        ] },
       { id: "cons_buyers",
         label: "Contacts who have made at least one purchase",
         hint: "Counts across all channels",
@@ -61,6 +77,12 @@ const USE_CASES = {
   ],
 
   ticket: [
+      { id: "ticket_family",
+        label: "Contacts who bought for a family show",
+        filters: [
+            { objId: "ticket", fieldId: "ticketCount", op: "gte", val: "1",        isAnchor: true, anchorPolarity: "positive", anchorLevel: "ticket" },
+            { objId: "ticket", fieldId: "audience",    op: "is",  val: ["Family"], isAnchor: false },
+        ] },
       { id: "ticket_specific_representation",
         label: "Contacts who bought a ticket for a specific representation",
         hint: "Fill in the representation name below",
@@ -84,24 +106,150 @@ const USE_CASES = {
         ] },
   ],
 
+  /* E-commerce — anchor by order or by order line (product), then refine. */
+  order: [
+      { id: "ecom_buyers_12m",
+        label: "E-commerce buyers in the last 12 months",
+        filters: [
+            { objId: "order", fieldId: "purchaseCount", op: "gte",         val: "1",         isAnchor: true, anchorPolarity: "positive", anchorLevel: "purchase" },
+            { objId: "order", fieldId: "purchaseDate",  op: "last_n_time", val: "12|months", isAnchor: false },
+        ] },
+      { id: "ecom_category",
+        label: "Contacts who bought in a product category",
+        hint: "Fill in the category below",
+        filters: [
+            { objId: "order", fieldId: "productCount",    op: "gte", val: "1", isAnchor: true, anchorPolarity: "positive", anchorLevel: "product" },
+            { objId: "order", fieldId: "productCategory", op: "is",  val: [],  isAnchor: false },
+        ] },
+      { id: "ecom_gift",
+        label: "Contacts who bought a gift",
+        filters: [
+            { objId: "order", fieldId: "productCount", op: "gte", val: "1",     isAnchor: true, anchorPolarity: "positive", anchorLevel: "product" },
+            { objId: "order", fieldId: "isGift",       op: "is",  val: ["Yes"], isAnchor: false },
+        ] },
+      { id: "ecom_never",
+        label: "Contacts who never ordered online",
+        filters: [
+            { objId: "order", fieldId: "purchaseCount", op: "eq", val: "0", isAnchor: true, anchorPolarity: "negative", anchorLevel: "purchase" },
+        ] },
+  ],
+
+  /* Access control — anchor on visits, then refine by event or date. */
+  accessControl: [
+      { id: "access_visited",
+        label: "Contacts who visited an event",
+        filters: [
+            { objId: "accessControl", fieldId: "numberOfControls", op: "gte", val: "1", isAnchor: true, anchorPolarity: "positive", anchorLevel: "visit" },
+        ] },
+      { id: "access_recent",
+        label: "Visitors in the last 30 days",
+        filters: [
+            { objId: "accessControl", fieldId: "numberOfControls", op: "gte",         val: "1",       isAnchor: true, anchorPolarity: "positive", anchorLevel: "visit" },
+            { objId: "accessControl", fieldId: "createdAt",        op: "last_n_time", val: "30|days", isAnchor: false },
+        ] },
+      { id: "access_frequent",
+        label: "Frequent visitors",
+        hint: "5 visits or more",
+        filters: [
+            { objId: "accessControl", fieldId: "numberOfControls", op: "gte", val: "5", isAnchor: true, anchorPolarity: "positive", anchorLevel: "visit" },
+        ] },
+      { id: "access_never",
+        label: "Contacts who never came",
+        hint: "Pair with a Ticketing filter to find no-shows",
+        filters: [
+            { objId: "accessControl", fieldId: "numberOfControls", op: "eq", val: "0", isAnchor: true, anchorPolarity: "negative", anchorLevel: "visit" },
+        ] },
+  ],
+
+  /* Registrations — anchor by registration or by activity, then refine. */
+  registration: [
+      { id: "reg_activity_type",
+        label: "Contacts registered to a type of activity",
+        hint: "Pick the type below — workshop, guided tour…",
+        filters: [
+            { objId: "registration", fieldId: "registrationCount", op: "gte", val: "1",            isAnchor: true, anchorPolarity: "positive", anchorLevel: "registration" },
+            { objId: "registration", fieldId: "activityType",      op: "is",  val: ["Workshop"],   isAnchor: false },
+        ] },
+      { id: "reg_upcoming_session",
+        label: "Contacts with a session in the next 7 days",
+        hint: "Good for practical reminders",
+        filters: [
+            { objId: "registration", fieldId: "registrationCount", op: "gte",         val: "1",      isAnchor: true, anchorPolarity: "positive", anchorLevel: "registration" },
+            { objId: "registration", fieldId: "sessionDate",       op: "next_n_time", val: "7|days", isAnchor: false },
+        ] },
+      { id: "reg_regulars",
+        label: "Regulars — 3 activities or more this season",
+        filters: [
+            { objId: "registration", fieldId: "activityCount", op: "gte", val: "3",          isAnchor: true, anchorPolarity: "positive", anchorLevel: "activity" },
+            { objId: "registration", fieldId: "season",        op: "is",  val: ["2025-26"], isAnchor: false },
+        ] },
+  ],
+
+  /* Subscriptions — same shape as Ticketing: an anchor (by subscription or by
+     purchase) plus refinements from the subscription fields. */
+  subscription: [
+      { id: "sub_active",
+        label: "Contacts with an active subscription",
+        filters: [
+            { objId: "subscription", fieldId: "subscriptionCount",  op: "gte", val: "1",        isAnchor: true, anchorPolarity: "positive", anchorLevel: "subscription" },
+            { objId: "subscription", fieldId: "subscriptionStatus", op: "is",  val: ["Active"], isAnchor: false },
+        ] },
+      { id: "sub_lapsed_season",
+        label: "Last season's subscribers who have not come back",
+        hint: "Subscribed in 2024-25, no subscription in 2025-26 — win-back",
+        filters: [
+            { objId: "subscription", fieldId: "subscriptionCount", op: "gte", val: "1",         isAnchor: true, anchorPolarity: "positive", anchorLevel: "subscription" },
+            { objId: "subscription", fieldId: "season",            op: "is",  val: ["2024-25"], isAnchor: false },
+            { objId: "subscription", fieldId: "renewalStatus",     op: "is",  val: ["Not renewed"], isAnchor: false },
+        ] },
+      { id: "sub_ending_soon",
+        label: "Subscriptions ending in the next 30 days",
+        hint: "Good for renewal campaigns",
+        filters: [
+            { objId: "subscription", fieldId: "subscriptionCount",   op: "gte",         val: "1",       isAnchor: true, anchorPolarity: "positive", anchorLevel: "subscription" },
+            { objId: "subscription", fieldId: "subscriptionEndDate", op: "next_n_time", val: "30|days", isAnchor: false },
+        ] },
+      { id: "sub_not_renewed",
+        label: "Subscribers who did not renew",
+        hint: "Ended in the last 3 months and not renewed",
+        filters: [
+            { objId: "subscription", fieldId: "subscriptionCount",   op: "gte",         val: "1",            isAnchor: true, anchorPolarity: "positive", anchorLevel: "subscription" },
+            { objId: "subscription", fieldId: "renewalStatus",       op: "is",          val: ["Not renewed"], isAnchor: false },
+            { objId: "subscription", fieldId: "subscriptionEndDate", op: "last_n_time", val: "3|months",     isAnchor: false },
+        ] },
+      { id: "sub_specific_plan",
+        label: "Contacts who bought a specific plan",
+        hint: "Fill in the plan name below",
+        filters: [
+            { objId: "subscription", fieldId: "purchaseCount",    op: "gte", val: "1", isAnchor: true, anchorPolarity: "positive", anchorLevel: "purchase" },
+            { objId: "subscription", fieldId: "subscriptionPlan", op: "starts_with", val: "", isAnchor: false },
+        ] },
+      { id: "sub_gift",
+        label: "Contacts who received a gift subscription",
+        filters: [
+            { objId: "subscription", fieldId: "subscriptionCount", op: "gte", val: "1",     isAnchor: true, anchorPolarity: "positive", anchorLevel: "subscription" },
+            { objId: "subscription", fieldId: "isGift",            op: "is",  val: ["Yes"], isAnchor: false },
+        ] },
+  ],
+
   campaign: [
       { id: "campaign_received",
         label: "Contacts who received a campaign",
         filters: [
-            { objId: "campaign", fieldId: "campaignCount", op: "gte",      val: "1", isAnchor: true, anchorPolarity: "positive" },
+            { objId: "campaign", fieldId: "campaignCount", op: "gte",      val: "1", isAnchor: true, anchorPolarity: "positive", anchorLevel: "campaign" },
             { objId: "campaign", fieldId: "campaignName",  op: "contains", val: "",  isAnchor: false },
         ] },
       { id: "campaign_clicked",
         label: "Contacts who clicked a campaign",
         filters: [
-            { objId: "campaign", fieldId: "campaignCount", op: "gte",      val: "1",   isAnchor: true, anchorPolarity: "positive" },
+            { objId: "campaign", fieldId: "campaignCount", op: "gte",      val: "1",   isAnchor: true, anchorPolarity: "positive", anchorLevel: "campaign" },
             { objId: "campaign", fieldId: "campaignName",  op: "contains", val: "",    isAnchor: false },
             { objId: "campaign", fieldId: "hasClicked",    op: "is",       val: "Yes", isAnchor: false },
         ] },
       { id: "campaign_not_opened",
         label: "Contacts who didn't open a campaign",
         filters: [
-            { objId: "campaign", fieldId: "campaignCount", op: "gte", val: "1",  isAnchor: true, anchorPolarity: "positive" },
+            { objId: "campaign", fieldId: "campaignCount", op: "gte", val: "1",  isAnchor: true, anchorPolarity: "positive", anchorLevel: "campaign" },
             { objId: "campaign", fieldId: "hasOpened",     op: "is",  val: "No", isAnchor: false },
         ] },
   ],

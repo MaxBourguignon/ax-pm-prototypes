@@ -9,7 +9,8 @@
  *
  * Same sections, same order and same field set as the contact record's right
  * rail — personal information, coordinates, professional — so a field is filled
- * in where it is later read.
+ * in where it is later read. Notes close the form; the record shows them under
+ * the transaction table.
  *
  * Shared rather than duplicated on purpose: the create sidebar and the edit
  * drawer used to be two hand-rolled forms with different inputs, different
@@ -22,15 +23,71 @@ import Ico from "../../utils/icons";
 import Modal from "../../components/Modal";
 import { Btn } from "../../components/Btn";
 import IconBtn from "../../components/Iconbtn";
-import { Field } from "../../components/Field";
+import { Field, TextArea } from "../../components/Field";
 import Select from "../../components/Select";
+import EntityPicker from "../../components/EntityPicker";
+import { RemovableChip } from "../../components/Tag";
+import { TENANT_LISTS } from "./tenantLists";
+import { TENANT_CONSENTS } from "./tenantConsents";
+import { Checkbox } from "../../components/Controls";
 
 const EMPTY_CONTACT = {
   email: "", firstName: "", lastName: "", dateOfBirth: "", age: "",
   civility: "", gender: "",
   phones: [""], addressLines: [""], postalCode: "", city: "", country: "",
   organisation: "", role: "",
+  lists: [],
+  consents: [],
+  notes: "",
 };
+
+/* Lists a new contact can be put in by hand — static ones only, grouped by folder. */
+const ADDABLE_LISTS = TENANT_LISTS
+  .filter((l) => l.type === "static")
+  .map((l) => ({ id: l.name, name: l.name, folder: l.folder }));
+
+/* Consents a new contact can be opted in to, grouped by channel. */
+const ADDABLE_CONSENTS = TENANT_CONSENTS.map((c) => ({ id: c.name, name: c.name, channel: c.channel }));
+
+/* Create mode only: the bulk add-to-list / add-to-consent pattern — search,
+   then the selection as removable chips, with a dashed empty state until one
+   is picked. Used for Lists and for Consents. */
+function SelectionField({ value = [], onChange, entities, groupBy, placeholder, selectedLabel, emptyText, noun }) {
+  const toggle = (name) => onChange(value.includes(name) ? value.filter((n) => n !== name) : [...value, name]);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <EntityPicker
+        entities={entities}
+        selectedIds={new Set(value)}
+        onSelect={toggle}
+        groupBy={groupBy}
+        hideSelected={false}
+        placeholder={placeholder}
+        emptyLabel={({ query, allSelected }) => (query
+          ? `No ${noun} matches this search`
+          : allSelected ? `Every ${noun} is already selected` : "Start typing to search…")}
+      />
+      <span style={{
+        ...TY.labelMd, letterSpacing: "0.04em", textTransform: "uppercase",
+        color: DS.textMuted, fontFamily: DS.ff, marginTop: 4,
+      }}>
+        {selectedLabel}
+      </span>
+      {value.length === 0 ? (
+        <div style={{
+          padding: "14px 12px", border: `1px dashed ${DS.borderDefault}`, borderRadius: DS.radiusLg,
+          ...TY.bodySm, color: DS.textMuted, fontFamily: DS.ff, textAlign: "center",
+        }}>
+          {emptyText}
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {value.map((name) => <RemovableChip key={name} onRemove={() => toggle(name)}>{name}</RemovableChip>)}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const CIVILITIES = ["Mr.", "Ms.", "Mx."];
 const GENDERS = ["Male", "Female", "Other"];
@@ -77,7 +134,7 @@ function splitPhone(phone, country) {
 }
 
 /* The blue band that opens each section of the drawer. */
-function DrawerSection({ title }) {
+export function DrawerSection({ title }) {
   return (
     <div style={{
       background: DS.brandPrimarySubtle, borderRadius: DS.radiusMd,
@@ -119,7 +176,7 @@ function PhoneRow({ value, country, onChange, onRemove }) {
               }}
             >
               {code}
-              <Ico.ChevDown s={16} c={DS.textSecondary} />
+              {open ? <Ico.ArrowUpSmall s={16} c={DS.textSecondary} /> : <Ico.ArrowDownSmall s={16} c={DS.textSecondary} />}
             </button>
           )}
         />
@@ -229,10 +286,11 @@ function AddressFields({ values, onChange }) {
 
 export function ContactFormDrawer({ open, onClose, mode = "edit", value = EMPTY_CONTACT, onSave }) {
   const [form, setForm] = useState(value);
+  const [consentAck, setConsentAck] = useState(false);
   const [wasOpen, setWasOpen] = useState(false);
   if (open !== wasOpen) {            // render-time reset on open, no effect needed
     setWasOpen(open);
-    if (open) setForm(value);
+    if (open) { setForm(value); setConsentAck(false); }
   }
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
   const setText = (k) => (e) => set(k)(e.target.value);
@@ -248,7 +306,8 @@ export function ContactFormDrawer({ open, onClose, mode = "edit", value = EMPTY_
       footer={(
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
           <Btn type="Tertiary" onClick={onClose}>Cancel</Btn>
-          <Btn type="Primary" onClick={() => onSave?.(form)}>
+          {/* Opting the new contact in to a consent needs the acknowledgement. */}
+          <Btn type="Primary" disabled={creating && (form.consents ?? []).length > 0 && !consentAck} onClick={() => onSave?.(form)}>
             {creating ? "Create contact" : "Save"}
           </Btn>
         </div>
@@ -293,6 +352,47 @@ export function ContactFormDrawer({ open, onClose, mode = "edit", value = EMPTY_
                 placeholder="Select an organisation…"
                 options={organisations.map((o) => ({ value: o, label: o }))} />
         <Field label="Role" value={form.role} onChange={setText("role")} placeholder="e.g. Head of programming" />
+
+        {/* In edit mode lists are managed from the record's Lists section. */}
+        {creating && (
+          <>
+            <DrawerSection title="Lists" />
+            <SelectionField
+              value={form.lists ?? []} onChange={set("lists")}
+              entities={ADDABLE_LISTS} groupBy="folder" noun="list"
+              placeholder="Search and select a list..." selectedLabel="Selected lists" emptyText="No selected lists"
+            />
+
+            {/* Consents — picking one opts the new contact in, so it carries
+                the same acknowledgement as the bulk add-to-consent flow. */}
+            <DrawerSection title="Consents" />
+            <SelectionField
+              value={form.consents ?? []} onChange={(v) => { set("consents")(v); if (!v.length) setConsentAck(false); }}
+              entities={ADDABLE_CONSENTS} groupBy="channel" noun="consent"
+              placeholder="Search and select a consent..." selectedLabel="Opted-in consents" emptyText="No selected consents"
+            />
+            {(form.consents ?? []).length > 0 && (
+              <Checkbox
+                checked={consentAck}
+                onChange={setConsentAck}
+                label={(
+                  <span style={{ ...TY.bodySm, color: DS.textSecondary, fontFamily: DS.ff }}>
+                    I confirm that this contact has given their consent to be added to this type of communication.
+                  </span>
+                )}
+              />
+            )}
+          </>
+        )}
+
+        <DrawerSection title="Notes" />
+        <TextArea
+          label="Notes"
+          value={form.notes}
+          onChange={setText("notes")}
+          placeholder="Add a note about this contact…"
+          rows={5}
+        />
       </div>
     </Modal>
   );

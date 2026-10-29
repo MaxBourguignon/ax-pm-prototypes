@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { DS } from '../utils/designSystem';
-import { SearchField } from './Field';
+import { HeaderSearch } from './Field';
 import faviconLogo from '../assets/logo_2026_favicon.svg';
 
 const ACCENT = '#3B6FF5';
@@ -27,6 +27,7 @@ const LABELS = {
   sms: 'SMS Management',
   academy: 'Academy',
   support: 'Support',
+  admin: 'Admin console',
 };
 
 const labelFor = (seg) =>
@@ -41,7 +42,7 @@ const IconHome = ({ c }) => (
 );
 const IconChevron = ({ c }) => (
   <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-    <path d="M8 5l5 5-5 5" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M13.125 7.93761L9.30335 4.11594C9.06885 3.88155 8.75086 3.74992 8.41931 3.75C8.08776 3.75008 7.76982 3.88186 7.53543 4.11636C7.30105 4.35085 7.16942 4.66885 7.16949 5.0004C7.16957 5.33195 7.30136 5.64989 7.53585 5.88427L11.3575 9.70511C11.3963 9.74381 11.4271 9.78979 11.4481 9.84041C11.4691 9.89103 11.4799 9.9453 11.4799 10.0001C11.4799 10.0549 11.4691 10.1092 11.4481 10.1598C11.4271 10.2104 11.3963 10.2564 11.3575 10.2951L7.53585 14.1159C7.30136 14.3503 7.16957 14.6683 7.16949 14.9998C7.16942 15.3314 7.30105 15.6494 7.53543 15.8839C7.76982 16.1184 8.08776 16.2501 8.41931 16.2502C8.75086 16.2503 9.06885 16.1187 9.30335 15.8843L13.125 12.0626C13.671 11.5151 13.9777 10.7734 13.9777 10.0001C13.9777 9.22684 13.671 8.48514 13.125 7.93761Z" fill={c} />
   </svg>
 );
 const IconApps = ({ c }) => (
@@ -98,15 +99,18 @@ function IconBtn({ children, title }) {
 }
 
 // ── Breadcrumb ───────────────────────────────────────────────────────────────
-function Breadcrumb() {
+function Breadcrumb({ admin }) {
   const { pathname } = useLocation();
   const segments = pathname.split('/').filter(Boolean);
+  // In admin the home crumb is the console itself, so its icon leads there.
+  const homeTo = admin ? '/admin' : '/home';
+  const atHome = admin ? segments.length <= 1 : segments.length === 0;
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, fontFamily: DS.ff }}>
-      <Link to="/home" title="Home"
+      <Link to={homeTo} title={admin ? 'Admin console' : 'Home'}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 9, textDecoration: 'none' }}>
-        <IconHome c={segments.length === 0 ? ACCENT : '#8A93A6'} />
+        <IconHome c={atHome ? ACCENT : '#8A93A6'} />
       </Link>
       {segments.map((seg, i) => {
         const isLast = i === segments.length - 1;
@@ -132,7 +136,30 @@ function Breadcrumb() {
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
-export default function TopHeader() {
+/* Admin only: the tenant being worked on, top right — it used to sit in the
+   sidebar footer. Same identity tile as the client card. */
+function TenantBadge() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+        <span style={{ fontSize: 11, lineHeight: '14px', color: DS.textSecondary, fontFamily: DS.ff }}>Tenant</span>
+        <span style={{ fontSize: 14, lineHeight: '18px', fontWeight: 600, color: DS.textStrong, fontFamily: DS.ff }}>Nom du client</span>
+      </div>
+      <div style={{
+        width: 38, height: 38, borderRadius: 8, background: '#180636', flexShrink: 0,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        color: DS.white, lineHeight: '8px',
+      }}>
+        <span style={{ fontSize: 7, fontWeight: 700, letterSpacing: '0.5px' }}>PARIS</span>
+        <span style={{ fontSize: 7, fontWeight: 700, letterSpacing: '0.5px' }}>MUSÉES</span>
+      </div>
+    </div>
+  );
+}
+
+/* `admin` — the CS back-office variant: breadcrumb + tenant only. Search,
+   AI, notifications, preferences and the avatar belong to the client app. */
+export default function TopHeader({ admin = false }) {
   const [q, setQ] = useState('');
 
   return (
@@ -145,17 +172,16 @@ export default function TopHeader() {
       gap: 16, padding: '16px 32px', minHeight: 72,
       fontFamily: DS.ff,
     }}>
-      <Breadcrumb />
+      <Breadcrumb admin={admin} />
 
+      {admin ? <TenantBadge /> : (
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-        {/* Search — Atoms/SearchInput via the shared field. Was a local box on
-            raw hexes (#F4F6FA / #E4E9F2), radius 12 and a 44px height, none of
-            which are in the DS. */}
-        <SearchField
+        {/* Search — Molecules/SearchBar (171:44), the header-only search. The
+            rest of the app uses SearchField (Atoms/SearchInput). */}
+        <HeaderSearch
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Quick search…"
-          style={{ width: 300 }}
         />
 
         <IconBtn title="AI"><IconApps c={ACCENT} /></IconBtn>
@@ -188,6 +214,7 @@ export default function TopHeader() {
           </span>
         </div>
       </div>
+      )}
     </header>
   );
 }

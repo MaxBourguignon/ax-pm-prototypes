@@ -1,17 +1,20 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import contactsData from "../../../contacts.json";
 import AddFilterModal from "./AddFilterModal";
 import ContactFormDrawer from "./ContactFormDrawer";
+import MergeContactsModal from "./MergeContactsModal";
 import { DS, TY } from "../../utils/designSystem";
 import Ico from '../../utils/icons';
 import { Btn } from '../../components/Btn';
 import IconBtn from "../../components/Iconbtn";
 import { Toggle } from '../../components/Controls';
 import { StatusBadge, Badge } from '../../components/Tag';
+import { ConfirmDialog } from '../../components/Feedback';
 import PageHeader from '../../components/PageHeader';
 import Table from '../../components/Table';
 import Select from '../../components/Select';
+import MultiSelect from '../../components/MultiSelect';
 import DATA_OBJECTS from "../../utils/dataObject";
 import ListActionModal from "./ListActionModal";
 import CreateListModal from "./CreateListModal";
@@ -54,15 +57,7 @@ const CONSUMPTIONS_CHANNEL_FIELDS = {
   ],
 };
 
-const ECOMMERCE_LEVEL_FIELDS = {
-  purchase: ["purchaseCount", "purchaseDate", "orderAmount", "supplier"],
-  product: ["productCount", "productName", "productCategory", "orderStatus", "unitPrice"],
-};
 
-const SUBSCRIPTION_LEVEL_FIELDS = {
-  purchase: ["purchaseCount", "purchaseDate"],
-  subscription: ["subscriptionCount", "subscriptionName", "subscriptionStatus", "startDate", "endDate", "amount"],
-};
 
 // Returns refinement fields for a given object + anchor state.
 // Ticket: fields tagged "any" always shown; count fields cross-referenced by level.
@@ -72,16 +67,10 @@ const getRefinementFields = (objId, anchorLevel, channelScope = "all") => {
   if (objId === "consumptions") {
     return [...obj.fields, ...(CONSUMPTIONS_CHANNEL_FIELDS[channelScope] ?? [])];
   }
-  if (objId === "ticket") {
-    return obj.fields.filter(f => f.level === "any" || f.level === anchorLevel);
-  }
-  if (objId === "order") {
-    const ids = ECOMMERCE_LEVEL_FIELDS[anchorLevel] ?? [];
-    return obj.fields.filter(f => ids.includes(f.id));
-  }
-  if (objId === "subscription") {
-    const ids = SUBSCRIPTION_LEVEL_FIELDS[anchorLevel] ?? [];
-    return obj.fields.filter(f => ids.includes(f.id));
+  // Every activity (Ticketing, E-commerce, Registrations, Subscription) shares
+  // one model: every "any" field, plus the count of the active anchor level.
+  if (["ticket", "order", "registration", "subscription"].includes(objId)) {
+    return obj.fields.filter(f => !f.anchorOnly && (f.level === "any" || f.level === anchorLevel));
   }
   return obj.fields;
 };
@@ -130,13 +119,27 @@ const OBJECT_ANCHORS = {
   subscription: {
     defaultLevel: "subscription",
     levels: {
-      purchase: {
-        positive: { label: "Has made a purchase", fieldId: "purchaseCount", op: "gte", val: "1", refinementLevelKey: "purchase" },
-        negative: { label: "Has never made a purchase", fieldId: "purchaseCount", op: "eq", val: "0", refinementLevelKey: "purchase" },
-      },
+      // Subscription level first, as Ticketing lists its ticket level first.
       subscription: {
         positive: { label: "Has a subscription", fieldId: "subscriptionCount", op: "gte", val: "1", refinementLevelKey: "subscription" },
         negative: { label: "Has no subscription", fieldId: "subscriptionCount", op: "eq", val: "0", refinementLevelKey: "subscription" },
+      },
+      purchase: {
+        positive: { label: "Has bought a subscription", fieldId: "purchaseCount", op: "gte", val: "1", refinementLevelKey: "purchase" },
+        negative: { label: "Has never bought a subscription", fieldId: "purchaseCount", op: "eq", val: "0", refinementLevelKey: "purchase" },
+      },
+    },
+  },
+  registration: {
+    defaultLevel: "registration",
+    levels: {
+      registration: {
+        positive: { label: "Has registered", fieldId: "registrationCount", op: "gte", val: "1", refinementLevelKey: "registration" },
+        negative: { label: "Has never registered", fieldId: "registrationCount", op: "eq", val: "0", refinementLevelKey: "registration" },
+      },
+      activity: {
+        positive: { label: "Has registered to an activity", fieldId: "activityCount", op: "gte", val: "1", refinementLevelKey: "activity" },
+        negative: { label: "Has never registered to an activity", fieldId: "activityCount", op: "eq", val: "0", refinementLevelKey: "activity" },
       },
     },
   },
@@ -144,8 +147,8 @@ const OBJECT_ANCHORS = {
     defaultLevel: "campaign",
     levels: {
       campaign: {
-        positive: { label: "Has received a campaign", fieldId: "campaignName", op: "is_set", val: "" },
-        negative: { label: "Has not received a campaign", fieldId: "campaignName", op: "is_not_set", val: "" },
+        positive: { label: "Has received a campaign", fieldId: "campaignCount", op: "gte", val: "1" },
+        negative: { label: "Has not received a campaign", fieldId: "campaignCount", op: "eq", val: "0" },
       },
     },
   },
@@ -281,12 +284,64 @@ const makeSeg = () => ({ topLogic: "AND", blocks: [] });
 // 6. EVALUATOR
 // ─────────────────────────────────────────────────────────────────────────────
 
-const evalCond = (contact, cond) => {
+/* Several values: a positive operator matches ANY of them ("is A or B"), a
+   negative one must hold for ALL ("is neither A nor B"). */
+const NEGATIVE_OPS = ["is_not", "not_contains", "not in"];
+
+/* "Today" for relative date filters — the prototype's reference date, so
+   "in the next 30 days" gives the same result whenever the demo runs. */
+const SEG_TODAY = new Date("2026-06-05T00:00:00");
+const shiftDate = (d, n, unit) => {
+  const x = new Date(d);
+  if (unit === "years") x.setFullYear(x.getFullYear() + n);
+  else if (unit === "months") x.setMonth(x.getMonth() + n);
+  else x.setDate(x.getDate() + n);
+  return x;
+};
+const sameDay = (a, b) => a.toISOString().slice(0, 10) === b.toISOString().slice(0, 10);
+
+/* Date operators. A missing date never matches (is_set / is_not_set are
+   handled before this). An empty value leaves the filter open. */
+const evalDate = (raw, op, val) => {
+  if (op === "is_today") return !!raw && sameDay(new Date(raw), SEG_TODAY);
+  if (!val) return true;
+  if (!raw) return false;
+  const d = new Date(raw);
+  if (op === "between") {
+    const [a, b] = String(val).split("|");
+    return (!a || d >= new Date(a)) && (!b || d <= new Date(b));
+  }
+  if (["last_n_time", "next_n_time", "more_than_n_time_ago", "exactly_n_time_ago", "in_time"].includes(op)) {
+    const [n, unit] = String(val).split("|");
+    const k = Number(n) || 0;
+    if (op === "last_n_time") return d <= SEG_TODAY && d >= shiftDate(SEG_TODAY, -k, unit);
+    if (op === "next_n_time") return d >= SEG_TODAY && d <= shiftDate(SEG_TODAY, k, unit);
+    if (op === "more_than_n_time_ago") return d < shiftDate(SEG_TODAY, -k, unit);
+    if (op === "exactly_n_time_ago") return sameDay(d, shiftDate(SEG_TODAY, -k, unit));
+    return sameDay(d, shiftDate(SEG_TODAY, k, unit));            // in_time
+  }
+  const v = new Date(val);
+  if (op === "is") return sameDay(d, v);
+  if (op === "before") return d < v;
+  if (op === "after") return d > v;
+  return true;
+};
+
+/* `read(field)` returns the raw value a condition tests. Contact fields read
+   the contact; subscription refinements read one subscription line. */
+const evalCond = (contact, cond, read) => {
+  if (Array.isArray(cond.val)) {
+    if (!cond.val.length) return true;
+    const op = { in: "is", "not in": "is_not" }[cond.op] ?? cond.op;
+    const one = (v) => evalCond(contact, { ...cond, op, val: v }, read);
+    return NEGATIVE_OPS.includes(cond.op) ? cond.val.every(one) : cond.val.some(one);
+  }
   const field = getField(cond.objId, cond.fieldId);
-  const raw = contact[cond.fieldId] ?? contact[field.id];
+  const raw = read ? read(field) : (contact[cond.fieldId] ?? contact[field.id]);
   const op = cond.op;
   if (op === "is_set") return raw !== undefined && raw !== null && raw !== "" && !(Array.isArray(raw) && raw.length === 0);
-  if (op === "is_not_set") return !raw || (Array.isArray(raw) && raw.length === 0);
+  if (op === "is_not_set") return raw === undefined || raw === null || raw === "" || (Array.isArray(raw) && raw.length === 0);
+  if (field.type === "date") return evalDate(raw, op, cond.val);
   const val = String(cond.val || "").toLowerCase().trim();
   if (!val) return true;
   if (Array.isArray(raw)) {
@@ -315,10 +370,48 @@ const evalCond = (contact, cond) => {
   return true;
 };
 
-const evalBlock = (c, b) =>
-  b.logic === "OR"
-    ? b.filters.some((f) => evalCond(c, f))
-    : b.filters.every((f) => evalCond(c, f));
+/* ── Subscriptions: evaluated on the contact's subscription LINES ───────────
+   The refinements of the group must hold on the same line; the anchor then
+   counts the matching lines (by subscription) or their distinct orders (by
+   purchase). Cancelled and refunded lines are left out — they are kept out of
+   revenue and targeting — unless the group filters on order or payment status
+   itself, which is how you target them on purpose. */
+const SUB_COUNTS = ["subscriptionCount", "purchaseCount"];
+const subValue = (line, field) => {
+  const raw = field.derive ? field.derive(line) : line[field.tech ?? field.id];
+  return typeof raw === "boolean" ? (raw ? "Yes" : "No") : raw;
+};
+const cmpCount = (n, op, val) => {
+  if (val === "" || val == null) return true;
+  const x = Number(val);
+  return { eq: n === x, neq: n !== x, gt: n > x, gte: n >= x, lt: n < x, lte: n <= x }[op] ?? true;
+};
+const evalSubscriptions = (contact, filters) => {
+  const anchor = filters.find((f) => f.isAnchor);
+  const isMetric = (f) => !!getField(f.objId, f.fieldId).metric;
+  const refs = filters.filter((f) => !f.isAnchor && !SUB_COUNTS.includes(f.fieldId) && !isMetric(f));
+  const metrics = filters.filter((f) => !f.isAnchor && isMetric(f));
+  const counts = filters.filter((f) => !f.isAnchor && SUB_COUNTS.includes(f.fieldId));
+  const targetsStatus = refs.some((f) => f.fieldId === "orderStatus" || f.fieldId === "paymentStatus");
+  const lines = (contact._fullData?.subscriptions ?? contact.subscriptions ?? [])
+    .filter((l) => targetsStatus || !["Cancelled", "Refunded"].includes(l.order_status));
+  const matching = lines.filter((l) => refs.every((f) => evalCond(contact, f, (field) => subValue(l, field))));
+  const n = { subscriptionCount: matching.length, purchaseCount: new Set(matching.map((l) => l.order_id)).size };
+  if (anchor ? !cmpCount(n[anchor.fieldId], anchor.op, anchor.val) : matching.length === 0) return false;
+  // Contact metrics (first / last membership date…) span all the contact's lines.
+  const metricOk = metrics.every((f) => evalCond(contact, f, (field) => {
+    const vals = lines.map((l) => l[field.tech]).filter(Boolean).sort();
+    return field.metric === "min" ? vals[0] : vals[vals.length - 1];
+  }));
+  return metricOk && counts.every((f) => cmpCount(n[f.fieldId], f.op, f.val));
+};
+
+const evalBlock = (c, b) => {
+  const sub = b.filters.filter((f) => f.objId === "subscription");
+  const results = b.filters.filter((f) => f.objId !== "subscription").map((f) => evalCond(c, f));
+  if (sub.length) results.push(evalSubscriptions(c, sub));
+  return b.logic === "OR" ? results.some(Boolean) : results.every(Boolean);
+};
 
 const evalSeg = (contacts, seg) => {
   if (!seg || !seg.blocks.length) return contacts;
@@ -342,6 +435,7 @@ const ObjIcon = ({ id, s = 13 }) => {
     ticket: <Ico.Ticket        {...p} />,
     order: <Ico.Cart          {...p} />,
     subscription: <Ico.Subscriptions {...p} />,
+    registration: <Ico.Calendar      {...p} />,
     campaign: <Ico.Mail          {...p} />,
     consent: <Ico.Eye           {...p} />,
     accessControl: <Ico.AccessControl {...p} />,
@@ -444,15 +538,20 @@ const ValInput = ({ field, value, op, onChange }) => {
     );
   }
 
-  if (field.type === "enum") {
+  /* List and text fields take several values — "is Buyer or Beneficiary",
+     "event is A or B". A list field picks from its choices; a text field has no
+     fixed list, so its values are typed in. Presets still store a plain string,
+     hence the normalisation. */
+  if (field.type === "enum" || field.type === "string") {
+    const values = Array.isArray(value) ? value : value ? [value] : [];
     return (
-      <Select
-        portal
+      <MultiSelect
         minWidth={240}
         width={240}
-        value={value || null}
-        placeholder="Choose…"
-        options={field.choices.map(c => ({ value: c, label: c }))}
+        value={values}
+        placeholder={field.type === "enum" ? "Choose…" : "Values…"}
+        options={(field.choices ?? []).map(c => ({ value: c, label: c }))}
+        creatable={field.type === "string"}
         onChange={onChange}
       />
     );
@@ -481,8 +580,9 @@ const ValInput = ({ field, value, op, onChange }) => {
 
 // Type glyph shown as the trailing `meta` pill on each field option.
 const TYPE_GLYPH = { string: "Aa", number: "#", enum: "≡", date: "cal" };
+// A field's `group` (Subscriptions) becomes a section heading in the picker.
 const fieldOptions = (fields) =>
-  fields.map((f) => ({ value: f.id, label: f.label, meta: TYPE_GLYPH[f.type] ?? "?" }));
+  fields.map((f) => ({ value: f.id, label: f.label, meta: TYPE_GLYPH[f.type] ?? "?", group: f.group }));
 
 // The object badge used as the Select panel's MenuSection label. The icon and
 // per-object accent are data-driven (DATA_OBJECTS), so they aren't DS tokens.
@@ -545,7 +645,8 @@ const AnchorRow = ({ objId, filter, onPatch, onRemove }) => {
             value: `${levelId}|${pol}`,
             label: def.label,
             group: hasMultipleLevels
-              ? ({ purchase: "By purchase", ticket: "By ticket", product: "By product", subscription: "By subscription" }[levelId] ?? levelId)
+              ? ({ purchase: "By purchase", ticket: "By ticket", product: "By product", subscription: "By subscription",
+                   registration: "By registration", activity: "By activity" }[levelId] ?? levelId)
               : undefined,
           })),
         )}
@@ -555,7 +656,7 @@ const AnchorRow = ({ objId, filter, onPatch, onRemove }) => {
             style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 36, padding: "0 12px", boxSizing: "border-box", borderRadius: DS.radiusLg, background: obj.surface, border: `1.5px solid ${obj.border}`, cursor: "pointer", fontFamily: DS.ff, ...TY.labelMd, color: obj.text, whiteSpace: "nowrap", boxShadow: open ? `0 0 0 2px ${obj.border}66` : "none", transition: "box-shadow .15s" }}>
             <ObjIcon id={objId} s={14} />
             {config.label}
-            <Ico.ChevDown s={16} c={obj.text} />
+            {open ? <Ico.ArrowUpSmall s={16} c={obj.text} /> : <Ico.ArrowDownSmall s={16} c={obj.text} />}
           </button>
         )}
       />
@@ -862,7 +963,7 @@ const FilterBlock = ({ block, idx, topLogic, onTopLogicChange, onPatchBlock, onR
 
 // Master column catalogue — the customizer & views reference these by key.
 const ALL_COLUMNS = [
-  { key: "lastName", label: "Last name" },
+  { key: "lastName", label: "Last name", locked: true }, // identity column — always shown, first
   { key: "firstName", label: "First name" },
   { key: "email", label: "Email" },
   { key: "age", label: "Age", align: "right" },
@@ -904,6 +1005,10 @@ const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
   const [consentAddOpen, setConsentAddOpen] = useState(false);
   const [consentRemoveOpen, setConsentRemoveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  /* A merge is one pair: the first ticked contact is kept; a second one, when
+     ticked, is preselected as the contact to merge. More than two can't merge. */
+  const [mergeKeep, mergeOther] = [...selected];
 
   const STATIC_LISTS = [
     { id: 1, name: "VIP Subscribers", count: 1240 },
@@ -941,7 +1046,7 @@ const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
         disabledTooltip="Select at least one contact to use these options"
         items={[
           { label: "Export contacts", icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => setExportOpen(true) },
-          { label: "Merge contact records", icon: <Ico.Merge s={16} c={DS.textSecondary} /> },
+          { label: selected.size > 2 ? "Merge contact records (2 max.)" : "Merge contact records", icon: <Ico.Merge s={16} c={DS.textSecondary} />, onClick: () => setMergeOpen(true), disabled: selected.size > 2 },
           { label: "Add to a list", icon: <Ico.UserPlus s={16} c={DS.textSecondary} />, onClick: () => setAddOpen(true) },
           { label: "Add to a consent", icon: <Ico.UserPlus s={16} c={DS.textSecondary} />, onClick: () => setConsentAddOpen(true) },
           { label: "Remove from a list", icon: <Ico.UserMinus s={16} c={DS.textSecondary} />, onClick: () => setRemoveOpen(true) },
@@ -955,6 +1060,13 @@ const OptionsMenu = ({ disabled = false, selected = new Set() }) => {
       <ListActionModal mode="remove" open={removeOpen} lists={STATIC_LISTS} selectedContactIds={[...selected]} onClose={() => setRemoveOpen(false)} onConfirm={() => { }} />
       <ConsentActionModal mode="add" open={consentAddOpen} consents={STATIC_CONSENTS} selectedContactIds={[...selected]} onClose={() => setConsentAddOpen(false)} onConfirm={() => { }} />
       <ConsentActionModal mode="remove" open={consentRemoveOpen} consents={STATIC_CONSENTS} selectedContactIds={[...selected]} onClose={() => setConsentRemoveOpen(false)} onConfirm={() => { }} />
+      <MergeContactsModal
+        open={mergeOpen}
+        onClose={() => setMergeOpen(false)}
+        primaryId={mergeKeep}
+        secondaryId={mergeOther}
+        onConfirm={(merged, removed) => console.log("Merged (simulated):", removed?.id, "into", mergeKeep, merged)}
+      />
       <DeleteContactsModal open={deleteOpen} count={selected.size} onClose={() => setDeleteOpen(false)} onConfirm={() => { }} />
       <ExportContactsModal open={exportOpen} onClose={() => setExportOpen(false)} selectedCount={selected.size} />
       <AssociateStructureModal
@@ -1001,6 +1113,19 @@ const describeFilter = (f) => {
 };
 const describeSeg = (seg) => (seg?.blocks ?? []).flatMap((b) => (b.filters ?? []).map(describeFilter));
 
+/* The readable criteria a list record shows — one row per filter, with the
+   logic that joins it to the previous one ("Where" for the first). */
+const criteriaOfSeg = (seg) => (seg?.blocks ?? []).flatMap((b, bi) => (b.filters ?? []).map((f, fi) => {
+  const logic = bi === 0 && fi === 0 ? "Where" : (fi === 0 ? seg.topLogic : b.logic) === "OR" ? "Or" : "And";
+  if (f.isAnchor) return { logic, field: describeFilter(f), op: "", value: "" };
+  return {
+    logic,
+    field: getField(f.objId, f.fieldId).label,
+    op: opLabel(f.objId, f.fieldId, f.op),
+    value: noValue(f.op) ? "" : Array.isArray(f.val) ? f.val.join(", ") : String(f.val ?? ""),
+  };
+}));
+
 // Human-readable, per-facet diff between the live config and the saved view.
 const diffConfig = (cur, saved) => {
   const changes = [];
@@ -1035,10 +1160,11 @@ const INITIAL_VIEWS = [
 
 export default function ContactsPage({ selectedContact, setSelectedContact }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Arriving from an Insight card's "Open as segment": the card's filters are
   // pre-filled and the card's count is shown (contacts.json is only a sample).
-  const fromCard = useLocation().state?.fromCard ?? null;
+  const fromCard = location.state?.fromCard ?? null;
   const segFromCard = () => ({
     topLogic: "AND",
     blocks: [{
@@ -1050,9 +1176,15 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
     }],
   });
 
-  const [builderOpen, setBuilderOpen] = useState(!!fromCard);
-  const [segment, setSegment] = useState(() => (fromCard ? segFromCard() : makeSeg()));
-  const [applied, setApplied] = useState(null);
+  /* Arriving from a list record's "Update list criteria": the builder opens on
+     that list's filters, and its footer saves back to the list or as a new one. */
+  const [editingList] = useState(() => location.state?.listCriteria ?? null);
+  const [confirmUpdate, setConfirmUpdate] = useState(false);
+  const createdListRef = useRef(null);
+
+  const [builderOpen, setBuilderOpen] = useState(() => !!editingList || !!fromCard);
+  const [segment, setSegment] = useState(() => (editingList ? clone(editingList.segment) : fromCard ? segFromCard() : makeSeg()));
+  const [applied, setApplied] = useState(() => (editingList ? clone(editingList.segment) : null));
   const isDirty = JSON.stringify(segment) !== JSON.stringify(applied ?? makeSeg());
 
   const [filterModalOpen, setFilterModalOpen] = useState(false);
@@ -1065,7 +1197,16 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
   const patchBlock = (id, p) => setBlocks((bs) => bs.map((b) => b.id === id ? { ...b, ...(typeof p === "function" ? p(b) : p) } : b));
 
   const handleApply = () => { setApplied(JSON.parse(JSON.stringify(segment))); setSelected(new Set()); setPage(1); };
-  const handleCancel = () => { setSegment(applied ? JSON.parse(JSON.stringify(applied)) : makeSeg()); setBuilderOpen(false); };
+  const handleCancel = () => { setSegment(applied ? JSON.parse(JSON.stringify(applied)) : makeSeg()); if (!editingList) setBuilderOpen(false); };
+
+  const backToList = (state) => navigate("/lists-v3", { state: state ?? { openList: editingList.id } });
+  // Saving from a list works on the SEARCHED filters: pending edits must be run
+  // through Search first, and Update also needs them to differ from the list's.
+  const searched = !isDirty && segHasFilters(applied);
+  const canUpdateList = !!editingList && searched && segSig(applied) !== segSig(editingList.segment);
+  const updateList = () => backToList({
+    listUpdated: { id: editingList.id, segment: clone(applied), criteria: criteriaOfSeg(applied) },
+  });
 
   const openFilterModal = (blockId) => { setFilterModalTargetBlockId(blockId); setFilterModalOpen(true); };
 
@@ -1229,6 +1370,27 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
 
 
 
+        {/* List context — the builder is editing a list's criteria */}
+        {editingList && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12, marginBottom: 12, padding: "12px 16px",
+            borderRadius: DS.radiusLg, border: `1px solid ${DS.borderDefault}`, background: DS.feedbackInfoBg,
+          }}>
+            <span style={{
+              width: 32, height: 32, flexShrink: 0, borderRadius: DS.radiusMd, background: DS.surfaceCanvas,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Ico.List s={16} c={DS.actionPrimary} />
+            </span>
+            <span style={{ flex: 1, minWidth: 0, ...TY.bodySm, color: DS.textDefault, fontFamily: DS.ff }}>
+              You are editing the criteria of <strong style={{ fontWeight: 600 }}>{editingList.name}</strong>.
+              <br />
+              Update this list, or save these filters as a new list.
+            </span>
+            <Btn type="Tertiary" size="Sm" iconLeft={<Ico.ArrowBack s={16} c={DS.actionPrimary} />} onClick={() => backToList()}>Back to list</Btn>
+          </div>
+        )}
+
         {/* Segment builder */}
         {builderOpen && (
           <div style={{ backgroundColor: DS.surfaceCanvas, border: `1px solid ${DS.borderDefault}`, borderRadius: 8, overflow: "visible" }}>
@@ -1250,10 +1412,24 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
                 a separate grey band. Separator matches the FilterBlock header rule
                 above it: 1px solid borderDefault. */}
             <div style={{ display: "flex", alignItems: "center", padding: "8px 24px 16px", background: DS.surfaceCanvas, gap: 8, borderRadius: "0 0 8px 8px" }}>
-              <Btn type="Primary" iconLeft={<Ico.List c={DS.surfaceCanvas} />} onClick={() => setCreateListOpen(true)}>Create a list</Btn>
-              <div style={{ flex: 1 }} />
-              <Btn type="Tertiary" disabled={!isDirty} onClick={handleCancel}>Cancel</Btn>
-              <Btn type="Secondary" disabled={!isDirty} onClick={handleApply}>Search</Btn>
+              {editingList ? (
+                <>
+                  {/* List actions on the left, where "Create a list" sits in the
+                      normal builder; search actions stay on the right. */}
+                  <Btn type="Secondary" disabled={!searched} onClick={() => setCreateListOpen(true)}>Save as a new list</Btn>
+                  <Btn type="Primary" disabled={!canUpdateList} onClick={() => setConfirmUpdate(true)}>Update list</Btn>
+                  <div style={{ flex: 1 }} />
+                  <Btn type="Tertiary" disabled={!isDirty} onClick={handleCancel}>Cancel</Btn>
+                  <Btn type="Secondary" disabled={!isDirty} onClick={handleApply}>Search</Btn>
+                </>
+              ) : (
+                <>
+                  <Btn type="Primary" iconLeft={<Ico.List c={DS.surfaceCanvas} />} onClick={() => setCreateListOpen(true)}>Create a list</Btn>
+                  <div style={{ flex: 1 }} />
+                  <Btn type="Tertiary" disabled={!isDirty} onClick={handleCancel}>Cancel</Btn>
+                  <Btn type="Secondary" disabled={!isDirty} onClick={handleApply}>Search</Btn>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -1344,11 +1520,29 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
 
       <CreateListModal
         open={createListOpen}
-        onClose={() => setCreateListOpen(false)}
+        onClose={() => {
+          setCreateListOpen(false);
+          // Saved as a new list from a list's criteria → open that new list.
+          if (editingList && createdListRef.current) backToList({ listCreated: createdListRef.current });
+        }}
         contactCount={sorted.length}
         segment={applied ?? segment}
-        onCreated={(list) => console.log("Created list (simulated):", list)}
+        onCreated={(list) => {
+          if (editingList) createdListRef.current = { ...list, criteria: criteriaOfSeg(list.segment) };
+          else console.log("Created list (simulated):", list);
+        }}
       />
+
+      {editingList && confirmUpdate && (
+        <ConfirmDialog
+          title="Update list criteria?"
+          body={`“${editingList.name}” will use these filters. Contacts that no longer match leave the list at its next update.`}
+          confirmLabel="Update list"
+          confirmIcon={null}
+          onConfirm={updateList}
+          onCancel={() => setConfirmUpdate(false)}
+        />
+      )}
 
 
       <ViewModal

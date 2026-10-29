@@ -247,7 +247,7 @@ export default function DeleteContactsModal({ open, count = 0, onClose, onConfir
     footer = (
       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
         <Btn type="Tertiary" size="Medium" onClick={onClose}>Cancel</Btn>
-        <Btn type="Primary" size="Medium" iconRight={<Ico.ChevRight />} disabled={overLimit} onClick={handleNext}>Continue</Btn>
+        <Btn type="Primary" size="Medium" iconRight={<Ico.ArrowRightSmall />} disabled={overLimit} onClick={handleNext}>Continue</Btn>
       </div>
     );
   } else if (step === 2) {

@@ -14,23 +14,61 @@ import { SuccessState } from "../../components/Feedback";
 // structure at a time, so there is nothing to accumulate and nothing to review —
 // pick it, confirm it.
 //
-// Shell: DS Organisms/Modal (1223:3646) centre variant, body 20/24/24 with
-// gap 16, footer Secondary + one Primary.
-// The picker is the shared EntityPicker — the same control the list and consent
-// flows search with, so "search a thing and choose it" looks the same everywhere.
+// Same DS/UX language as MergeContactsModal (the reference CTA modal):
+//   Shell   DS Organisms/Modal (1223:3646) centre, body 20/24/24 gap 16
+//   Body    scope InfoBox · "Structure" section label · EntityPicker, which
+//           gives way to the brand-tinted picked card with "Change"
+//           The top message also says that a current structure is replaced —
+//           no separate warning once a structure is picked.
+//   Footer  spacer · Tertiary Cancel · Primary "Associate" (no icon)
+//   After   running label → SuccessState with Close
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ASSOCIATE_LATENCY_MS = 900;
 
 const fmt = (n) => n.toLocaleString("en-US").replace(/,/g, " ");
+const plural = (n, one, many = `${one}s`) => `${fmt(n)} ${n === 1 ? one : many}`;
+
+const SectionLabel = ({ children }) => (
+  <div style={{ height: 28, display: "flex", alignItems: "center" }}>
+    <span style={{
+      fontSize: 11, fontWeight: 600, letterSpacing: ".06em",
+      textTransform: "uppercase", color: DS.textMuted, fontFamily: DS.ff,
+    }}>
+      {children}
+    </span>
+  </div>
+);
+
+const IconTile = ({ children }) => (
+  <span style={{
+    width: 32, height: 32, flexShrink: 0, borderRadius: DS.radiusMd, background: DS.surfaceCanvas,
+    display: "flex", alignItems: "center", justifyContent: "center",
+  }}>
+    {children}
+  </span>
+);
+
+const Note = ({ icon, children }) => (
+  <div style={{
+    display: "flex", alignItems: "center", gap: 10, boxSizing: "border-box",
+    padding: 12, borderRadius: DS.radiusLg,
+    border: `1px solid ${DS.borderDefault}`, background: DS.feedbackInfoBg,
+  }}>
+    <IconTile>{icon}</IconTile>
+    <div style={{ ...TY.bodySm, color: DS.textDefault, fontFamily: DS.ff, flex: 1, minWidth: 0 }}>{children}</div>
+  </div>
+);
+
+const Strong = ({ children }) => <strong style={{ fontWeight: 600, color: DS.textDefault }}>{children}</strong>;
 
 /**
  * Props:
- *   open           {boolean}
- *   onClose        {function}
- *   structures     [{ id, name }] — the set to search
- *   selectedCount  {number}  contacts ticked in the table
- *   onConfirm      {function} (structure) — fired on confirm
+ *   open               {boolean}
+ *   onClose            {function}
+ *   structures         [{ id, name }] — the set to search
+ *   selectedCount      {number}  contacts ticked in the table
+ *   onConfirm          {function} (structure) — fired on confirm
  */
 export default function AssociateStructureModal({
   open,
@@ -52,6 +90,7 @@ export default function AssociateStructureModal({
 
   if (!open) return null;
 
+  const running = phase === "running";
   const handleConfirm = () => {
     if (!picked) return;
     setPhase("running");
@@ -59,78 +98,57 @@ export default function AssociateStructureModal({
     setTimeout(() => setPhase("done"), ASSOCIATE_LATENCY_MS);
   };
 
-  const footer =
-    phase === "done" ? (
-      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
-        <Btn type="Primary" onClick={onClose}>Close</Btn>
-      </div>
-    ) : (
-      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
-        <Btn type="Secondary" onClick={onClose}>Cancel</Btn>
-        <Btn
-          type="Primary"
-          disabled={!picked || phase === "running"}
-          onClick={handleConfirm}
-        >
-          {phase === "running" ? "Associating…" : "Associate"}
-        </Btn>
-      </div>
-    );
+  const actions = phase === "done" ? (
+    <Btn type="Primary" size="Md" onClick={onClose}>Close</Btn>
+  ) : (
+    <>
+      <Btn type="Tertiary" size="Md" disabled={running} onClick={onClose}>Cancel</Btn>
+      <Btn type="Primary" size="Md" disabled={!picked || running} onClick={handleConfirm}>
+        {running ? "Associating…" : "Associate"}
+      </Btn>
+    </>
+  );
+
+  const footer = (
+    // DS footer (1223:3664): a flexible spacer pushes the actions right, gap 8.
+    <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+      <div style={{ flex: "1 0 0", minWidth: 0 }} />
+      {actions}
+    </div>
+  );
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Associate with a structure"
-      variant="center"
-      size="md"
-      footer={footer}
-    >
+    <Modal open={open} onClose={onClose} title="Associate with a structure" variant="center" size="md" footer={footer}>
       {phase === "done" ? (
-        <SuccessState title="Action completed">
-          {fmt(selectedCount)} contact{selectedCount === 1 ? " has" : "s have"} been
-          associated with {picked?.name} successfully.
+        <SuccessState title="Contacts associated">
+          {plural(selectedCount, "contact")} {selectedCount === 1 ? "is" : "are"} now associated
+          with <Strong>{picked?.name}</Strong>.
         </SuccessState>
       ) : (
         <div style={{ padding: "20px 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
-          <span style={{ ...TY.bodySm, color: DS.textSecondary, fontFamily: DS.ff }}>
-            The <strong style={{ fontWeight: 600, color: DS.textDefault }}>
-              {fmt(selectedCount)} selected contact{selectedCount === 1 ? "" : "s"}
-            </strong> will be attached to the structure you choose. A contact belongs
-            to one structure at a time, so this replaces any current one.
-          </span>
+          <Note icon={<Ico.Users s={16} c={DS.actionPrimary} />}>
+            The <Strong>{plural(selectedCount, "selected contact")}</Strong> will be attached to the
+            structure you choose.
+            <br />
+            A contact belongs to one structure at a time, so this replaces any structure it is
+            already associated with.
+          </Note>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {/* Same section label as "Selected lists" in the add-to-list modal. */}
-            <div style={{ height: 28, display: "flex", alignItems: "center" }}>
-              <span style={{
-                fontSize: 11, fontWeight: 600, letterSpacing: ".06em",
-                textTransform: "uppercase", color: DS.textMuted, fontFamily: DS.ff,
-              }}>
-                Structure
-              </span>
-            </div>
-
+            <SectionLabel>Structure</SectionLabel>
             {picked ? (
-              // Picked: the field is spent, so it gives way to the choice itself
-              // with a way back rather than sitting there half-used.
+              // Picked: the field gives way to the choice, with a way back.
               <div style={{
                 display: "flex", alignItems: "center", gap: 10, boxSizing: "border-box",
                 padding: 12, borderRadius: DS.radiusLg,
                 border: `1px solid ${DS.brandPrimary}`, background: DS.brandPrimarySubtle,
               }}>
-                <span style={{
-                  width: 32, height: 32, flexShrink: 0, borderRadius: DS.radiusMd, background: DS.surfaceCanvas,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <Ico.Organization s={16} c={DS.actionPrimary} />
-                </span>
-                <span style={{ ...TY.bodyMd, fontWeight: 600, color: DS.textDefault, fontFamily: DS.ff, flex: 1, minWidth: 0 }}>
+                <IconTile><Ico.Organization s={16} c={DS.actionPrimary} /></IconTile>
+                <span style={{ flex: 1, minWidth: 0, ...TY.bodyMd, fontWeight: 600, color: DS.textDefault, fontFamily: DS.ff, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {picked.name}
                 </span>
-                {/* Change drops the choice AND drops the list back open on the
-                    full set — picking again is the only reason to press it. */}
-                <Btn type="Ghost" size="Sm" onClick={() => { setPicked(null); setReopen(true); }}>Change</Btn>
+                {/* Change drops the choice and reopens the list on the full set. */}
+                <Btn type="Ghost" size="Sm" disabled={running} onClick={() => { setPicked(null); setReopen(true); }}>Change</Btn>
               </div>
             ) : (
               <EntityPicker
@@ -143,6 +161,7 @@ export default function AssociateStructureModal({
               />
             )}
           </div>
+
         </div>
       )}
     </Modal>

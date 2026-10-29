@@ -11,7 +11,7 @@
  *                  flush bespoke band instead; the DS component wins.)
  *   Body           main column (flex) + 280px right rail
  *     main         Metrics (a 2-page KPI Carousel) · Tabs · transactions
- *                  table · notes textarea + events map
+ *                  table · notes (read-only) + events map
  *                  The table's columns are configurable PER TAB (shared
  *                  ColumnCustomizer in the DS TableToolbar slot). Purchase
  *                  history is one row per TICKET; tickets of one booking are
@@ -22,7 +22,7 @@
  *
  * DS components reused: PageHeader (Type=Contact — which supplies the Avatar,
  *   status and details) · Btn · KpiCard · Badge ·
- *   Table (+ its Cell matrix and PaginationBar) · TextArea.
+ *   Table (+ its Cell matrix and PaginationBar). Notes are read-only here (written in ContactFormDrawer).
  *
  * MISSING — rendered as a shared <Placeholder/> box so the gap stays visible
  * (design-prototypes §0.6 — build-vs-placeholder is the PM's call):
@@ -40,18 +40,21 @@
  * against campaigns sent, plus the muted count row the DS uses for a total).
  */
 import { useMemo, useState } from "react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import contactsData from "../../../contacts.json";
 import { DS, TY } from "../../utils/designSystem";
 import Ico from "../../utils/icons";
 import { Btn } from "../../components/Btn";
 import { Badge, RemovableChip } from "../../components/Tag";
+import { Checkbox } from "../../components/Controls";
 import IconBtn from "../../components/Iconbtn";
 import Modal from "../../components/Modal";
 import EntityPicker from "../../components/EntityPicker";
 import ContactFormDrawer from "./ContactFormDrawer";
+import { TENANT_LISTS } from "./tenantLists";
+import { TENANT_CONSENTS } from "./tenantConsents";
+import MergeContactsModal from "./MergeContactsModal";
 import ActionMenu from "../../components/ActionMenu";
-import { TextArea } from "../../components/Field";
 import KpiCard from "../../components/Kpi";
 import Table from "../../components/Table";
 import Tabs from "../../components/Tabs";
@@ -59,6 +62,7 @@ import Carousel from "../../components/Carousel";
 import ColumnCustomizer from "../../components/ColumnCustomizer";
 import Placeholder from "../../components/Placeholder";
 import PageHeader from "../../components/PageHeader";
+import { purchasedTickets, receivedTickets } from "../../utils/beneficiaries";
 
 const PAGE_SIZE = 10;
 /* The mock dataset is anchored to a fixed "now" so recency labels stay stable. */
@@ -222,7 +226,7 @@ const RFM_DIMS = [
     caption: (v) => (v == null ? "no purchase yet" : `${Math.round(v) === 1 ? "day" : "days"} since last order`) },
   { key: "loyalty", label: "Frequency", Icon: Ico.Refresh,
     value: (v) => `${v}`,
-    caption: (v) => `${v === 1 ? "purchase" : "purchases"} in ${LOYALTY_MONTHS} months` },
+    caption: (v) => `${v === 1 ? "purchase" : "purchases"} in the last ${LOYALTY_MONTHS} months` },
   { key: "total",   label: "Monetary value", Icon: Ico.Wallet,
     // Whole units: the tile is narrow and the cents add nothing at this scale.
     value: (v, cur) => new Intl.NumberFormat("en-GB", { style: "currency", currency: cur || "EUR", maximumFractionDigits: 0 }).format(v),
@@ -294,23 +298,6 @@ function buildConsentRows(history = []) {
                removed from it
    That distinction is the whole point of the drawer: it decides which chips
    carry a cross and which lists the search is allowed to add. */
-const TENANT_LISTS = [
-  { id: 4837, name: "Loyal audience", type: "dynamic", count: 12480, folder: "Loyalty & VIP" },
-  { id: 4874, name: "Loyal fans", type: "dynamic", count: 8340, folder: "Loyalty & VIP" },
-  { id: 4911, name: "Patrons circle", type: "static", count: 96, folder: "Loyalty & VIP" },
-  { id: 4948, name: "VIP evening — June", type: "static", count: 180, folder: "Events" },
-  { id: 4985, name: "Season launch guest list", type: "static", count: 220, folder: "Events" },
-  { id: 5022, name: "Last-minute ticket buyers for the RCT v UBB match", type: "static", count: 1240, folder: "Events" },
-  { id: 5059, name: "Senior segment", type: "dynamic", count: 5120, folder: "Audiences" },
-  { id: 5096, name: "Student segment (under 26)", type: "dynamic", count: 3765, folder: "Audiences" },
-  { id: 5133, name: "Public around", type: "dynamic", count: 21030, folder: "Audiences" },
-  { id: 5170, name: "Public proche", type: "dynamic", count: 18940, folder: "Audiences" },
-  { id: 5207, name: "Schools programme", type: "static", count: 1870, folder: "Audiences" },
-  { id: 5244, name: "Yesterday's buyers", type: "dynamic", count: 412, folder: "Sales" },
-  { id: 5281, name: "List of yesterday's buyers", type: "static", count: 386, folder: "Sales" },
-  { id: 5318, name: "Press and partners", type: "static", count: 145, folder: "Campaigns" },
-  { id: 5355, name: "Newsletter — manual additions", type: "static", count: 640, folder: "Campaigns" },
-];
 const listType = (name) => TENANT_LISTS.find((l) => l.name === name)?.type ?? "static";
 
 /* The membership drawer. Dynamic lists are shown but cannot be removed; static
@@ -435,6 +422,201 @@ function ListsDrawer({ open, onClose, value, onSave }) {
   );
 }
 
+/* ── Consents ────────────────────────────────────────────────────────────────
+   The tenant's consent catalogue (prototype data). Channel groups the picker. */
+const CONSENT_ORIGIN = "Manual update";
+const CONSENT_DATE = "2026-06-05"; // the prototype's TODAY, as an ISO date
+
+/* The consent drawer — the Lists drawer's workflow, adapted to what a consent
+   is: not a membership but a permission with a state.
+     · the picker OPTS IN (wording says so; a consent already opted in carries
+       its check, an opted-out one can be picked to opt back in)
+     · each current consent is a row with its state badge and one action —
+       "Opt out" or "Opt in" — rather than a chip with a cross, because removing
+       a consent is not deleting it: it records an opt-out and keeps the history
+     · the staged changes are listed as "Will opt in" / "Will opt out" with
+       their badges before Save, each undoable
+   Save writes one action per change (today, origin "Manual update")
+   into the history the Consents tab shows. */
+/* Save asks for the same acknowledgement as the bulk "Add contacts to a
+   consent" flow: a confirmation dialog listing the changes, with a checkbox
+   that must be ticked before they are recorded. */
+function ConfirmConsentChanges({ changes, onCancel, onConfirm }) {
+  const [ack, setAck] = useState(false);
+  const adds = changes.some(([, on]) => on);
+  const removes = changes.some(([, on]) => !on);
+  const verb = adds && removes ? "added to or removed from" : adds ? "added to" : "removed from";
+  return (
+    <Modal
+      open
+      onClose={onCancel}
+      variant="center"
+      size="sm"
+      title="Confirm consent changes"
+      footer={(
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
+          <Btn type="Tertiary" onClick={onCancel}>Cancel</Btn>
+          <Btn type="Primary" disabled={!ack} onClick={onConfirm}>Confirm</Btn>
+        </div>
+      )}
+    >
+      <div style={{ padding: "20px 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+        <span style={{ ...TY.bodyMd, color: DS.textDefault, fontFamily: DS.ff }}>
+          The following {changes.length === 1 ? "change" : "changes"} will be recorded for this contact:
+        </span>
+        <div style={{ border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusLg, padding: "4px 14px" }}>
+          {changes.map(([consent, on], i) => (
+            <div key={consent} style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 36,
+              borderTop: i === 0 ? "none" : `1px solid ${DS.borderDivider}`,
+            }}>
+              <span style={{ ...TY.bodyMd, color: DS.textStrong, fontFamily: DS.ff }}>{consent}</span>
+              <Badge tone={on ? "success" : "danger"}>{on ? "Opt-in" : "Opt-out"}</Badge>
+            </div>
+          ))}
+        </div>
+        <Checkbox
+          checked={ack}
+          onChange={setAck}
+          label={(
+            <span style={{ ...TY.bodySm, color: DS.textSecondary, fontFamily: DS.ff }}>
+              I confirm that this contact has given their consent to be {verb} this type of communication.
+            </span>
+          )}
+        />
+      </div>
+    </Modal>
+  );
+}
+
+function ConsentsDrawer({ open, onClose, value, onSave }) {
+  const [draft, setDraft] = useState({});
+  const [wasOpen, setWasOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const current = Object.fromEntries(value.map((c) => [c.label, c.on]));
+
+  if (open !== wasOpen) {            // render-time reset on open, no effect needed
+    setWasOpen(open);
+    if (open) { setDraft(current); setConfirming(false); }
+  }
+
+  const set = (name, on) => setDraft((d) => ({ ...d, [name]: on }));
+  const unset = (name) => setDraft((d) => {
+    const next = { ...d };
+    if (name in current) next[name] = current[name]; else delete next[name];
+    return next;
+  });
+  const changes = Object.entries(draft).filter(([name, on]) => current[name] !== on);
+  const optIns = changes.filter(([, on]) => on).map(([n]) => n);
+  const optOuts = changes.filter(([, on]) => !on).map(([n]) => n);
+
+  const optedIn = new Set(Object.entries(draft).filter(([, on]) => on).map(([n]) => n));
+  const pickable = TENANT_CONSENTS.map((c) => ({ id: c.name, name: c.name, channel: c.channel }));
+
+  const sectionLabel = {
+    ...TY.labelMd, letterSpacing: "0.04em", textTransform: "uppercase",
+    color: DS.textMuted, fontFamily: DS.ff,
+  };
+  const row = {
+    display: "flex", alignItems: "center", gap: 8, minHeight: 36, padding: "4px 0",
+    borderTop: `1px solid ${DS.borderDivider}`,
+  };
+  const name = { flex: 1, minWidth: 0, ...TY.bodyMd, color: DS.textStrong, fontFamily: DS.ff, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Consents"
+      subtitle="Opt this contact in or out"
+      width={400}
+      footer={(
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
+          <Btn type="Tertiary" onClick={onClose}>Cancel</Btn>
+          <Btn type="Primary" disabled={changes.length === 0} onClick={() => setConfirming(true)}>
+            Save
+          </Btn>
+        </div>
+      )}
+    >
+      <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+        <EntityPicker
+          entities={pickable}
+          selectedIds={optedIn}
+          onSelect={(n) => set(n, true)}
+          groupBy="channel"
+          hideSelected={false}
+          placeholder="Opt in to a consent..."
+          emptyLabel={({ query, allSelected }) => (query
+            ? "No consent matches this search"
+            : allSelected ? "This contact is opted in to every consent" : "Start typing to search…")}
+        />
+
+        <span style={sectionLabel}>Current consents</span>
+        {value.length === 0 ? (
+          <span style={{ ...TY.bodySm, color: DS.textMuted, fontFamily: DS.ff }}>
+            No consent recorded for this contact yet.
+          </span>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {value.map((c, i) => {
+              const staged = draft[c.label] !== c.on;
+              return (
+                <div key={c.label} style={{ ...row, borderTop: i === 0 ? "none" : row.borderTop, opacity: staged ? 0.5 : 1 }}>
+                  <span style={name}>{c.label}</span>
+                  <Badge tone={c.on ? "success" : "danger"}>{c.on ? "Opt-in" : "Opt-out"}</Badge>
+                  <Btn type="Tertiary" size="Sm" disabled={staged} onClick={() => set(c.label, !c.on)}
+                       style={{ width: 72 }}>
+                    {c.on ? "Opt out" : "Opt in"}
+                  </Btn>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* What Save will record — only shown once there is a change. The
+            cross undoes it. */}
+        {[["Will opt in", optIns, true], ["Will opt out", optOuts, false]].map(([label, names, on]) => (
+          names.length > 0 && (
+            <div key={label} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+              <span style={sectionLabel}>{label}</span>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {names.map((n) => (
+                  <RemovableChip key={n} onRemove={() => unset(n)}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: on ? DS.feedbackSuccess : DS.feedbackError }} />
+                      {n}
+                    </span>
+                  </RemovableChip>
+                ))}
+              </div>
+            </div>
+          )
+        ))}
+
+        {changes.length > 0 && (
+          <span style={{ ...TY.bodySm, color: DS.textSecondary, fontFamily: DS.ff }}>
+            Each change is recorded today with the origin “{CONSENT_ORIGIN}”. The consent history is kept.
+          </span>
+        )}
+      </div>
+      {confirming && (
+        <ConfirmConsentChanges
+          changes={changes}
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => {
+            setConfirming(false);
+            onSave(changes.map(([consent, on]) => ({
+              consent, date: CONSENT_DATE, origin: CONSENT_ORIGIN, action: on ? "Opt-in" : "Opt-out",
+            })));
+          }}
+        />
+      )}
+    </Modal>
+  );
+}
+
 /* Where each consent stands right now: the most recent action wins. The rail
    shows the state, the Consents tab shows how it got there. */
 function currentConsents(history = []) {
@@ -454,6 +636,21 @@ function currentConsents(history = []) {
    parent row: a group is simply a RUN OF CONSECUTIVE ROWS sharing a reference.
    Sort by any other column and the runs break up on their own — the marks
    disappear rather than claiming a grouping that is no longer there. */
+/* Another contact named in a ticket row (the beneficiary on Purchase history,
+   the buyer on Received tickets), as a link to their record. */
+function ContactLink({ person }) {
+  return (
+    <Link
+      to={`/contacts/${person.id}`}
+      onMouseEnter={(e) => { e.currentTarget.style.textDecoration = "underline"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.textDecoration = "none"; }}
+      style={{ ...TY.bodyMd, fontWeight: 500, fontFamily: DS.ff, color: DS.brandPrimary, textDecoration: "none" }}
+    >
+      {person.name}
+    </Link>
+  );
+}
+
 function buildTicketRows(tickets = []) {
   return [...(tickets || [])]
     .sort((a, b) => String(b.purchaseDate || "").localeCompare(String(a.purchaseDate || ""))
@@ -479,6 +676,8 @@ function buildTicketRows(tickets = []) {
         unitPrice: t.price ?? 0,
         totalAmount: t.total ?? 0,
         status: t.status || "",
+        beneficiary: t.beneficiary?.name ?? "",
+        boughtBy: t.buyer?.name ?? "",
       },
       cells: {
         purchaseDate: formatDate(t.purchaseDate),
@@ -496,6 +695,9 @@ function buildTicketRows(tickets = []) {
         unitPrice: formatCurrency(t.price),
         totalAmount: formatCurrency(t.total),
         status: { label: formatStatus(t.status), tone: statusTone(t.status) },
+        // No beneficiary = bought for themself, so the cell stays empty.
+        beneficiary: t.beneficiary ? <ContactLink person={t.beneficiary} /> : "—",
+        boughtBy: t.buyer ? <ContactLink person={t.buyer} /> : "—",
       },
     }));
 }
@@ -582,6 +784,29 @@ function RailRow({ label, value, values, type }) {
     );
   }
 
+  // Organisation — label over value, with the company glyph leading the name
+  // the way the mail glyph leads the email. Styled as a link to the structure
+  // record; the structure page doesn't exist yet, so it goes nowhere for now.
+  if (type === "organisation") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+        <span style={labelStyle}>{label}</span>
+        <a
+          href="#"
+          onClick={(e) => e.preventDefault()}
+          title={`Open ${value}`}
+          onMouseEnter={(e) => { e.currentTarget.style.textDecoration = "underline"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.textDecoration = "none"; }}
+          style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0,
+                   textDecoration: "none", color: DS.brandPrimary, cursor: "pointer" }}
+        >
+          <Ico.Organization s={12} c={DS.brandPrimary} />
+          <span style={{ ...RAIL_TEXT, fontWeight: 500, fontFamily: DS.ff, color: DS.brandPrimary, ...clip }}>{value}</span>
+        </a>
+      </div>
+    );
+  }
+
   // Label over value — the one field format on this record.
   return (
     <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
@@ -640,7 +865,7 @@ function RailSection({ title, rows, tags, chips, states, action, open, onToggle,
             transform: open ? "none" : "rotate(-90deg)",
             transition: `transform ${DS.durFast} ${DS.ease}`,
           }}>
-            <Ico.ChevDown s={16} c={DS.textStrong} />
+            <Ico.ArrowDown s={14} c={DS.textStrong} />
           </span>
         </button>
 
@@ -676,13 +901,58 @@ function RailSection({ title, rows, tags, chips, states, action, open, onToggle,
   );
 }
 
+/* Read mode of the contact's notes. They are written in the create / edit
+   drawer, like every other field of the record, so here they are only shown —
+   line breaks kept — with a shortcut back into the drawer. */
+function NotesBlock({ notes, onEdit }) {
+  const text = (notes ?? "").trim();
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <span style={{ ...TY.labelMd, color: DS.textSecondary, fontFamily: DS.ff }}>Notes</span>
+      <div style={{
+        minHeight: 232, boxSizing: "border-box", padding: 16,
+        background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`,
+        borderRadius: DS.radiusLg, display: "flex", flexDirection: "column", gap: 12,
+      }}>
+        {text ? (
+          <p style={{
+            margin: 0, flex: 1, whiteSpace: "pre-wrap", overflowWrap: "anywhere",
+            ...TY.bodyMd, fontFamily: DS.ff, color: DS.textDefault,
+          }}>
+            {text}
+          </p>
+        ) : (
+          <span style={{ flex: 1, ...TY.bodyMd, fontFamily: DS.ff, color: DS.textMuted }}>
+            No notes about this contact yet.
+          </span>
+        )}
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <IconBtn
+            kind="Filled"
+            size="Sm"
+            icon={<Ico.EditSquare s={14} />}
+            title={text ? "Edit notes" : "Add a note"}
+            aria-label={text ? "Edit notes" : "Add a note"}
+            onClick={onEdit}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* Keyed on the contact so following a link to another contact (a buyer or a
+   beneficiary) starts that record fresh instead of carrying this one's state. */
 export default function ContactRecord({ selectedContact }) {
   const { id } = useParams();
-  const contactId = selectedContact?.id || id;
+  const contactId = id || selectedContact?.id;
+  return <ContactRecordView key={contactId} contactId={contactId} />;
+}
+
+function ContactRecordView({ contactId }) {
 
   // Tab switching is inert until Molecules/Tab exists — see the placeholder below.
   const [activeTab, setActiveTab] = useState("tickets");
-  const [notes, setNotes] = useState("");
   const [sort, setSort] = useState({ key: null, dir: "asc" });
   /* Column visibility + order, kept PER TAB so each transaction table remembers
      its own setup. Keyed by tab; a tab with no entry yet shows every column. */
@@ -703,6 +973,9 @@ export default function ContactRecord({ selectedContact }) {
      being read straight off the record each render. */
   const [lists, setLists] = useState(() => contact?.lists ?? []);
   const [listsDrawerOpen, setListsDrawerOpen] = useState(false);
+  /* Consent actions are appended from the drawer, so the history is state too. */
+  const [consentHistory, setConsentHistory] = useState(() => contact?.consentHistory ?? []);
+  const [consentsDrawerOpen, setConsentsDrawerOpen] = useState(false);
   /* The fields the Edit drawer owns. Held in state so an edit shows up
      everywhere the record reads them — header, rail and all. */
   const [details, setDetails] = useState(() => ({
@@ -720,8 +993,10 @@ export default function ContactRecord({ selectedContact }) {
     country: contact?.coordinates?.country ?? "",
     organisation: contact?.structure ?? "",
     role: (contact?.accessControls || [])[0]?.role ?? "",
+    notes: contact?.notes ?? "",
   }));
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
+  const [mergeOpen, setMergeOpen] = useState(false);
 
   const TABS = useMemo(() => {
     if (!contact) return {};
@@ -737,7 +1012,7 @@ export default function ContactRecord({ selectedContact }) {
            user reaches for less often ship hidden, so the default table stays
            readable and the column configuration does the rest. */
         columns: [
-          { key: "purchaseDate", label: "Purchase date" },
+          { key: "purchaseDate", label: "Purchase date", locked: true }, // identity column — always shown, first
           { key: "purchaseNumber", label: "Purchase number" },
           { key: "purchaseId", label: "Purchase ID", defaultHidden: true },
           { key: "productType", label: "Product type", defaultHidden: true },
@@ -752,8 +1027,35 @@ export default function ContactRecord({ selectedContact }) {
           { key: "unitPrice", label: "Unit price", type: "number" },
           { key: "totalAmount", label: "Total amount", type: "number" },
           { key: "status", label: "Status", type: "status" },
+          { key: "beneficiary", label: "Beneficiary", defaultHidden: true },
         ],
-        rows: buildTicketRows(contact.tickets),
+        rows: buildTicketRows(purchasedTickets(contact.id)),
+      },
+      /* Tickets someone else bought for this contact. Kept out of Purchase
+         history so that tab — and the spend KPIs — stay about what the contact
+         paid for. Amounts here are the buyer's. */
+      received: {
+        label: "Received tickets",
+        groupBy: "purchaseId",
+        columns: [
+          { key: "purchaseDate", label: "Purchase date", locked: true }, // identity column — always shown, first
+          { key: "boughtBy", label: "Bought by" },
+          { key: "purchaseNumber", label: "Purchase number", defaultHidden: true },
+          { key: "purchaseId", label: "Purchase ID", defaultHidden: true },
+          { key: "productType", label: "Product type", defaultHidden: true },
+          { key: "eventType", label: "Event type", defaultHidden: true },
+          { key: "event", label: "Event" },
+          { key: "performance", label: "Performance", defaultHidden: true },
+          { key: "venue", label: "Venue", defaultHidden: true },
+          { key: "category", label: "Category" },
+          { key: "priceFormula", label: "Price formula", defaultHidden: true },
+          { key: "salesChannel", label: "Sales channel", defaultHidden: true },
+          { key: "ticketCount", label: "Tickets", type: "number" },
+          { key: "unitPrice", label: "Unit price", type: "number" },
+          { key: "totalAmount", label: "Total amount", type: "number" },
+          { key: "status", label: "Status", type: "status" },
+        ],
+        rows: buildTicketRows(receivedTickets(contact.id)),
       },
       campaigns: {
         label: "Campaigns",
@@ -798,7 +1100,7 @@ export default function ContactRecord({ selectedContact }) {
           { key: "origin", label: "Origin" },
           { key: "action", label: "Action", type: "status" },
         ],
-        rows: buildConsentRows(contact.consentHistory),
+        rows: buildConsentRows(consentHistory),
       },
       access: { label: "Access controls", columns: [{ key: "label", label: "Access" }], rows: [] },
       contributions: {
@@ -813,7 +1115,7 @@ export default function ContactRecord({ selectedContact }) {
         })),
       },
     };
-  }, [contact]);
+  }, [contact, consentHistory]);
 
   if (!contact) {
     return (
@@ -920,6 +1222,7 @@ export default function ContactRecord({ selectedContact }) {
                 label="Options"
                 size="Md"
                 items={[
+                  { label: "Merge with another contact", icon: <Ico.Merge s={16} c={DS.textSecondary} />, onClick: () => setMergeOpen(true) },
                   { label: "Anonymize", icon: <Ico.User s={16} c={DS.textSecondary} /> },
                   { label: "Delete", icon: <Ico.Trash s={16} c={DS.actionDanger} />, danger: true },
                 ]}
@@ -950,6 +1253,11 @@ export default function ContactRecord({ selectedContact }) {
                   type="rfm"
                   label="Purchase behaviour"
                   rows={rfm}
+                  empty={consumption.recency == null ? {
+                    Icon: Ico.Cart,
+                    title: "No purchase yet",
+                    text: "Recency, frequency and monetary value will show after this contact's first order.",
+                  } : undefined}
                 />
               </div>
               <div style={{ flex: "1 1 340px", minWidth: 0, display: "flex" }}>
@@ -1056,13 +1364,7 @@ export default function ContactRecord({ selectedContact }) {
           {/* Notes + events map */}
           <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
             <div style={{ flex: "1 0 0", minWidth: 0 }}>
-              <TextArea
-                label="Notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add a note about this contact…"
-                rows={8}
-              />
+              <NotesBlock notes={details.notes} onEdit={() => setEditDrawerOpen(true)} />
             </div>
             <div style={{ flex: "1 0 0", minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
               <span style={{ ...TY.labelMd, color: DS.textSecondary }}>Events</span>
@@ -1125,8 +1427,8 @@ export default function ContactRecord({ selectedContact }) {
             action={(
               <IconBtn
                 kind="Filled"
-                size="Md"
-                icon={<Ico.Edit s={16} />}
+                size="Sm"
+                icon={<Ico.EditSquare s={14} />}
                 title="Edit lists"
                 aria-label="Edit lists"
                 onClick={() => setListsDrawerOpen(true)}
@@ -1137,7 +1439,17 @@ export default function ContactRecord({ selectedContact }) {
             title="Consents"
             open={openSections.consents}
             onToggle={() => toggle("consents")}
-            states={currentConsents(contact.consentHistory)}
+            states={currentConsents(consentHistory)}
+            action={(
+              <IconBtn
+                kind="Filled"
+                size="Sm"
+                icon={<Ico.EditSquare s={14} />}
+                title="Edit consents"
+                aria-label="Edit consents"
+                onClick={() => setConsentsDrawerOpen(true)}
+              />
+            )}
           />
           <RailSection
             title="Preferences"
@@ -1153,7 +1465,7 @@ export default function ContactRecord({ selectedContact }) {
             onToggle={() => toggle("others")}
             last
             rows={[
-              { label: "Organisation", value: details.organisation },
+              { label: "Organisation", type: "organisation", value: details.organisation },
               { label: "Role", value: details.role },
               {
                 label: "Roles & structures",
@@ -1175,11 +1487,24 @@ export default function ContactRecord({ selectedContact }) {
         value={details}
         onSave={(next) => { setDetails(next); setEditDrawerOpen(false); }}
       />
+      <MergeContactsModal
+        open={mergeOpen}
+        onClose={() => setMergeOpen(false)}
+        primaryId={contact.id}
+        primary={details}
+        onConfirm={(merged) => setDetails(merged)}
+      />
       <ListsDrawer
         open={listsDrawerOpen}
         onClose={() => setListsDrawerOpen(false)}
         value={lists}
         onSave={(next) => { setLists(next); setListsDrawerOpen(false); }}
+      />
+      <ConsentsDrawer
+        open={consentsDrawerOpen}
+        onClose={() => setConsentsDrawerOpen(false)}
+        value={currentConsents(consentHistory)}
+        onSave={(actions) => { setConsentHistory((h) => [...actions, ...h]); setConsentsDrawerOpen(false); }}
       />
     </div>
   );

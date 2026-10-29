@@ -320,7 +320,7 @@ function FormEditor({ form, isNew, onBack }) {
       {/* Breadcrumb */}
       <div style={{ background:DS.bgCard, padding:"8px 24px", borderBottom:`1px solid ${DS.borderDefault}`, display:"flex", alignItems:"center", gap:8 }}>
         <button onClick={onBack} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", color:DS.actionPrimary, fontFamily:DS.ff, ...TY.b3 }}>
-          <Ico.ChevLeft s={14} c={DS.actionPrimary}/>Back to forms
+          <Ico.ArrowLeftSmall s={14} c={DS.actionPrimary}/>Back to forms
         </button>
         <span style={{ ...TY.b3, color:DS.borderDefault }}>/</span>
         <span style={{ ...TY.b3, color:DS.textSecondary, fontFamily:DS.ff }}>{form ? form.name : "New form"}</span>
@@ -332,7 +332,7 @@ function FormEditor({ form, isNew, onBack }) {
         actions={<><Btn type="Secondary" onClick={()=>{}}>Save draft</Btn><Btn type="Primary" onClick={()=>{}}>Publish</Btn></>}
       />
       <TabBar tabs={EDITOR_TABS} active={tab} onChange={t => { if (!isNew || EDITOR_TABS.findIndex(x=>x.id===t) <= step) setTab(t); }}
-        extra={isNew && step < 3 ? <Btn type="Primary" size="Small" iconLeft={<Ico.ChevRight s={14} c={DS.textInverse}/>} onClick={()=>{ const n=step+1; setStep(n); setTab(EDITOR_TABS[n].id); }}>Next step</Btn> : null}/>
+        extra={isNew && step < 3 ? <Btn type="Primary" size="Small" iconLeft={<Ico.ArrowRightSmall s={14} c={DS.textInverse}/>} onClick={()=>{ const n=step+1; setStep(n); setTab(EDITOR_TABS[n].id); }}>Next step</Btn> : null}/>
       <div style={{ flex:1, overflow:"auto" }}>
         {tab === "builder"  && <BuilderTab form={form}/>}
         {tab === "workflow" && <WorkflowTab/>}

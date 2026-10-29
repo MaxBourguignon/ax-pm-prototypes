@@ -41,6 +41,8 @@
  *   actions       node    — put Secondary before Primary
  *   // contact type only
  *   avatarName    string  — full name; initials are auto-computed
+ *   leading       node    — replaces the avatar (e.g. an icon tile for a record
+ *                 that is not a person, like a list)
  *   status        string  — status text beside the title
  *   statusTone    DS colour token   default DS.feedbackSuccess
  *   details       string[] — dot-separated detail line (email · phone · address · …)
@@ -75,6 +77,7 @@ export function PageHeader({
   status,
   statusTone = DS.feedbackSuccess,
   details,
+  leading,
 }) {
   const subLine = meta ?? description;
 
@@ -109,10 +112,13 @@ export function PageHeader({
     return (
       <div style={{ ...SHELL, background: DS.surfaceHeader }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '1 0 0', minWidth: 0 }}>
-          {avatarName != null && <Avatar name={avatarName} size={64} tone="brand" />}
+          {leading ?? (avatarName != null && <Avatar name={avatarName} size={64} tone="brand" />)}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-              <span style={{ ...TY.headlineMd, fontFamily: DS.ff, color: DS.textStrong, whiteSpace: 'nowrap' }}>
+              <span title={typeof title === 'string' ? title : undefined} style={{
+                ...TY.headlineMd, fontFamily: DS.ff, color: DS.textStrong,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
+              }}>
                 {title}
               </span>
               {status != null && (

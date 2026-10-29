@@ -12,7 +12,7 @@ import { SuccessMark } from "../../components/Feedback";
 // ExportContactsModal — name the file, pick the columns, export (simulated).
 //
 // Built on the DS Organisms/Modal (1223:3646): gradient header, body padding
-// 20/24/24 with gap 16, footer = Secondary + one Primary, right-aligned.
+// 20/24/24 with gap 16, footer = Tertiary Cancel + one Primary, right-aligned.
 // Width 560 = the DS's widest documented composition ("Ajouter une opportunité",
 // 2099:41154).
 //
@@ -171,7 +171,7 @@ const AccordionGroup = ({ group, selected, onToggle, onToggleGroup, open, onOpen
           transform: open ? "rotate(180deg)" : "none",
           transition: `transform ${DS.durBase} ${DS.ease}`,
         }}>
-          <Ico.ChevDown s={16} c={DS.textSecondary} />
+          <Ico.ArrowDown s={14} c={DS.textSecondary} />
         </span>
       </div>
 
@@ -348,7 +348,7 @@ export default function ExportContactsModal({ open, onClose, selectedCount = 0, 
           {count} column{count === 1 ? "" : "s"} selected
         </span>
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <Btn type="Secondary" onClick={onClose}>Cancel</Btn>
+          <Btn type="Tertiary" onClick={onClose}>Cancel</Btn>
           <Btn
             type="Primary"
             iconLeft={<Ico.Download s={16} c={canExport ? DS.textOnBrand : DS.textMuted} />}
@@ -363,7 +363,7 @@ export default function ExportContactsModal({ open, onClose, selectedCount = 0, 
   } else if (phase === "running") {
     footer = (
       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
-        <Btn type="Secondary" onClick={onClose}>Cancel</Btn>
+        <Btn type="Tertiary" onClick={onClose}>Cancel</Btn>
       </div>
     );
   } else {

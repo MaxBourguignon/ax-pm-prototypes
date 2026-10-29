@@ -23,7 +23,7 @@
  * ⚠ Two things the Figma export could not tell me, both marked INFERRED below:
  *   1. Icon fill. The variants embed the icon as a flattened <img>, so its
  *      colour isn't readable. Filled → text/on-brand; Outline/Ghost →
- *      text/strong (matching Btn Secondary); Danger → feedback/danger.
+ *      brand primary (PM call, 2026-10); Danger → feedback/danger.
  *   2. The Danger hover states aren't in the file. They follow the Default
  *      pattern with danger tokens.
  * ⚠ "Ghost" is surface/canvas (white), NOT transparent — that is what the DS
@@ -62,8 +62,8 @@ const KINDS = {
   },
   Outline: {
     Default: {
-      default: { background: DS.surfaceCanvas,       border: `1px solid ${DS.borderDefault}`, iconC: DS.textStrong },
-      hover:   { background: DS.actionPrimarySubtle, border: `1px solid ${DS.borderDefault}`, iconC: DS.textStrong },
+      default: { background: DS.surfaceCanvas,       border: `1px solid ${DS.borderDefault}`, iconC: DS.brandPrimary },
+      hover:   { background: DS.actionPrimarySubtle, border: `1px solid ${DS.borderDefault}`, iconC: DS.brandPrimary },
     },
     Danger: {
       // Container identical to Color=Default — only the icon differs.
@@ -74,8 +74,8 @@ const KINDS = {
   },
   Ghost: {
     Default: {
-      default: { background: DS.surfaceCanvas,       border: 'none', iconC: DS.textStrong },
-      hover:   { background: DS.actionPrimarySubtle, border: 'none', iconC: DS.textStrong },
+      default: { background: DS.surfaceCanvas,       border: 'none', iconC: DS.brandPrimary },
+      hover:   { background: DS.actionPrimarySubtle, border: 'none', iconC: DS.brandPrimary },
     },
     Danger: {
       default: { background: DS.surfaceCanvas,        border: 'none', iconC: DS.feedbackDanger },

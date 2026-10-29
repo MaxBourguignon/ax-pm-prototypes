@@ -33,7 +33,9 @@
  *
  * Exports:
  *   Field       — FormField: label row + input + help/error
- *   SearchField — search input with a leading icon (no DS node; follows Input)
+ *   SearchField  — search input with a leading icon, for every page EXCEPT the
+ *                  top bar (Atoms/SearchInput 1041:17995)
+ *   HeaderSearch — the top bar's search only (Molecules/SearchBar 171:44)
  *   TextArea    — multi-line field, same label/help structure
  *
  * Usage:
@@ -230,6 +232,69 @@ export function SearchField({
           // colour stands in for it.
           color:      disabled ? DS.textDisabled : value ? DS.textDefault : DS.textMuted,
           cursor:     disabled ? 'not-allowed' : 'text',
+        }}
+        {...rest}
+      />
+    </div>
+  );
+}
+
+// ─── HeaderSearch (Molecules/SearchBar 171:44) ───────────────────────────────
+// The TOP BAR's search — and only the top bar's. Every other search box in the
+// app (tables, pickers, modals) stays on SearchField above. Two components on
+// purpose: the DS draws the header search as its own molecule.
+// Verified with get_design_context 2026-10:
+//   shell   surface/subtle fill, NO border, radius 10, h40, padding 10px 12px,
+//           gap 8, width 190
+//   icon    20px `fi-br-search`, FILLED, brand/primary — Ico.SearchFilled
+//   text    Body/Medium/Regular 14/20, placeholder in text/muted
+// ⚠ Flagged, not in the node:
+//   · radius 10 has no token (radiusLg 8 / radiusXl 12) — kept as specced;
+//   · no Focus state is drawn; a border/focus ring is borrowed from Atoms/Input
+//     so the field answers the caret. The 1px ring is drawn as an inset shadow
+//     so focusing doesn't shift the layout.
+export function HeaderSearch({
+  value,
+  onChange,
+  placeholder = 'Search…',
+  style: styleProp,
+  ...rest
+}) {
+  const [focused, setFocused] = React.useState(false);
+
+  return (
+    <div
+      style={{
+        width:        190,
+        height:       40,
+        padding:      '10px 12px',
+        borderRadius: 10,
+        background:   DS.surfaceSubtle,
+        boxShadow:    focused ? `inset 0 0 0 1px ${DS.borderFocus}` : 'none',
+        display:      'flex',
+        alignItems:   'center',
+        gap:          8,
+        boxSizing:    'border-box',
+        transition:   `box-shadow ${DS.durFast} ${DS.ease}`,
+        ...styleProp,
+      }}
+    >
+      <Ico.SearchFilled s={20} c={DS.brandPrimary} />
+      <input
+        value={value ?? ''}
+        onChange={onChange}
+        placeholder={placeholder}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          flex:       1,
+          minWidth:   0,
+          border:     'none',
+          background: 'transparent',
+          outline:    'none',
+          fontFamily: DS.ff,
+          ...TY.bodyMd,
+          color:      value ? DS.textDefault : DS.textMuted,
         }}
         {...rest}
       />

@@ -54,10 +54,10 @@ import { createPortal } from 'react-dom';
 import { DS, TY } from '../utils/designSystem';
 import Ico from '../utils/icons';
 import { Badge } from './Tag';
+import { panelShell, PANEL_MAX_H } from './menuPanel';
 
-const PANEL_MAX_H = 320;
 
-function MenuItem({ label, meta, selected, onClick }) {
+export function MenuItem({ label, meta, selected, onClick }) {
   const [hover, setHover] = React.useState(false);
   const bg = selected ? DS.brandPrimarySubtle : hover ? DS.surfaceSubtle : 'transparent';
   return (
@@ -92,7 +92,7 @@ function MenuItem({ label, meta, selected, onClick }) {
 // Molecules/MenuSection (558:2960). `HasLabel=false` — no title, just the rule —
 // is the DS's own way to split a menu, which is what sets a footer action apart
 // from the values above it.
-function MenuSection({ label }) {
+export function MenuSection({ label }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 12px 0', boxSizing: 'border-box' }}>
       {label != null && (typeof label === 'string'
@@ -108,7 +108,7 @@ function MenuSection({ label }) {
    never becomes the Select's value. Before this existed, "Create a folder" was
    smuggled in as an option row with a sentinel value, which read as a folder you
    could select. */
-function FooterAction({ label, icon, onClick }) {
+export function FooterAction({ label, icon, onClick }) {
   const [hover, setHover] = React.useState(false);
   return (
     <div
@@ -131,16 +131,6 @@ function FooterAction({ label, icon, onClick }) {
   );
 }
 
-const panelShell = {
-  background: DS.surfaceCanvas,
-  border: `1px solid ${DS.borderDefault}`,
-  borderRadius: DS.radiusLg,
-  boxShadow: DS.shadowSm,
-  padding: 4,
-  boxSizing: 'border-box',
-  overflowY: 'auto',
-  maxHeight: PANEL_MAX_H,
-};
 
 export function Select({
   label, required = false, value, options = [], onChange, disabled, width, placeholder, header,
@@ -271,7 +261,15 @@ export function Select({
             <span style={{ flex: '1 0 0', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {sel ? sel.label : (placeholder || 'Select…')}
             </span>
-            <Ico.ChevDown s={16} c={disabled ? DS.textDisabled : DS.textSecondary} />
+            {/* A full-width form field (create / edit drawers) gets the big
+                arrow; a fixed-width inline control (filters) the small one. */}
+            {width
+              ? (open
+                ? <Ico.ArrowUpSmall s={16} c={DS.textSecondary} />
+                : <Ico.ArrowDownSmall s={16} c={disabled ? DS.textDisabled : DS.textSecondary} />)
+              : (open
+                ? <Ico.ArrowUp s={14} c={DS.textSecondary} />
+                : <Ico.ArrowDown s={14} c={disabled ? DS.textDisabled : DS.textSecondary} />)}
           </button>
         )}
 

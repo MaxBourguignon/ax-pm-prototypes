@@ -74,7 +74,8 @@
  *               to the largest stage
  *   — rfm       meta · rows [{ label, value, caption, Icon? }] — one tinted tile
  *               each; Icon is an Ico component (not an element), the card
- *               colours it
+ *               colours it · empty { title, text?, Icon? } replaces the
+ *               tiles when there is nothing to score (e.g. no purchase)
  *   — progress  meta (right of the label) · rows [{ label, value, pct, tone }]
  *               `value` is the headline figure and is OPTIONAL here (the DS
  *               always shows one); omit it when the rows already say it
@@ -340,16 +341,16 @@ const RFM_TONES = [
   { bg: `${DS.purple300}26`,    ink: DS.purple800,  icon: DS.purple400 },
 ];
 
-/* Tiles fill the card's height: the name sits at the top, the figure and its
-   caption at the bottom. The caption slot reserves two lines so the three
-   figures stay level however the captions wrap. */
+/* The name sits at the top in a slot that reserves two lines, then the figure
+   and its caption flow under it. Anchoring the figure to the name (not to the
+   tile's bottom) keeps the three figures level however long a caption runs. */
 const TWO_LINES = 32;
 
 function RfmTile({ label, value, caption, Icon, tone }) {
   return (
-    <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                  gap: 8, padding: '10px 10px 8px', borderRadius: DS.radiusLg, background: tone.bg }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 4 }}>
+    <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8,
+                  padding: '10px 10px 8px', borderRadius: DS.radiusLg, background: tone.bg }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 4, minHeight: TWO_LINES }}>
         <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: tone.ink }}>{label}</span>
         {Icon && <span style={{ flexShrink: 0, display: 'flex' }}><Icon s={16} c={tone.icon} /></span>}
       </div>
@@ -358,25 +359,50 @@ function RfmTile({ label, value, caption, Icon, tone }) {
           {value}
         </span>
         {caption && (
-          <span style={{ ...TY.labelMd, fontWeight: TY.weightRegular, fontFamily: DS.ff, color: tone.ink, minHeight: TWO_LINES }}>{caption}</span>
+          <span style={{ ...TY.labelMd, fontWeight: TY.weightRegular, fontFamily: DS.ff, color: tone.ink }}>{caption}</span>
         )}
       </div>
     </div>
   );
 }
 
-function RfmBody({ label, meta, rows, loading }) {
+/* No purchase at all: three tiles of "—", "0" and "€0" read as broken data, so
+   the card says so in words instead — one block, the tiles' footprint. */
+function RfmEmpty({ title, text, Icon }) {
+  return (
+    <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
+                  borderRadius: DS.radiusLg, background: DS.surfaceSubtle }}>
+      {Icon && (
+        <span style={{ width: 36, height: 36, borderRadius: '50%', background: DS.surfaceCanvas, flexShrink: 0,
+                       display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon s={18} c={DS.textSecondary} />
+        </span>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+        <span style={{ ...TY.labelLg, fontFamily: DS.ff, color: DS.textStrong }}>{title}</span>
+        {text && <span style={{ ...TY.labelMd, fontWeight: TY.weightRegular, fontFamily: DS.ff, color: DS.textSecondary }}>{text}</span>}
+      </div>
+    </div>
+  );
+}
+
+function RfmBody({ label, meta, rows, empty, loading }) {
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%' }}>
         <CardLabel upper>{label}</CardLabel>
         {meta && <span style={{ ...TY.captionSm, fontFamily: DS.ff, color: DS.textMuted }}>{meta}</span>}
       </div>
-      {/* Tiles stretch to whatever height a taller neighbour gives the card. */}
-      <div style={{ flex: '1 0 auto', display: 'flex', alignItems: 'stretch', gap: 8, width: '100%' }}>
-        {loading
-          ? [0, 1, 2].map((i) => <Skeleton key={i} w="100%" h={84} r={DS.radiusLg} />)
-          : rows.map((r, i) => <RfmTile key={r.label ?? i} {...r} tone={RFM_TONES[i % RFM_TONES.length]} />)}
+      {/* Tiles stretch to whatever height a taller neighbour gives the card,
+          less a small inset top and bottom so they don't run edge to edge. */}
+      <div style={{ flex: '1 0 auto', display: 'flex', alignItems: 'stretch', padding: '6px 0', boxSizing: 'border-box', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'stretch', gap: 8, width: '100%' }}>
+          {loading
+            ? [0, 1, 2].map((i) => <Skeleton key={i} w="100%" h={84} r={DS.radiusLg} />)
+            : empty
+              ? <RfmEmpty {...empty} />
+              : rows.map((r, i) => <RfmTile key={r.label ?? i} {...r} tone={RFM_TONES[i % RFM_TONES.length]} />)}
+        </div>
       </div>
     </>
   );
@@ -393,6 +419,7 @@ export function KpiCard({
   segments = [], total, totalLabel = 'total', note,
   meta, rows = [],
   stages = [],
+  empty,
   loading = false,
   style,
 }) {
@@ -420,7 +447,7 @@ export function KpiCard({
       ) : type === 'progress' ? (
         <ProgressBody label={heading} value={value} meta={meta} rows={rows} loading={loading} />
       ) : type === 'rfm' ? (
-        <RfmBody label={heading} meta={meta} rows={rows} loading={loading} />
+        <RfmBody label={heading} meta={meta} rows={rows} empty={empty} loading={loading} />
       ) : type === 'funnel' ? (
         <FunnelBody label={heading} meta={meta} stages={stages} loading={loading} />
       ) : (

@@ -416,4 +416,6 @@ export const CHIPS = {
   chip6: { name: "Sky",    surface: "#E0F2FE", border: "#7DD3FC", text: "#075985" }, // Sky/100    · 300 · 800
   chip7: { name: "Coral",  surface: "#FFE4E0", border: "#FF7C6D", text: "#9A3412" }, // Coral/100  · 500 · 800
   chip8: { name: "Slate",  surface: "#F1F5F9", border: "#CBD5E1", text: "#3E4E65" }, // Slate/100  · 300 · 700
+  // Local extension (no DS swatch): Registrations needed a 9th object colour.
+  chip9: { name: "Orange", surface: "#FCEDDE", border: "#FE9D55", text: "#78350F" }, // Orange/100 · 400 · 800
 };

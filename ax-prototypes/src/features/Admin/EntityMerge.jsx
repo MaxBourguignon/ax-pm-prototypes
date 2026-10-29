@@ -8,7 +8,7 @@
  * split across two records.
  *
  * The workflow this page validates, and nothing more:
- *   1. CS opens the back-office page (never visible to the client)
+ *   1. CS opens the page from the admin console (never visible to the client)
  *   2. picks the level — Representations or Events (two tabs, one flat table each)
  *   3. ticks two or more rows → the Merge button above the table enables
  *   4. states the final name the surviving record takes
@@ -22,7 +22,6 @@ import React from 'react';
 import { DS, TY } from '../../utils/designSystem';
 import Ico from '../../utils/icons';
 import { Btn } from '../../components/Btn';
-import Card from '../../components/Card';
 import Modal from '../../components/Modal';
 import Toast from '../../components/Toast';
 import Table from '../../components/Table';
@@ -31,8 +30,8 @@ import Tabs from '../../components/Tabs';
 import Stepper from '../../components/Stepper';
 import ColumnCustomizer from '../../components/ColumnCustomizer';
 import PageHeader from '../../components/PageHeader';
-import StatePreview from '../../components/StatePreview';
-import { Badge, StatusBadge } from '../../components/Tag';
+import Skeleton from '../../components/Skeleton';
+import { StatusBadge } from '../../components/Tag';
 import { EmptyState } from '../../components/Feedback';
 
 /* ════════════════════════════ Mock data ════════════════════════════ */
@@ -42,49 +41,49 @@ const CS_USER = 'maxence.bourguignon@arenametrix.com';
 /* Identifiers are the ticketing's 20-digit ids. Two duplicate pairs + one trio
    on the events tab, the matching showings on the representations tab. */
 const EVENTS = [
-  { id: '48201573920048117326', name: 'Match J12 — Ligue 1',                      tickets: 4820, date: '2026-02-14', createdAt: '2025-06-02' },
-  { id: '48201573920051224871', name: 'Stade Rennais — Olympique Lyonnais',        tickets: 1240, date: '2026-02-14', createdAt: '2026-01-20' },
-  { id: '48201573920048117327', name: 'Match J13 — Ligue 1',                      tickets: 5010, date: '2026-02-28', createdAt: '2025-06-02' },
-  { id: '48201573920053390142', name: 'Stade Rennais — LOSC Lille',                tickets: 860,  date: '2026-02-28', createdAt: '2026-02-03' },
-  { id: '48201573920048117328', name: 'Match J14 — Ligue 1',                      tickets: 4610, date: '2026-03-14', createdAt: '2025-06-02' },
-  { id: '48201573920054118903', name: 'Stade Rennais — OGC Nice',                  tickets: 1105, date: '2026-03-14', createdAt: '2026-02-24' },
-  { id: '48201573920048117329', name: 'Match J15 — Ligue 1',                      tickets: 4980, date: '2026-04-04', createdAt: '2025-06-02' },
-  { id: '48201573920055027764', name: 'Stade Rennais — Olympique de Marseille',    tickets: 1310, date: '2026-04-04', createdAt: '2026-03-09' },
-  { id: '48201573920055027765', name: 'SRFC / OM — J15 (billetterie VIP)',         tickets: 210,  date: '2026-04-04', createdAt: '2026-03-11' },
-  { id: '48201573920048117330', name: 'Match J16 — Ligue 1',                      tickets: 4410, date: '2026-04-18', createdAt: '2025-06-02' },
-  { id: '48201573920048117331', name: 'Match J17 — Ligue 1',                      tickets: 4260, date: '2026-05-02', createdAt: '2025-06-02' },
-  { id: '48201573920056440118', name: 'Stade Rennais — Paris Saint-Germain',       tickets: 2870, date: '2026-05-02', createdAt: '2026-04-07' },
-  { id: '48201573920048117332', name: 'Match J18 — Ligue 1',                      tickets: 3980, date: '2026-05-16', createdAt: '2025-06-02' },
-  { id: '48201573920048117333', name: 'Match J19 — Ligue 1',                      tickets: 4130, date: '2026-05-30', createdAt: '2025-06-02' },
-  { id: '48201573920059220913', name: 'Stade Rennais — Toulouse FC',               tickets: 990,  date: '2026-05-30', createdAt: '2026-05-04' },
-  { id: '48201573920042086774', name: 'Coupe de France — 16es de finale',          tickets: 3120, date: '2026-01-07', createdAt: '2025-11-18' },
-  { id: '48201573920057991204', name: 'Stade Rennais — FC Nantes (Coupe)',         tickets: 640,  date: '2026-01-07', createdAt: '2025-12-15' },
-  { id: '48201573920041980553', name: 'Trophée des Champions 2025',                tickets: 7320, date: '2025-08-03', createdAt: '2025-04-11' },
-  { id: '48201573920058330471', name: 'Match amical — présaison',                  tickets: 1890, date: '2025-07-19', createdAt: '2025-05-30' },
-  { id: '48201573920060014557', name: 'Concert au Roazhon Park — été 2026',        tickets: 8940, date: '2026-07-11', createdAt: '2026-01-09' },
+  { id: '48201573920048117326', name: 'Match J12 — Ligue 1',                      tickets: 4820, date: '2026-02-14T19:45:00Z', createdAt: '2025-06-02T15:17:00Z' },
+  { id: '48201573920051224871', name: 'Stade Rennais — Olympique Lyonnais',        tickets: 1240, date: '2026-02-14T19:45:00Z', createdAt: '2026-01-20T14:34:00Z' },
+  { id: '48201573920048117327', name: 'Match J13 — Ligue 1',                      tickets: 5010, date: '2026-02-28T16:00:00Z', createdAt: '2025-06-02T11:51:00Z' },
+  { id: '48201573920053390142', name: 'Stade Rennais — LOSC Lille',                tickets: 860,  date: '2026-02-28T16:00:00Z', createdAt: '2026-02-03T11:08:00Z' },
+  { id: '48201573920048117328', name: 'Match J14 — Ligue 1',                      tickets: 4610, date: '2026-03-14T20:00:00Z', createdAt: '2025-06-02T17:25:00Z' },
+  { id: '48201573920054118903', name: 'Stade Rennais — OGC Nice',                  tickets: 1105, date: '2026-03-14T20:00:00Z', createdAt: '2026-02-24T14:42:00Z' },
+  { id: '48201573920048117329', name: 'Match J15 — Ligue 1',                      tickets: 4980, date: '2026-04-04T15:00:00Z', createdAt: '2025-06-02T13:59:00Z' },
+  { id: '48201573920055027764', name: 'Stade Rennais — Olympique de Marseille',    tickets: 1310, date: '2026-04-04T15:00:00Z', createdAt: '2026-03-09T15:16:00Z' },
+  { id: '48201573920055027765', name: 'SRFC / OM — J15 (billetterie VIP)',         tickets: 210,  date: '2026-04-04T15:00:00Z', createdAt: '2026-03-11T12:33:00Z' },
+  { id: '48201573920048117330', name: 'Match J16 — Ligue 1',                      tickets: 4410, date: '2026-04-18T17:00:00Z', createdAt: '2025-06-02T12:50:00Z' },
+  { id: '48201573920048117331', name: 'Match J17 — Ligue 1',                      tickets: 4260, date: '2026-05-02T19:00:00Z', createdAt: '2025-06-02T15:07:00Z' },
+  { id: '48201573920056440118', name: 'Stade Rennais — Paris Saint-Germain',       tickets: 2870, date: '2026-05-02T19:00:00Z', createdAt: '2026-04-07T13:24:00Z' },
+  { id: '48201573920048117332', name: 'Match J18 — Ligue 1',                      tickets: 3980, date: '2026-05-16T15:00:00Z', createdAt: '2025-06-02T11:41:00Z' },
+  { id: '48201573920048117333', name: 'Match J19 — Ligue 1',                      tickets: 4130, date: '2026-05-30T19:00:00Z', createdAt: '2025-06-02T14:58:00Z' },
+  { id: '48201573920059220913', name: 'Stade Rennais — Toulouse FC',               tickets: 990,  date: '2026-05-30T19:00:00Z', createdAt: '2026-05-04T11:15:00Z' },
+  { id: '48201573920042086774', name: 'Coupe de France — 16es de finale',          tickets: 3120, date: '2026-01-07T20:10:00Z', createdAt: '2025-11-18T12:32:00Z' },
+  { id: '48201573920057991204', name: 'Stade Rennais — FC Nantes (Coupe)',         tickets: 640,  date: '2026-01-07T20:10:00Z', createdAt: '2025-12-15T14:49:00Z' },
+  { id: '48201573920041980553', name: 'Trophée des Champions 2025',                tickets: 7320, date: '2025-08-03T19:00:00Z', createdAt: '2025-04-11T09:06:00Z' },
+  { id: '48201573920058330471', name: 'Match amical — présaison',                  tickets: 1890, date: '2025-07-19T16:30:00Z', createdAt: '2025-05-30T15:23:00Z' },
+  { id: '48201573920060014557', name: 'Concert au Roazhon Park — été 2026',        tickets: 8940, date: '2026-07-11T18:00:00Z', createdAt: '2026-01-09T11:40:00Z' },
 ];
 
 const REPRESENTATIONS = [
-  { id: '91330415720048117326', name: 'Match J12 — 14 Feb 2026 · 20:45',           tickets: 4820, date: '2026-02-14', createdAt: '2025-06-02' },
-  { id: '91330415720051224871', name: 'SRFC / OL — 14 Feb 2026 · 20:45',           tickets: 1240, date: '2026-02-14', createdAt: '2026-01-20' },
-  { id: '91330415720048117327', name: 'Match J13 — 28 Feb 2026 · 17:00',           tickets: 5010, date: '2026-02-28', createdAt: '2025-06-02' },
-  { id: '91330415720053390142', name: 'SRFC / LOSC — 28 Feb 2026 · 17:00',         tickets: 860,  date: '2026-02-28', createdAt: '2026-02-03' },
-  { id: '91330415720048117328', name: 'Match J14 — 14 Mar 2026 · 21:00',           tickets: 4610, date: '2026-03-14', createdAt: '2025-06-02' },
-  { id: '91330415720054118903', name: 'SRFC / Nice — 14 Mar 2026 · 21:00',         tickets: 1105, date: '2026-03-14', createdAt: '2026-02-24' },
-  { id: '91330415720048117329', name: 'Match J15 — 4 Apr 2026 · 17:00',            tickets: 4980, date: '2026-04-04', createdAt: '2025-06-02' },
-  { id: '91330415720055027764', name: 'SRFC / OM — 4 Apr 2026 · 17:00',            tickets: 1310, date: '2026-04-04', createdAt: '2026-03-09' },
-  { id: '91330415720055027765', name: 'SRFC / OM — 4 Apr 2026 · 17:00 (VIP)',      tickets: 210,  date: '2026-04-04', createdAt: '2026-03-11' },
-  { id: '91330415720048117330', name: 'Match J16 — 18 Apr 2026 · 19:00',           tickets: 4410, date: '2026-04-18', createdAt: '2025-06-02' },
-  { id: '91330415720048117331', name: 'Match J17 — 2 May 2026 · 21:00',            tickets: 4260, date: '2026-05-02', createdAt: '2025-06-02' },
-  { id: '91330415720056440118', name: 'SRFC / PSG — 2 May 2026 · 21:00',           tickets: 2870, date: '2026-05-02', createdAt: '2026-04-07' },
-  { id: '91330415720048117332', name: 'Match J18 — 16 May 2026 · 17:00',           tickets: 3980, date: '2026-05-16', createdAt: '2025-06-02' },
-  { id: '91330415720048117333', name: 'Match J19 — 30 May 2026 · 21:00',           tickets: 4130, date: '2026-05-30', createdAt: '2025-06-02' },
-  { id: '91330415720059220913', name: 'SRFC / Toulouse — 30 May 2026 · 21:00',     tickets: 990,  date: '2026-05-30', createdAt: '2026-05-04' },
-  { id: '91330415720042086774', name: 'Coupe de France 16es — 7 Jan 2026 · 21:10', tickets: 3120, date: '2026-01-07', createdAt: '2025-11-18' },
-  { id: '91330415720057991204', name: 'SRFC / Nantes (Coupe) — 7 Jan 2026 · 21:10', tickets: 640, date: '2026-01-07', createdAt: '2025-12-15' },
-  { id: '91330415720041980553', name: 'Trophée des Champions — 3 Aug 2025 · 21:00', tickets: 7320, date: '2025-08-03', createdAt: '2025-04-11' },
-  { id: '91330415720058330471', name: 'Amical présaison — 19 Jul 2025 · 18:30',    tickets: 1890, date: '2025-07-19', createdAt: '2025-05-30' },
-  { id: '91330415720060014557', name: 'Concert Roazhon Park — 11 Jul 2026 · 20:00', tickets: 8940, date: '2026-07-11', createdAt: '2026-01-09' },
+  { id: '91330415720048117326', name: 'Match J12 — 14 Feb 2026 · 20:45',           tickets: 4820, date: '2026-02-14T19:45:00Z', createdAt: '2025-06-02T15:57:00Z' },
+  { id: '91330415720051224871', name: 'SRFC / OL — 14 Feb 2026 · 20:45',           tickets: 1240, date: '2026-02-14T19:45:00Z', createdAt: '2026-01-20T14:14:00Z' },
+  { id: '91330415720048117327', name: 'Match J13 — 28 Feb 2026 · 17:00',           tickets: 5010, date: '2026-02-28T16:00:00Z', createdAt: '2025-06-02T11:31:00Z' },
+  { id: '91330415720053390142', name: 'SRFC / LOSC — 28 Feb 2026 · 17:00',         tickets: 860,  date: '2026-02-28T16:00:00Z', createdAt: '2026-02-03T11:48:00Z' },
+  { id: '91330415720048117328', name: 'Match J14 — 14 Mar 2026 · 21:00',           tickets: 4610, date: '2026-03-14T20:00:00Z', createdAt: '2025-06-02T17:05:00Z' },
+  { id: '91330415720054118903', name: 'SRFC / Nice — 14 Mar 2026 · 21:00',         tickets: 1105, date: '2026-03-14T20:00:00Z', createdAt: '2026-02-24T14:22:00Z' },
+  { id: '91330415720048117329', name: 'Match J15 — 4 Apr 2026 · 17:00',            tickets: 4980, date: '2026-04-04T15:00:00Z', createdAt: '2025-06-02T13:39:00Z' },
+  { id: '91330415720055027764', name: 'SRFC / OM — 4 Apr 2026 · 17:00',            tickets: 1310, date: '2026-04-04T15:00:00Z', createdAt: '2026-03-09T15:56:00Z' },
+  { id: '91330415720055027765', name: 'SRFC / OM — 4 Apr 2026 · 17:00 (VIP)',      tickets: 210,  date: '2026-04-04T15:00:00Z', createdAt: '2026-03-11T12:13:00Z' },
+  { id: '91330415720048117330', name: 'Match J16 — 18 Apr 2026 · 19:00',           tickets: 4410, date: '2026-04-18T17:00:00Z', createdAt: '2025-06-02T12:30:00Z' },
+  { id: '91330415720048117331', name: 'Match J17 — 2 May 2026 · 21:00',            tickets: 4260, date: '2026-05-02T19:00:00Z', createdAt: '2025-06-02T15:47:00Z' },
+  { id: '91330415720056440118', name: 'SRFC / PSG — 2 May 2026 · 21:00',           tickets: 2870, date: '2026-05-02T19:00:00Z', createdAt: '2026-04-07T13:04:00Z' },
+  { id: '91330415720048117332', name: 'Match J18 — 16 May 2026 · 17:00',           tickets: 3980, date: '2026-05-16T15:00:00Z', createdAt: '2025-06-02T11:21:00Z' },
+  { id: '91330415720048117333', name: 'Match J19 — 30 May 2026 · 21:00',           tickets: 4130, date: '2026-05-30T19:00:00Z', createdAt: '2025-06-02T14:38:00Z' },
+  { id: '91330415720059220913', name: 'SRFC / Toulouse — 30 May 2026 · 21:00',     tickets: 990,  date: '2026-05-30T19:00:00Z', createdAt: '2026-05-04T11:55:00Z' },
+  { id: '91330415720042086774', name: 'Coupe de France 16es — 7 Jan 2026 · 21:10', tickets: 3120, date: '2026-01-07T20:10:00Z', createdAt: '2025-11-18T12:12:00Z' },
+  { id: '91330415720057991204', name: 'SRFC / Nantes (Coupe) — 7 Jan 2026 · 21:10', tickets: 640, date: '2026-01-07T20:10:00Z', createdAt: '2025-12-15T14:29:00Z' },
+  { id: '91330415720041980553', name: 'Trophée des Champions — 3 Aug 2025 · 21:00', tickets: 7320, date: '2025-08-03T19:00:00Z', createdAt: '2025-04-11T09:46:00Z' },
+  { id: '91330415720058330471', name: 'Amical présaison — 19 Jul 2025 · 18:30',    tickets: 1890, date: '2025-07-19T16:30:00Z', createdAt: '2025-05-30T15:03:00Z' },
+  { id: '91330415720060014557', name: 'Concert Roazhon Park — 11 Jul 2026 · 20:00', tickets: 8940, date: '2026-07-11T18:00:00Z', createdAt: '2026-01-09T11:20:00Z' },
 ];
 
 /* ── Column catalogue, as on the Contacts table: the customizer and the table
@@ -96,8 +95,8 @@ const ALL_COLUMNS = [
   { key: 'name',      label: 'Name',                filter: true },
   { key: 'id',        label: 'Identifier',          filter: true, width: 240 },
   { key: 'tickets',   label: 'Tickets',             filter: true, width: 120, type: 'number' },
-  { key: 'date',      label: 'Representation date', filter: true, width: 200 },
-  { key: 'createdAt', label: 'Created at',          filter: true, width: 170 },
+  { key: 'date',      label: 'Representation date (GMT)', filter: true, width: 230 },
+  { key: 'createdAt', label: 'Created at (GMT)',          filter: true, width: 190 },
 ];
 
 const DEFAULT_COLUMN_KEYS = ['name', 'id', 'tickets'];
@@ -120,8 +119,8 @@ const SEED_LOG = [
     name: 'Merge of Match J11 — Ligue 1',
     actionType: 'MERGE_EVENT',
     author: 'camille.roux@arenametrix.com',
-    createdAt: '2026-08-28 14:22:07',
-    endAt: '2026-08-28 14:22:51',
+    createdAt: '2026-08-28T14:22:07Z',
+    endAt: '2026-08-28T14:22:51Z',
     status: 'success',
     message: {
       action_id: '4192',
@@ -148,24 +147,31 @@ const STATUS_TONE = {
 
 const fmt = (n) => n.toLocaleString('en-US');
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/* Technical display, DD/MM/YYYY - HH:MM, always in GMT (UTC+0): stored dates
+   are UTC, and converting them to the CS user's timezone would show a different
+   time from the one the front user sees. Column labels say "(GMT)". */
 const fmtDate = (iso) => {
   if (!iso) return '—';
-  const [y, m, d] = iso.split('-');
-  return `${Number(d)} ${MONTHS[Number(m) - 1]} ${y}`;
+  const d = new Date(iso);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} - ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`;
 };
 
-function stamp(d) {
-  const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} `
-    + `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
-}
+const stamp = (d) => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
 
-const CARD = { margin: 0, padding: 16 };
+/* Skeleton rows while the list loads — same pattern as the Consents table. */
+const LOAD_MS = 900;
+const SKELETON_ROWS = Array.from({ length: 6 }, (_, i) => ({ id: `skel-${i}` }));
+const skeletonCell = (_row, key) => {
+  if (key === 'name') return <Skeleton width={220} height={12} />;
+  if (key === 'id') return <Skeleton width={160} height={12} />;
+  return <Skeleton width={key === 'tickets' ? 48 : 120} height={12} />;
+};
+
 const PER_PAGE = 10;
 
 /* Searchable text behind a cell — both the raw and the displayed form, so
-   "4820", "4,820", "2026-02-14" and "14 Feb 2026" all match. */
+   "4820", "4,820", "2026-02-14" and "14/02/2026" all match. */
 function haystack(row, key) {
   if (key === 'tickets') return `${row.tickets} ${fmt(row.tickets)}`;
   if (key === 'date' || key === 'createdAt') return `${row[key]} ${fmtDate(row[key])}`;
@@ -196,14 +202,16 @@ function KeepRow({ checked, onClick, row }) {
   );
 }
 
-/* ── Impact recap — one line per selected record, plus the resulting total ── */
-const RECAP_GRID = '1fr 210px 110px 190px';
+/* ── Impact recap — one line per selected record, plus the resulting total.
+   The identifier sits under the name rather than in its own column: a 20-digit
+   id beside the ticket counts is what made the columns collide. ── */
+const RECAP_GRID = 'minmax(0, 1fr) 88px 88px 104px';
 
 function RecapRow({ cells, head = false, total = false }) {
   return (
     <div style={{
-      display: 'grid', gridTemplateColumns: RECAP_GRID, gap: 12, alignItems: 'center',
-      padding: '10px 14px', boxSizing: 'border-box',
+      display: 'grid', gridTemplateColumns: RECAP_GRID, columnGap: 16, alignItems: 'center',
+      padding: head ? '8px 14px' : '10px 14px', boxSizing: 'border-box',
       background: head ? DS.surfaceHeader : total ? DS.surfaceSubtle : DS.surfaceCanvas,
       borderTop: head ? 'none' : `1px solid ${DS.borderTableSep}`,
     }}>
@@ -212,37 +220,49 @@ function RecapRow({ cells, head = false, total = false }) {
   );
 }
 
+function RecordCell({ row, removed = false }) {
+  const clip = { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+      <span title={row.name} style={{ ...TY.bodyMd, fontFamily: DS.ff, fontWeight: 500, ...clip,
+        color: removed ? DS.textSecondary : DS.textStrong, textDecoration: removed ? 'line-through' : 'none' }}>
+        {row.name}
+      </span>
+      <span style={{ ...TY.monoMd, fontFamily: DS.ffm, color: DS.textSecondary, ...clip }}>{row.id}</span>
+    </div>
+  );
+}
+
 function ImpactRecap({ keep, removed, moved }) {
-  const th = { ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary };
-  const td = { ...TY.bodyMd, fontFamily: DS.ff, color: DS.textStrong, minWidth: 0,
-               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
-  const mono = { ...TY.monoMd, fontFamily: DS.ffm, color: DS.textSecondary };
-  const num = { ...TY.bodyMd, fontFamily: DS.ff, color: DS.textStrong, textAlign: 'right' };
+  const th = { ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary, whiteSpace: 'nowrap' };
+  const num = { ...TY.bodyMd, fontFamily: DS.ff, color: DS.textStrong, textAlign: 'right',
+                whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' };
+  const before = keep.tickets + moved;
 
   return (
     <div style={{ border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusLg, overflow: 'hidden' }}>
       <RecapRow head cells={<>
         <span style={th}>Record</span>
-        <span style={th}>Identifier</span>
-        <span style={{ ...th, textAlign: 'right' }}>Tickets</span>
+        <span style={{ ...th, textAlign: 'right' }}>Tickets now</span>
+        <span style={{ ...th, textAlign: 'right' }}>After merge</span>
         <span style={th}>Outcome</span>
       </>} />
 
       {/* The survivor */}
       <RecapRow cells={<>
-        <span style={{ ...td, fontWeight: 500 }}>{keep.name}</span>
-        <span style={mono}>{keep.id}</span>
-        <span style={num}>{fmt(keep.tickets)} → <strong>{fmt(keep.tickets + moved)}</strong></span>
-        <StatusBadge status="success">Kept</StatusBadge>
+        <RecordCell row={keep} />
+        <span style={num}>{fmt(keep.tickets)}</span>
+        <span style={{ ...num, fontWeight: 700 }}>{fmt(keep.tickets + moved)}</span>
+        <span><StatusBadge status="success">Kept</StatusBadge></span>
       </>} />
 
       {/* The records that go away */}
       {removed.map((r) => (
         <RecapRow key={r.id} cells={<>
-          <span style={{ ...td, color: DS.textSecondary, textDecoration: 'line-through' }}>{r.name}</span>
-          <span style={mono}>{r.id}</span>
-          <span style={{ ...num, color: DS.textSecondary }}>{fmt(r.tickets)} → 0</span>
-          <StatusBadge status="error">Deleted</StatusBadge>
+          <RecordCell row={r} removed />
+          <span style={num}>{fmt(r.tickets)}</span>
+          <span style={{ ...num, color: DS.textSecondary }}>0</span>
+          <span><StatusBadge status="error">Deleted</StatusBadge></span>
         </>} />
       ))}
 
@@ -250,11 +270,9 @@ function ImpactRecap({ keep, removed, moved }) {
         <span style={{ ...TY.bodyMdBold, fontFamily: DS.ff, color: DS.textStrong }}>
           {fmt(moved)} tickets re-attached
         </span>
-        <span />
-        <span style={{ ...TY.bodyMdBold, fontFamily: DS.ff, color: DS.textStrong, textAlign: 'right' }}>
-          {fmt(keep.tickets + moved)}
-        </span>
-        <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>on the kept record</span>
+        <span style={{ ...num, fontWeight: 700 }}>{fmt(before)}</span>
+        <span style={{ ...num, fontWeight: 700 }}>{fmt(keep.tickets + moved)}</span>
+        <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>No ticket lost</span>
       </>} />
     </div>
   );
@@ -288,8 +306,7 @@ function MergeModal({ open, rows, level, onClose, onConfirm }) {
   ) : (
     <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
       <Btn type="Tertiary" onClick={() => setStep(0)}>Back</Btn>
-      <Btn type="Primary" iconLeft={<Ico.Merge />}
-           onClick={() => onConfirm({ keep, removed, finalName: keep.name, moved })}>
+      <Btn type="Primary" onClick={() => onConfirm({ keep, removed, finalName: keep.name, moved })}>
         Confirm merge
       </Btn>
     </div>
@@ -358,7 +375,6 @@ function MessageModal({ log, onClose }) {
 
 /* ════════════════════════════ Main page ════════════════════════════ */
 export function EntityMerge() {
-  const [role, setRole] = React.useState('cs');            // cs | client
   const [level, setLevel] = React.useState('representation'); // representation | event
   const [reps, setReps] = React.useState(REPRESENTATIONS);
   const [events, setEvents] = React.useState(EVENTS);
@@ -371,6 +387,7 @@ export function EntityMerge() {
   const [log, setLog] = React.useState(SEED_LOG);
   const [openMessage, setOpenMessage] = React.useState(null);
   const [toast, setToast] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
 
   const one = LEVELS[level].one;
   const all = level === 'event' ? events : reps;
@@ -410,6 +427,13 @@ export function EntityMerge() {
   /* Selection and filters never survive a tab switch — merging across levels is
      exactly the mistake this page must not allow. */
   React.useEffect(() => { setSelected([]); setFilters({}); setPage(0); }, [level]);
+  /* Each level's list is fetched on open and on tab switch — skeleton rows
+     until it lands, so an empty table never reads as "nothing to merge". */
+  React.useEffect(() => {
+    setLoading(true);
+    const t = setTimeout(() => setLoading(false), LOAD_MS);
+    return () => clearTimeout(t);
+  }, [level]);
   React.useEffect(() => { setPage(0); }, [filters]);
   /* A merge (or a filter) can leave the current page beyond the last one. */
   React.useEffect(() => { if (page > pages - 1) setPage(pages - 1); }, [page, pages]);
@@ -451,28 +475,11 @@ export function EntityMerge() {
     setTimeout(() => setToast(null), 3200);
   }
 
-  /* Client accounts must never see this page. */
-  if (role !== 'cs') {
-    return (
-      <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <PageHeader title="Entity merge" description="Back-office tool" />
-        <Card style={CARD}>
-          <EmptyState icon={<Ico.AccessControl s={24} c={DS.textSecondary} />}
-            title="Restricted to the Arenametrix CS team"
-            sub="Merging records rewrites ticket attribution and deletes rows, so it stays in the back-office. Ask your CS contact to run it." />
-        </Card>
-        <StatePreview groups={[{ label: 'Role', value: role, onChange: setRole,
-          options: [{ id: 'cs', label: 'CS (back-office)' }, { id: 'client', label: 'Client user' }] }]} />
-      </div>
-    );
-  }
-
   return (
     <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 32 }}>
       <PageHeader
         title="Entity merge"
         description="Merge two or more records that describe the same representation, so attendance is counted once"
-        actions={<Badge tone="danger">CS only</Badge>}
       />
 
       {/* DS Molecules/Tab (Figma 465:94) — secondary navigation between levels */}
@@ -484,15 +491,15 @@ export function EntityMerge() {
       {/* The list — checkbox · name · identifier · tickets, with Merge on top */}
       <Table
         columns={columns}
-        rows={rows}
+        rows={loading ? SKELETON_ROWS : rows}
         rowId={(r) => r.id}
-        cell={(r, k) => {
+        cell={loading ? skeletonCell : (r, k) => {
           if (k === 'tickets') return fmt(r.tickets);
           if (k === 'date' || k === 'createdAt') return fmtDate(r[k]);
           if (k === 'id') return <span style={{ ...TY.monoMd, fontFamily: DS.ffm, color: DS.textSecondary }}>{r.id}</span>;
           return r.name;
         }}
-        selectable
+        selectable={!loading}
         selected={selected}
         onSelectedChange={setSelected}
         filters={filters}
@@ -509,7 +516,7 @@ export function EntityMerge() {
                               defaultConfig={DEFAULT_COLUMN_CONFIG} onChange={setColumnConfig} />
           ),
           primaryAction: (
-            <Btn type="Primary" iconLeft={<Ico.Merge />} disabled={selected.length < 2} onClick={() => setModal(true)}>
+            <Btn type="Primary" iconLeft={<Ico.Merge />} disabled={loading || selected.length < 2} onClick={() => setModal(true)}>
               Merge
             </Btn>
           ),
@@ -517,7 +524,7 @@ export function EntityMerge() {
             ? <Btn type="Tertiary" onClick={() => setSelected([])}>Clear selection</Btn>
             : null,
         }}
-        page={page} pages={pages} setPage={setPage} total={matching.length} pageSize={PER_PAGE}
+        page={page} pages={pages} setPage={setPage} total={loading ? null : matching.length} pageSize={PER_PAGE}
         emptyState={
           <EmptyState icon={<Ico.Search s={24} c={DS.textSecondary} />}
             title={all.length === 0 ? `No ${one} left` : `No ${one} matches the column filters`}
@@ -538,15 +545,18 @@ export function EntityMerge() {
               { key: 'endpoint', label: 'Endpoint', width: 190, sortable: false },
               { key: 'actionType', label: 'Action type', width: 210, sortable: false },
               { key: 'author', label: 'Author', width: 250, sortable: false },
-              { key: 'createdAt', label: 'Created at', width: 165, sortable: false },
-              { key: 'endAt', label: 'End at', width: 165, sortable: false },
+              { key: 'createdAt', label: 'Created at (GMT)', width: 180, sortable: false },
+              { key: 'endAt', label: 'End at (GMT)', width: 180, sortable: false },
               { key: 'status', label: 'Status', type: 'status', width: 130, sortable: false },
               { key: 'message', label: 'Message', width: 100, sortable: false },
             ]}
-            rows={log}
+            rows={loading ? SKELETON_ROWS.slice(0, 2) : log}
             rowId={(r) => r.id}
-            cell={(r, k) => {
+            cell={loading ? skeletonCell : (r, k) => {
               switch (k) {
+                case 'createdAt':
+                case 'endAt':
+                  return fmtDate(r[k]);
                 case 'endpoint':
                   // PM still has to provide the real back-office endpoint.
                   return <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textMuted, fontStyle: 'italic' }}>to provide</span>;
@@ -575,8 +585,6 @@ export function EntityMerge() {
       <MessageModal log={openMessage} onClose={() => setOpenMessage(null)} />
 
       <Toast toast={toast} />
-      <StatePreview groups={[{ label: 'Role', value: role, onChange: setRole,
-        options: [{ id: 'cs', label: 'CS (back-office)' }, { id: 'client', label: 'Client user' }] }]} />
     </div>
   );
 }
