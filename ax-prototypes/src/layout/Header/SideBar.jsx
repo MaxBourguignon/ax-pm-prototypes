@@ -112,6 +112,9 @@ const IcoSupport = ({ s = 20, c }) => (
   </svg>
 );
 
+// Insights — bar-chart mark from the shared icon catalog.
+const IcoInsights = ({ s = 20, c }) => <Ico.Chart s={s} c={c} />;
+
 // ── Data ──────────────────────────────────────────────────────────────────────
 
 const NAV_TABS_L1 = [
@@ -157,6 +160,17 @@ const NAV_TABS_L1 = [
     label: "SSO",
     Icon: IcoSSO,
     subitems: [],
+  },
+  {
+    // Insight Cards: its own top-level item because cards span contacts,
+    // ticketing and other data (spec V6; IC5, not agreed yet).
+    id: "insights",
+    label: "Insights",
+    Icon: IcoInsights,
+    subitems: [
+      { id: "insights", label: "My cards", link: "/insights" },
+      { id: "insights-all", label: "All batches (mockup)", link: "/insights/all-batches" },
+    ],
   },
 ];
 

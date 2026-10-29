@@ -1162,14 +1162,28 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Arriving from an Insight card's "Open as segment": the card's filters are
+  // pre-filled and the card's count is shown (contacts.json is only a sample).
+  const fromCard = location.state?.fromCard ?? null;
+  const segFromCard = () => ({
+    topLogic: "AND",
+    blocks: [{
+      id: uid(), logic: "AND",
+      filters: [
+        makeDefaultAnchorFilter("subscription", uid),
+        ...fromCard.conditions.map((c) => ({ id: uid(), objId: "subscription", fieldId: "subscriptionName", op: "contains", val: c, isAnchor: false })),
+      ],
+    }],
+  });
+
   /* Arriving from a list record's "Update list criteria": the builder opens on
      that list's filters, and its footer saves back to the list or as a new one. */
   const [editingList] = useState(() => location.state?.listCriteria ?? null);
   const [confirmUpdate, setConfirmUpdate] = useState(false);
   const createdListRef = useRef(null);
 
-  const [builderOpen, setBuilderOpen] = useState(() => !!editingList);
-  const [segment, setSegment] = useState(() => (editingList ? clone(editingList.segment) : makeSeg()));
+  const [builderOpen, setBuilderOpen] = useState(() => !!editingList || !!fromCard);
+  const [segment, setSegment] = useState(() => (editingList ? clone(editingList.segment) : fromCard ? segFromCard() : makeSeg()));
   const [applied, setApplied] = useState(() => (editingList ? clone(editingList.segment) : null));
   const isDirty = JSON.stringify(segment) !== JSON.stringify(applied ?? makeSeg());
 
@@ -1325,6 +1339,16 @@ export default function ContactsPage({ selectedContact, setSelectedContact }) {
             <Btn type="Secondary" iconLeft={<Ico.Plus c={DS.actionPrimary} />} onClick={() => setShowCreateSidebar(true)}>Add a contact</Btn>
           </>}
         />
+
+        {fromCard && (
+          <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 8, background: DS.brandPrimarySubtle, border: `1px solid ${DS.borderDefault}`, ...TY.bodySm, fontFamily: DS.ff, color: DS.textDefault }}>
+            <Ico.Chart s={16} c={DS.actionPrimary} />
+            <span style={{ flex: 1 }}>
+              From card: <b>{fromCard.title}</b> · {Number(fromCard.count).toLocaleString("en-US")} contacts. The card's filters are filled in below; the rows are sample data.
+            </span>
+            <Btn type="Ghost" size="Sm" onClick={() => navigate("/insights")}>Back to Insights</Btn>
+          </div>
+        )}
 
         {/* Views tab bar */}
         <div style={{ padding: '24px 0' }}>
