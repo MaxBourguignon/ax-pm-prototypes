@@ -122,7 +122,7 @@ const NAV_TABS_L1 = [
     // Set `disabled: true` on any item whose page isn't built yet — it renders
     // greyed with an "Unable" tag and is non-clickable. Omit the flag to enable it.
     subitems: [
-      { id: "overview",    label: "Overview page",  link: "/overview",   disabled: true },
+      { id: "overview",    label: "Overview page",  link: "/overview"   },
       { id: "contacts",    label: "Contacts",       link: "/contacts"   },
       { id: "acquisition", label: "Acquisition",    link: "/acquisition"},
       { id: "structures",  label: "Structures",     link: "/structures", disabled: true },

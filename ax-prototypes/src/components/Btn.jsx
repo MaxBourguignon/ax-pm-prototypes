@@ -111,9 +111,12 @@ export function Btn({
   const c = disabled ? v.disabled : hover ? v.hover : v.default;
 
   // Icons take the button's size and label colour unless the call site set them.
+  // Secondary is all navy (PM rule, 2026-10): its icon always follows the
+  // label colour, whatever colour the call site passed.
+  const forceIconColor = (TYPE_ALIAS[type] ?? type) === 'Secondary';
   function cloneIcon(ico) {
     if (!ico) return null;
-    return React.cloneElement(ico, { s: ico.props.s ?? s.icon, c: ico.props.c ?? c.fg });
+    return React.cloneElement(ico, { s: ico.props.s ?? s.icon, c: forceIconColor ? c.fg : (ico.props.c ?? c.fg) });
   }
 
   return (

@@ -154,7 +154,7 @@ const ContactCard = ({ details, badge, picked, action }) => (
 /* The info box of ExportContactsModal's scope line: icon tile + text. */
 const InfoBox = ({ icon, children }) => (
   <div style={{
-    display: "flex", alignItems: "flex-start", gap: 10, boxSizing: "border-box",
+    display: "flex", alignItems: "center", gap: 10, boxSizing: "border-box",
     padding: 12, borderRadius: DS.radiusLg,
     border: `1px solid ${DS.borderDefault}`, background: DS.feedbackInfoBg,
   }}>
@@ -164,7 +164,7 @@ const InfoBox = ({ icon, children }) => (
     }}>
       {icon}
     </span>
-    <div style={{ ...TY.bodySm, color: DS.textDefault, fontFamily: DS.ff, display: "flex", flexDirection: "column", gap: 4, paddingTop: 6 }}>
+    <div style={{ ...TY.bodySm, color: DS.textDefault, fontFamily: DS.ff, display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
       {children}
     </div>
   </div>
@@ -511,7 +511,7 @@ export default function MergeContactsModal({ open, onClose, primaryId, primary, 
   } else if (step === 1) {
     actions = (
       <>
-        <Btn type="Secondary" size="Md" onClick={onClose}>Cancel</Btn>
+        <Btn type="Tertiary" size="Md" onClick={onClose}>Cancel</Btn>
         <Btn type="Primary" size="Md" iconRight={<Ico.ArrowRightSmall />} disabled={!removed} onClick={() => setStep(2)}>Next</Btn>
       </>
     );

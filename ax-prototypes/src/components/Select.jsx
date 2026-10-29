@@ -108,7 +108,7 @@ export function MenuSection({ label }) {
    never becomes the Select's value. Before this existed, "Create a folder" was
    smuggled in as an option row with a sentinel value, which read as a folder you
    could select. */
-function FooterAction({ label, icon, onClick }) {
+export function FooterAction({ label, icon, onClick }) {
   const [hover, setHover] = React.useState(false);
   return (
     <div

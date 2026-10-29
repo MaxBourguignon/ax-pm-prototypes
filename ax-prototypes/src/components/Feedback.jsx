@@ -92,8 +92,9 @@ export function ConfirmDialog({ open = true, title, body, confirmLabel = 'Confir
            footer={
              <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
                <Btn type="Tertiary" size="Medium" onClick={onCancel}>{cancelLabel}</Btn>
-               <Btn type="Primary" size="Medium" onClick={onConfirm} iconLeft={icon}
-                    style={danger ? { background: DS.feedbackError, border: `1px solid ${DS.feedbackError}` } : {}}>
+               {/* Danger uses the DS Destructive button (with its own hover)
+                   rather than a red style painted over a Primary. */}
+               <Btn type={danger ? 'Destructive' : 'Primary'} size="Medium" onClick={onConfirm} iconLeft={icon}>
                  {confirmLabel}
                </Btn>
              </div>

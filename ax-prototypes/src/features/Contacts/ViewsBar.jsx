@@ -1,37 +1,28 @@
 import { useState, useRef, useEffect } from "react";
-import { DS } from "../../utils/designSystem";
+import { DS, TY } from "../../utils/designSystem";
 import Ico from "../../utils/icons";
 import { SearchField } from "../../components/Field";
+import IconBtn from "../../components/Iconbtn";
+import { MenuItem as SelectMenuItem, MenuSection, FooterAction } from "../../components/Select";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SMALL BUTTONS / MENU
 // ─────────────────────────────────────────────────────────────────────────────
 
-const IcoBtn = ({ children, onClick, title }) => {
-  const [hover, setHover] = useState(false);
-  return (
-    <button title={title} onClick={onClick}
-      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-      style={{
-        width: 30, height: 30, borderRadius: 6, border: "none", background: "transparent",
-        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
-        opacity: hover ? 0.65 : 1, transition: "opacity .12s",
-      }}>
-      {children}
-    </button>
-  );
-};
+/* Right-toolbar actions use the DS IconBtn, Secondary (Outline) — the classic
+   secondary icon button (Figma 1627:114). The + next to the tabs keeps its
+   own bare style. */
 
 const MenuItem = ({ icon, label, danger, disabled, onClick }) => {
   const [hover, setHover] = useState(false);
-  const color = disabled ? DS.neutral500 : danger ? DS.feedbackError : DS.neutral900;
+  const color = disabled ? DS.textMuted : danger ? DS.feedbackError : DS.textDefault;
   return (
     <div onClick={disabled ? undefined : onClick}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{
         display: "flex", alignItems: "center", gap: 10, padding: "0 12px", height: 34,
         cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.55 : 1,
-        background: hover && !disabled ? (danger ? DS.feedbackErrorBg : DS.neutral100) : "transparent",
+        background: hover && !disabled ? (danger ? DS.feedbackErrorBg : DS.surfaceSubtle) : "transparent",
       }}>
       {icon}
       <span style={{ fontFamily: DS.ff, fontSize: 13, color, whiteSpace: "nowrap" }}>{label}</span>
@@ -48,39 +39,39 @@ const FacetIcon = ({ facet, s = 12, c = DS.actionPrimary }) => {
 
 // Hover card shown under the active view's name — current setup + unsaved changes.
 const InfoRow = ({ facet, label, muted, kind }) => {
-  const color = kind === "add" ? DS.feedbackSuccess : kind === "remove" ? DS.feedbackError : muted ? DS.neutral500 : DS.neutral700;
+  const color = kind === "add" ? DS.feedbackSuccess : kind === "remove" ? DS.feedbackError : muted ? DS.textMuted : DS.textDefault;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", minHeight: 28 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", minHeight: 32 }}>
       {kind
-        ? <span style={{ width: 12, flexShrink: 0, textAlign: "center", fontFamily: DS.ff, fontSize: 14, fontWeight: 700, color }}>{kind === "add" ? "+" : "−"}</span>
-        : <span style={{ flexShrink: 0, display: "flex" }}><FacetIcon facet={facet} c={muted ? DS.neutral500 : DS.actionPrimary} /></span>}
-      <span style={{ flex: 1, minWidth: 0, fontFamily: DS.ff, fontSize: 12, color, textDecoration: kind === "remove" ? "line-through" : "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
+        ? <span style={{ width: 14, flexShrink: 0, textAlign: "center", fontFamily: DS.ff, fontSize: 14, fontWeight: 700, color }}>{kind === "add" ? "+" : "−"}</span>
+        : <span style={{ width: 14, flexShrink: 0, display: "flex", justifyContent: "center" }}><FacetIcon facet={facet} s={14} c={muted ? DS.textMuted : DS.actionPrimary} /></span>}
+      <span style={{ flex: 1, minWidth: 0, fontFamily: DS.ff, ...TY.bodySm, color, textDecoration: kind === "remove" ? "line-through" : "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
     </div>
   );
 };
 
-const SectionLabel = ({ children, dot }) => (
-  <div style={{ padding: "8px 12px 3px", display: "flex", alignItems: "center", gap: 6 }}>
-    {dot && <span style={{ width: 7, height: 7, borderRadius: "50%", background: DS.feedbackWarning }} />}
-    <span style={{ fontFamily: DS.ff, fontSize: 10, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", color: DS.neutral500 }}>{children}</span>
-  </div>
-);
-
+/* Hover card under the active view's name — same shell and MenuSection labels
+   as the view picker, so the two dropdowns of the bar read as one family. */
 const ViewInfoPopover = ({ left, setup, changes, isStandard }) => (
   <div style={{
-    position: "absolute", top: "calc(100% - 1px)", left, zIndex: 9999, width: 260,
-    background: DS.white, border: `1px solid ${DS.neutral200}`, borderRadius: 8,
-    boxShadow: "0 12px 32px rgba(15,23,42,.16)", overflowY: "auto", maxHeight: 380, paddingBottom: 6,
+    position: "absolute", top: "calc(100% + 6px)", left, zIndex: 9999, width: 300,
+    background: DS.surfaceCanvas, borderRadius: DS.radiusXl,
+    boxShadow: "0 18px 50px rgba(15,23,42,.22)", overflowY: "auto", maxHeight: 380, padding: "4px 8px 8px",
   }}>
-    <SectionLabel>View configuration</SectionLabel>
+    <div style={{ padding: "4px 0 2px" }}><MenuSection label="View configuration" /></div>
     {setup.map((s, i) => <InfoRow key={i} facet={s.facet} label={s.label} muted={s.muted} />)}
 
-    <div style={{ height: 1, background: DS.neutral200, margin: "6px 0" }} />
-
-    <SectionLabel dot={changes.length > 0 && !isStandard}>Unsaved changes</SectionLabel>
+    <div style={{ padding: "8px 0 2px" }}>
+      <MenuSection label={(
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary }}>
+          {changes.length > 0 && !isStandard && <span style={{ width: 7, height: 7, borderRadius: "50%", background: DS.feedbackWarning }} />}
+          Unsaved changes
+        </span>
+      )} />
+    </div>
     {changes.length > 0
       ? changes.map((c, i) => <InfoRow key={i} facet={c.facet} label={c.label} kind={c.kind} />)
-      : <div style={{ padding: "0 12px", height: 28, display: "flex", alignItems: "center", fontFamily: DS.ff, fontSize: 12, color: DS.neutral500 }}>No unsaved changes</div>}
+      : <div style={{ padding: "0 12px", minHeight: 32, display: "flex", alignItems: "center", fontFamily: DS.ff, ...TY.bodySm, color: DS.textMuted }}>No unsaved changes</div>}
   </div>
 );
 
@@ -104,13 +95,19 @@ export default function ViewsBar({
   const [menu,     setMenu]     = useState(null);   // "picker" | "save" | "more" | null
   const [tabHover, setTabHover] = useState(false);  // hovering the active view's name
   const [popLeft,  setPopLeft]  = useState(24);
+  const [pickLeft, setPickLeft] = useState(24);   // view picker: just right of the +
   const [search,   setSearch]   = useState("");
   const barRef = useRef();
 
   useEffect(() => {
-    const h = (e) => { if (!barRef.current?.contains(e.target)) setMenu(null); };
+    // Close on any press outside the open menu AND its trigger — including a
+    // press elsewhere in the bar (another tab), which the old bar-wide check
+    // let through. Escape closes too.
+    const h = (e) => { if (!e.target.closest?.("[data-views-menu]")) setMenu(null); };
+    const k = (e) => { if (e.key === "Escape") setMenu(null); };
     document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+    document.addEventListener("keydown", k);
+    return () => { document.removeEventListener("mousedown", h); document.removeEventListener("keydown", k); };
   }, []);
 
   const activeView = views.find((v) => v.id === activeViewId);
@@ -122,7 +119,7 @@ export default function ViewsBar({
   const custom   = views.filter((v) => !v.standard && match(v));
 
   return (
-    <div ref={barRef} style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, padding: "0 24px", borderBottom: `1px solid ${DS.neutral200}`, minHeight: 44 }}>
+    <div ref={barRef} style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, padding: "0 24px", borderBottom: `1px solid ${DS.borderSection}`, minHeight: 44 }}>
 
       {/* Tabs + picker */}
       <div style={{ display: "flex", alignItems: "stretch", gap: 2, flex: 1, minWidth: 0, overflowX: "auto" }}>
@@ -135,23 +132,33 @@ export default function ViewsBar({
                 border: "none", background: "transparent", cursor: "pointer", whiteSpace: "nowrap",
                 borderBottom: `2px solid ${active ? DS.actionPrimary : "transparent"}`,
                 fontFamily: DS.ff, fontSize: 13, fontWeight: active ? 600 : 400,
-                color: active ? DS.actionPrimary : DS.neutral700,
+                color: active ? DS.actionPrimary : DS.textSecondary,
               }}
               onMouseEnter={(e) => {
-                if (!active) { e.currentTarget.style.color = DS.neutral900; return; }
+                if (!active) { e.currentTarget.style.color = DS.textDefault; return; }
                 const r = e.currentTarget.getBoundingClientRect();
                 const br = barRef.current?.getBoundingClientRect();
                 if (br) setPopLeft(Math.max(24, r.left - br.left));
                 setTabHover(true);
               }}
-              onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = DS.neutral700; else setTabHover(false); }}>
+              onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = DS.textSecondary; else setTabHover(false); }}>
               {active && dirty && !v.standard && <span style={{ width: 7, height: 7, borderRadius: "50%", background: DS.feedbackWarning, flexShrink: 0 }} />}
               {v.name}
             </button>
           );
         })}
 
-        <button onClick={() => { setSearch(""); setMenu((m) => (m === "picker" ? null : "picker")); }} title="Browse views"
+        <button
+          onClick={(e) => {
+            // Open the picker to the right of the + it belongs to, not at the
+            // bar's left edge under the first tab.
+            const r = e.currentTarget.getBoundingClientRect();
+            const br = barRef.current?.getBoundingClientRect();
+            if (br) setPickLeft(Math.max(0, Math.min(r.right - br.left + 4, br.width - 340)));
+            setSearch(""); setMenu((m) => (m === "picker" ? null : "picker"));
+          }}
+          title="Browse views"
+          data-views-menu=""
           style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 28, height: 44, border: "none", background: "transparent", cursor: "pointer" }}>
           <Ico.Plus s={16} c={DS.actionPrimary} />
         </button>
@@ -160,24 +167,25 @@ export default function ViewsBar({
       {/* View-name hover card: current setup + unsaved changes */}
       {tabHover && menu === null && <ViewInfoPopover left={popLeft} setup={setup} changes={changes} isStandard={isStandard} />}
 
-      {/* View picker dropdown */}
+      {/* View picker — a search, the views as DS MenuItems under MenuSection
+          labels, and "Create a view" as the menu's footer action. No header:
+          it is a dropdown, closed by clicking outside. */}
       {menu === "picker" && (
-        <div style={{ position: "absolute", top: "calc(100% - 1px)", left: 24, zIndex: 9999, width: 300, background: DS.white, border: `1px solid ${DS.neutral200}`, borderRadius: 8, boxShadow: "0 12px 32px rgba(15,23,42,.16)", overflow: "hidden" }}>
-          <div style={{ padding: 8, borderBottom: `1px solid ${DS.neutral200}` }}>
-            {/* Atoms/SearchInput via the shared field — was a local 34px box on
-                legacy neutral aliases. */}
+        <div data-views-menu="" style={{
+          position: "absolute", top: "calc(100% + 6px)", left: pickLeft, zIndex: 9999, width: 340,
+          background: DS.surfaceCanvas, borderRadius: DS.radiusXl,
+          boxShadow: "0 18px 50px rgba(15,23,42,.22)", overflow: "hidden",
+          display: "flex", flexDirection: "column",
+        }}>
+          <div style={{ padding: "12px 12px 4px" }}>
             <SearchField autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search a view…" />
           </div>
-          <div style={{ maxHeight: 280, overflowY: "auto", padding: "6px 0" }}>
+          <div style={{ maxHeight: 300, overflowY: "auto", padding: "0 8px 8px" }}>
             <PickerGroup label="Standard views" views={standard} activeViewId={activeViewId} onSelect={(id) => { onSelect(id); setMenu(null); }} />
-            <PickerGroup label="Custom views"   views={custom}   activeViewId={activeViewId} onSelect={(id) => { onSelect(id); setMenu(null); }} empty="No custom views yet" />
+            <PickerGroup label="Custom views"   views={custom}   activeViewId={activeViewId} onSelect={(id) => { onSelect(id); setMenu(null); }} empty={q ? "No view matches your search" : "No custom views yet"} />
           </div>
-          <div onClick={() => { setMenu(null); onCreate(); }}
-            style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 14px", height: 40, cursor: "pointer", borderTop: `1px solid ${DS.neutral200}` }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = DS.neutral100; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
-            <Ico.Plus s={14} c={DS.actionPrimary} />
-            <span style={{ fontFamily: DS.ff, fontSize: 13, fontWeight: 500, color: DS.actionPrimary }}>Create a view</span>
+          <div style={{ padding: "0 8px 8px", borderTop: `1px solid ${DS.borderDivider}`, paddingTop: 8 }}>
+            <FooterAction label="Create a view" icon={<Ico.Plus s={16} c={DS.actionPrimary} />} onClick={() => { setMenu(null); onCreate(); }} />
           </div>
         </div>
       )}
@@ -185,35 +193,31 @@ export default function ViewsBar({
       {/* Right toolbar */}
       <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
         {dirty && (
-          <IcoBtn title="Discard changes" onClick={onRevert}>
-            <Ico.Refresh s={15} c={DS.actionPrimary} />
-          </IcoBtn>
+          <IconBtn type="Secondary" icon={<Ico.Refresh />} title="Discard changes" aria-label="Discard changes" onClick={onRevert} />
         )}
 
         {dirty && (
-          <div style={{ position: "relative" }}>
-            <IcoBtn title="Save" onClick={() => setMenu((m) => (m === "save" ? null : "save"))}>
-              <Ico.Save s={15} c={DS.actionPrimary} />
-            </IcoBtn>
+          <div data-views-menu="" style={{ position: "relative" }}>
+            <IconBtn type="Secondary" icon={<Ico.Save />} active={menu === "save"} title="Save" aria-label="Save"
+                     onClick={() => setMenu((m) => (m === "save" ? null : "save"))} />
 
             {/* Click: choose how to save */}
             {menu === "save" && (
-              <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 9999, minWidth: 220, background: DS.white, border: `1px solid ${DS.neutral200}`, borderRadius: 8, boxShadow: "0 12px 32px rgba(15,23,42,.16)", padding: "5px 0", overflow: "hidden" }}>
-                <MenuItem icon={<Ico.Save s={14} c={isStandard ? DS.neutral500 : DS.neutral900} />} label="Save changes" disabled={isStandard} onClick={() => { setMenu(null); onSaveChanges(); }} />
-                <MenuItem icon={<Ico.Plus s={14} c={DS.neutral900} />} label="Save as a new view" onClick={() => { setMenu(null); onSaveAsNew(); }} />
+              <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 9999, minWidth: 220, background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`, borderRadius: 8, boxShadow: "0 12px 32px rgba(15,23,42,.16)", padding: "5px 0", overflow: "hidden" }}>
+                <MenuItem icon={<Ico.Save s={14} c={isStandard ? DS.textMuted : DS.textDefault} />} label="Save changes" disabled={isStandard} onClick={() => { setMenu(null); onSaveChanges(); }} />
+                <MenuItem icon={<Ico.Plus s={14} c={DS.textDefault} />} label="Save as a new view" onClick={() => { setMenu(null); onSaveAsNew(); }} />
               </div>
             )}
           </div>
         )}
 
         {activeView && !isStandard && (
-          <div style={{ position: "relative" }}>
-            <IcoBtn title="View options" onClick={() => setMenu((m) => (m === "more" ? null : "more"))}>
-              <Ico.Dots s={16} c={DS.actionPrimary} />
-            </IcoBtn>
+          <div data-views-menu="" style={{ position: "relative" }}>
+            <IconBtn type="Secondary" icon={<Ico.Dots />} active={menu === "more"} title="View options" aria-label="View options"
+                     onClick={() => setMenu((m) => (m === "more" ? null : "more"))} />
             {menu === "more" && (
-              <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 9999, minWidth: 180, background: DS.white, border: `1px solid ${DS.neutral200}`, borderRadius: 8, boxShadow: "0 12px 32px rgba(15,23,42,.16)", padding: "5px 0", overflow: "hidden" }}>
-                <MenuItem icon={<Ico.Edit s={14} c={DS.neutral900} />} label="Rename view" onClick={() => { setMenu(null); onRename(activeView.id); }} />
+              <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 9999, minWidth: 180, background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`, borderRadius: 8, boxShadow: "0 12px 32px rgba(15,23,42,.16)", padding: "5px 0", overflow: "hidden" }}>
+                <MenuItem icon={<Ico.Edit s={14} c={DS.textDefault} />} label="Rename view" onClick={() => { setMenu(null); onRename(activeView.id); }} />
                 <MenuItem icon={<Ico.Trash s={14} c={DS.feedbackError} />} label="Delete view" danger onClick={() => { setMenu(null); onDelete(activeView.id); }} />
               </div>
             )}
@@ -225,25 +229,12 @@ export default function ViewsBar({
 }
 
 const PickerGroup = ({ label, views, activeViewId, onSelect, empty }) => (
-  <div>
-    <div style={{ padding: "6px 14px 4px", fontFamily: DS.ff, fontSize: 10, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", color: DS.neutral500 }}>
-      {label}
-    </div>
+  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    <div style={{ padding: "4px 0 2px" }}><MenuSection label={label} /></div>
     {views.length === 0 ? (
-      empty ? <div style={{ padding: "4px 14px 8px", fontFamily: DS.ff, fontSize: 12, color: DS.neutral500 }}>{empty}</div> : null
-    ) : views.map((v) => {
-      const active = v.id === activeViewId;
-      return (
-        <div key={v.id} onClick={() => onSelect(v.id)}
-          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "0 14px", height: 34, cursor: "pointer" }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = DS.neutral100; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
-          <span style={{ fontFamily: DS.ff, fontSize: 13, fontWeight: active ? 600 : 400, color: active ? DS.actionPrimary : DS.neutral900, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {v.name}
-          </span>
-          {active && <Ico.Check s={13} c={DS.actionPrimary} />}
-        </div>
-      );
-    })}
+      empty ? <div style={{ padding: "6px 12px 8px", fontFamily: DS.ff, ...TY.bodySm, color: DS.textMuted }}>{empty}</div> : null
+    ) : views.map((v) => (
+      <SelectMenuItem key={v.id} label={v.name} selected={v.id === activeViewId} onClick={() => onSelect(v.id)} />
+    ))}
   </div>
 );

@@ -16,6 +16,7 @@ import ArenaForm from './features/Arenaform/Arenaform'
 import SmsManagement from './features/Sms/SmsManagement'
 import EntityMerge from './features/Admin/EntityMerge'
 import AdminHome from './features/Admin/AdminHome'
+import Overview from './features/Overview/Overview'
 
 function App() {
 
@@ -28,6 +29,7 @@ function App() {
                 <Route path="/" element={<AppLayoutSidebar />}>
                     <Route index element={<Navigate to="/home" replace />} />
                     <Route path="/home" element={<Home />} />
+                    <Route path="/overview" element={<Overview />} />
                     <Route path="/contacts" element={<ContactsPage selectedContact = {selectedContact} setSelectedContact = {setSelectedContact} />} />
                     <Route path="/contacts/:id" element={<ContactRecord selectedContact = {selectedContact} />} />
                     <Route path="/acquisition" element={<Acquisition />} />

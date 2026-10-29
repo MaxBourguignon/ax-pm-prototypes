@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import Modal from "../../components/Modal";
+import { Badge } from "../../components/Tag";
 
-import {DS} from "../../utils/designSystem";
+import {DS, TY} from "../../utils/designSystem";
 import Ico from "../../utils/icons";
 import USE_CASES from "../../utils/useCases";
 // Single source of truth for the eight filter objects — the same catalog the
@@ -11,7 +12,7 @@ import DATA_OBJECTS from "../../utils/dataObject";
 
 const OBJECT_GROUPS = [
     { id: "profile",    label: null,         objects: ["contact"] },
-    { id: "purchases",  label: "Purchases",  objects: ["consumptions", "ticket", "order", "subscription", "accessControl"] },
+    { id: "purchases",  label: "Purchases",  objects: ["consumptions", "ticket", "order", "registration", "subscription", "accessControl"] },
     { id: "engagement", label: "Engagement", objects: ["campaign", "consent"] },
 ];
 
@@ -25,6 +26,7 @@ const ObjIcon = ({ id, s = 14, c }) => {
         ticket:        <Ico.Ticket        s={s} c={col} />,
         order:         <Ico.Cart          s={s} c={col} />,
         subscription:  <Ico.Subscriptions s={s} c={col} />,
+        registration:  <Ico.Calendar      s={s} c={col} />,
         campaign:      <Ico.Mail          s={s} c={col} />,
         consumptions:  <Ico.Card          s={s} c={col} />,
         consent:       <Ico.Eye           s={s} c={col} />,
@@ -33,12 +35,73 @@ const ObjIcon = ({ id, s = 14, c }) => {
     return map[id] ?? <Ico.User s={s} c={col} />;
 };
 
+// ─── ROWS ─────────────────────────────────────────────────────────────────────
+// One clickable row per object or use case: navy title, secondary description,
+// chevron on the right; hover lays the brand tint.
+function Row({ icon, title, badge, description, onClick }) {
+    const [hov, setHov] = useState(false);
+    return (
+        <button type="button" onClick={onClick}
+            onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+            style={{
+                width: "100%", boxSizing: "border-box", border: "none", textAlign: "left",
+                display: "flex", alignItems: "center", gap: 12, padding: "10px 12px",
+                borderRadius: DS.radiusLg, cursor: "pointer", fontFamily: DS.ff,
+                background: hov ? DS.brandPrimarySubtle : "transparent", transition: "background .12s",
+            }}
+        >
+            {icon}
+            <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ ...TY.bodyMdBold, color: DS.textStrong }}>{title}</span>
+                    {badge}
+                </span>
+                {description && <span style={{ ...TY.bodySm, color: DS.textSecondary }}>{description}</span>}
+            </span>
+            <Ico.ArrowRightSmall s={16} c={hov ? DS.actionPrimary : DS.textDisabled} />
+        </button>
+    );
+}
+
+const SectionLabel = ({ children }) => (
+    <div style={{ padding: "12px 12px 4px" }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase", color: DS.textSecondary, fontFamily: DS.ff }}>
+            {children}
+        </span>
+    </div>
+);
+
+const ObjTile = ({ obj }) => (
+    <span style={{ width: 36, height: 36, flexShrink: 0, borderRadius: DS.radiusMd, background: obj.surface, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <ObjIcon id={obj.id} s={18} c={obj.text} />
+    </span>
+);
+
+// White chevron on the gradient header — same unframed treatment as the close
+// cross (white wash on hover only).
+function BackButton({ onClick }) {
+    const [hov, setHov] = useState(false);
+    return (
+        <button type="button" aria-label="Back" onClick={onClick}
+            onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+            style={{
+                width: 32, height: 32, flexShrink: 0, borderRadius: DS.radiusLg, border: "none", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", marginLeft: -6,
+                background: hov ? "rgba(255,255,255,0.2)" : "transparent", transition: "background .15s",
+            }}
+        >
+            <Ico.ArrowLeftSmall s={18} c={DS.textInverse} />
+        </button>
+    );
+}
+
 // ─── MODAL ────────────────────────────────────────────────────────────────────
+// The shared centre Modal: gradient header (title + subtitle + close), scrim,
+// Escape. Step 2 swaps the title for the object, with a back chevron and the
+// object tile leading the header.
 export default function AddFilterModal({ open, onClose, onSelect }) {
     const [step,        setStep]        = useState("object");
     const [selectedObj, setSelectedObj] = useState(null);
-    const [hoveredObj,  setHoveredObj]  = useState(null);
-    const [hoveredCase, setHoveredCase] = useState(null);
 
     useEffect(() => {
         if (open) { setStep("object"); setSelectedObj(null); }
@@ -54,168 +117,46 @@ export default function AddFilterModal({ open, onClose, onSelect }) {
     const useCases   = selectedObj ? (USE_CASES[selectedObj] ?? []) : [];
 
     const step2Subtitle = () => {
-        if (selectedObj === "consumptions") return "Counts purchases — use Ticketing or E-commerce to filter by specific items";
+        if (selectedObj === "consumptions") return "Counts orders across all channels — use an activity to filter by specific items";
         if (selectedObj === "ticket")       return "Choose the level: representation, ticket, or purchase";
-        if (selectedObj === "order")        return "Counts individual product lines — use Purchase summary to filter by number of purchases";
+        if (selectedObj === "subscription") return "Choose the level: subscription or purchase — you can refine it afterwards";
+        if (selectedObj === "registration") return "Choose the level: registration or activity — you can refine it afterwards";
+        if (selectedObj === "order")        return "Counts individual product lines — use All purchases to filter by number of orders";
         return "The filter will be pre-configured — you can refine it afterwards";
     };
 
-    return createPortal(
-        <>
-            <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.28)", zIndex: 2000 }} />
-
-            <div style={{
-                position: "fixed", top: "50%", left: "50%",
-                transform: "translate(-50%, -50%)",
-                zIndex: 2001, width: 520, maxWidth: "94vw",
-                background: DS.white,
-                borderRadius: 12,
-                boxShadow: "0 20px 60px rgba(15,23,42,.20)",
-                overflow: "hidden", display: "flex", flexDirection: "column",
-                maxHeight: "86vh",
-            }}>
-
-                {/* Header — white, navy title + subtitle */}
-                <div style={{
-                    display: "flex", alignItems: "flex-start", gap: 10,
-                    padding: "14px 18px", borderBottom: `1px solid ${DS.neutral200}`,
-                    flexShrink: 0,
-                }}>
-                    {step === "usecase" && (
-                        <button onClick={handleBack} style={{
-                            width: 26, height: 26, borderRadius: 6, background: DS.white,
-                            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                            flexShrink: 0, transition: "background .12s", border: "none",
-                        }}
-                            onMouseEnter={e => e.currentTarget.style.background = DS.neutral100}
-                            onMouseLeave={e => e.currentTarget.style.background = DS.white}
-                        >
-                            <Ico.ArrowLeftSmall s={13} c={DS.navy} />
-                        </button>
-                    )}
-
-                    {step === "usecase" && currentObj && (
-                        <div style={{
-                            width: 28, height: 28, borderRadius: 7, flexShrink: 0,
-                            background: currentObj.surface,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                        }}>
-                            <ObjIcon id={currentObj.id} s={14} c={currentObj.text} />
-                        </div>
-                    )}
-
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ margin: 0, fontFamily: DS.ff, fontSize: 16, fontWeight: 700, lineHeight: "21px", color: DS.navy }}>
-                            {step === "object" ? "Add a filter" : currentObj?.label}
-                        </p>
-                        <p style={{ margin: "2px 0 0", fontFamily: DS.ff, fontSize: 12, lineHeight: "16px", color: DS.neutral500 }}>
-                            {step === "object" ? "Select an object to view available use cases" : step2Subtitle()}
-                        </p>
+    return (
+        <Modal open={open} onClose={onClose} variant="center" width={560}
+            title={step === "object" ? "Add a filter" : currentObj?.label}
+            subtitle={step === "object" ? "Select an object to view available use cases" : step2Subtitle()}
+            headerLeading={step === "usecase" && currentObj ? (
+                <>
+                    <BackButton onClick={handleBack} />
+                    <ObjTile obj={currentObj} />
+                </>
+            ) : null}
+        >
+            <div style={{ padding: "8px 8px 12px" }}>
+                {/* Step 1 — object list */}
+                {step === "object" && OBJECT_GROUPS.map((group) => (
+                    <div key={group.id}>
+                        {group.label && <SectionLabel>{group.label}</SectionLabel>}
+                        {group.objects.map(id => DATA_OBJECTS.find(o => o.id === id)).filter(Boolean).map((obj) => (
+                            <Row key={obj.id} onClick={() => handleSelectObj(obj.id)}
+                                icon={<ObjTile obj={obj} />}
+                                title={obj.label}
+                                badge={obj.id === "consumptions" ? <Badge tone="neutral">All channels</Badge> : null}
+                                description={obj.description}
+                            />
+                        ))}
                     </div>
+                ))}
 
-                    <button onClick={onClose} style={{
-                        width: 26, height: 26, borderRadius: 6, border: "none",
-                        background: "transparent", cursor: "pointer",
-                        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                    }}
-                        onMouseEnter={e => e.currentTarget.style.background = DS.neutral100}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                    >
-                        <Ico.Cross s={16} c={DS.neutral700} />
-                    </button>
-                </div>
-
-                {/* Body */}
-                <div style={{ overflowY: "auto", flex: 1, padding: "8px 0 12px" }}>
-
-                    {/* Step 1 — object list */}
-                    {step === "object" && OBJECT_GROUPS.map((group, gi) => {
-                        const groupObjs = group.objects
-                            .map(id => DATA_OBJECTS.find(o => o.id === id))
-                            .filter(Boolean);
-                        return (
-                            <div key={group.id}>
-                                {gi > 0 && (
-                                    <div style={{ padding: "12px 18px 4px" }}>
-                                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".07em", color: DS.neutral500, fontFamily: DS.ff, textTransform: "uppercase" }}>
-                                            {group.label}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {groupObjs.map((obj) => {
-                                    const isHov      = hoveredObj === obj.id;
-                                    const isOverview = obj.id === "consumptions";
-                                    return (
-                                        <div key={obj.id}
-                                            onClick={() => handleSelectObj(obj.id)}
-                                            onMouseEnter={() => setHoveredObj(obj.id)}
-                                            onMouseLeave={() => setHoveredObj(null)}
-                                            style={{
-                                                display: "flex", alignItems: "center", gap: 11,
-                                                padding: "10px 18px",
-                                                background: isHov ? DS.neutral100 : DS.white,
-                                                cursor: "pointer", transition: "background .1s",
-                                            }}
-                                        >
-                                            <div style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: obj.surface, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                                <ObjIcon id={obj.id} s={16} c={obj.text} />
-                                            </div>
-                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                                                    <p style={{ margin: 0, fontFamily: DS.ff, fontSize: 13, fontWeight: 600, lineHeight: "17px", color: DS.navy }}>
-                                                        {obj.label}
-                                                    </p>
-                                                    {isOverview && (
-                                                        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".06em", color: DS.neutral500, background: DS.neutral200, padding: "1px 6px", borderRadius: 4, fontFamily: DS.ff, textTransform: "uppercase" }}>
-                                                            All channels
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p style={{ margin: "2px 0 0", fontFamily: DS.ff, fontSize: 12, fontWeight: 400, lineHeight: "16px", color: DS.neutral500 }}>
-                                                    {obj.description}
-                                                </p>
-                                            </div>
-                                            <Ico.ArrowRightSmall s={15} c={isHov ? DS.neutral700 : DS.neutral300} />
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        );
-                    })}
-
-                    {/* Step 2 — use case list */}
-                    {step === "usecase" && useCases.map(uc => {
-                        const isHov = hoveredCase === uc.id;
-                        return (
-                            <div key={uc.id}
-                                onClick={() => handleSelectCase(uc)}
-                                onMouseEnter={() => setHoveredCase(uc.id)}
-                                onMouseLeave={() => setHoveredCase(null)}
-                                style={{
-                                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-                                    padding: "10px 18px",
-                                    background: isHov ? DS.neutral100 : DS.white,
-                                    cursor: "pointer", transition: "background .08s",
-                                }}
-                            >
-                                <div style={{ minWidth: 0 }}>
-                                    <p style={{ margin: 0, fontFamily: DS.ff, fontSize: 12, fontWeight: 500, lineHeight: "16px", color: DS.navy }}>
-                                        {uc.label}
-                                    </p>
-                                    {uc.hint && (
-                                        <p style={{ margin: "2px 0 0", fontFamily: DS.ff, fontSize: 10, lineHeight: "14px", color: DS.neutral500 }}>
-                                            {uc.hint}
-                                        </p>
-                                    )}
-                                </div>
-                                <Ico.ArrowRightSmall s={15} c={isHov ? DS.neutral700 : DS.neutral300} />
-                            </div>
-                        );
-                    })}
-                </div>
+                {/* Step 2 — use case list */}
+                {step === "usecase" && useCases.map(uc => (
+                    <Row key={uc.id} onClick={() => handleSelectCase(uc)} title={uc.label} description={uc.hint} />
+                ))}
             </div>
-        </>,
-        document.body
+        </Modal>
     );
 }

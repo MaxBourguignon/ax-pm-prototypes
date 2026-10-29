@@ -540,8 +540,8 @@ function CampaignDrawer({ campaign, onClose, onToast }) {
            footer={
              editing ? (
                <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
-                 <Btn type="Secondary" onClick={() => { resetDesc(); setEditing(false); }}>Cancel</Btn>
-                 <Btn type="Primary" iconLeft={<Ico.Check s={16} />}
+                 <Btn type="Tertiary" onClick={() => { resetDesc(); setEditing(false); }}>Cancel</Btn>
+                 <Btn type="Primary"
                       onClick={() => { setEditing(false); toast('Description saved (prototype)'); }}>Save</Btn>
                </div>
              ) : (

@@ -13,14 +13,15 @@
  *     replace the h1–h5 / b1–b3 aliases
  *   - card shells follow the DS container rule: 1px borderSection, radius 12,
  *     shadowSm — same shell as PageHeader and Table
- *   - the local tab strip is gone: the record uses the shared DS `Tabs`
+ *   - no tabs on the record for now: Audience analysis is V2 (AUDIENCE_V2)
  *   - the chart palette is sourced from DS primitives, no raw hexes
- * Local-only, no DS counterpart (flagged, not silently DS-badged): OptionsMenu
- * and the
+ *   - the record follows the Contact record: DS PageHeader (record type) with
+ *     an Options ActionMenu, a KpiCard strip, then the Information and Criteria cards
+ * Local-only, no DS counterpart (flagged, not silently DS-badged): the
  * dataviz atoms (Donut / BarList / ReachRow / TrendChart).
  */
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { DS, TY } from '../../utils/designSystem';
 import Ico from '../../utils/icons';
 import { Btn } from '../../components/Btn';
@@ -35,7 +36,7 @@ import Select from '../../components/Select';
 import Table from '../../components/Table';
 import NameModal from '../../components/NameModal';
 import ActionMenu from '../../components/ActionMenu';
-import Tabs from '../../components/Tabs';
+import KpiCard from '../../components/Kpi';
 import Toast from '../../components/Toast';
 import { EmptyState, ErrorState, ConfirmDialog } from '../../components/Feedback';
 
@@ -47,30 +48,73 @@ const num = (n) => (n == null ? '—' : new Intl.NumberFormat('en-US').format(n)
 
 /* ── Mock data ──────────────────────────────────────────────────────────────── */
 const OWNERS = ['Camille Rey', 'Hugo Martin', 'Léa Dubois', 'Yanis Benali'];
-const FIELDS = ['City', 'Country', 'Tags', 'Last purchase', 'RFM score', 'Preferred channel'];
-const OPS = ['is', 'is not', 'contains', '>', '<'];
 /* Fake folders — a simple label grouping for now (no folder navigation yet). */
 const FOLDERS = ['Loyalty & VIP', 'Campaigns', 'Events', 'Retail', 'Reactivation', 'Imports', 'B2B', 'Compliance'];
 /* The whole CRM contact base — used to compute each list's share of the base. */
 const BASE_TOTAL = 142380;
 
+/* Dynamic-list criteria live in the segmentation engine's own format (the
+   Contacts builder: { topLogic, blocks: [{ logic, filters }] }), so "Update
+   list criteria" can open the engine on them as they are. `criteria` is the
+   readable form the record shows, derived from it. */
+const SEG_FIELDS = {
+  rfmScore: 'RFM score', engagementScore: 'Engagement score', city: 'City', country: 'Country',
+  tag: 'Tag', acquisitionSource: 'Acquisition source', birthdate: 'Date of birth',
+};
+const SEG_OPS = { gt: 'more than', gte: 'at least', lt: 'less than', eq: 'exactly', is: 'is', is_not: 'is not', contains: 'contains', is_set: 'is set' };
+let segUid = 0;
+const segOf = (...conds) => ({
+  topLogic: 'AND',
+  blocks: [{
+    id: `lb${++segUid}`, logic: 'AND',
+    filters: conds.map(([fieldId, op, val]) => ({ id: `lf${++segUid}`, objId: 'contact', fieldId, op, val, isAnchor: false })),
+  }],
+});
+const criteriaOf = (segment) => (segment?.blocks ?? []).flatMap((b, bi) => b.filters.map((f, fi) => ({
+  logic: bi === 0 && fi === 0 ? 'Where' : (fi === 0 ? segment.topLogic : b.logic) === 'OR' ? 'Or' : 'And',
+  field: SEG_FIELDS[f.fieldId] ?? f.fieldId,
+  op: SEG_OPS[f.op] ?? f.op,
+  value: Array.isArray(f.val) ? f.val.join(', ') : f.val,
+})));
+const segmentOf = (l) => l.segment ?? { topLogic: 'AND', blocks: [] };
+
 function buildLists() {
   return [
-    { id: 'l1', name: 'VIP Clients — Top 5%', description: 'Best customers by annual revenue.', type: 'dynamic', folder: 'Loyalty & VIP', contacts: 1240, owner: 'Camille Rey', created: '2025-11-02', updated: '2026-06-05', status: 'active', tags: ['VIP', 'Loyalty'], criteria: [{ field: 'RFM score', op: '>', value: '450' }, { field: 'Last purchase', op: '<', value: '60 days' }] },
-    { id: 'l2', name: 'Newsletter — Active subscribers', description: 'Contacts who opened an email in the last 90 days.', type: 'dynamic', folder: 'Campaigns', contacts: 28940, owner: 'Hugo Martin', created: '2025-09-14', updated: '2026-06-03', status: 'active', tags: ['Email'], criteria: [{ field: 'Preferred channel', op: 'is', value: 'Email' }] },
+    { id: 'l1', name: 'VIP Clients — Top 5%', description: 'Best customers by annual revenue.', type: 'dynamic', folder: 'Loyalty & VIP', contacts: 1240, owner: 'Camille Rey', created: '2025-11-02', updated: '2026-06-05', status: 'active', tags: ['VIP', 'Loyalty'], segment: segOf(['rfmScore', 'gt', '450'], ['engagementScore', 'gte', '70']) },
+    { id: 'l2', name: 'Newsletter — Active subscribers', description: 'Contacts who opened an email in the last 90 days.', type: 'dynamic', folder: 'Campaigns', contacts: 28940, owner: 'Hugo Martin', created: '2025-09-14', updated: '2026-06-03', status: 'active', tags: ['Email'], segment: segOf(['engagementScore', 'gte', '50']) },
     { id: 'l3', name: 'Prospects Paris Expo 2026 — spring edition, porte de Versailles', description: 'Leads collected at the booth.', type: 'static', folder: 'Events', contacts: 412, owner: 'Léa Dubois', created: '2026-03-21', updated: '2026-05-28', status: 'active', tags: ['Event', 'Prospect'], criteria: [] },
-    { id: 'l4', name: 'Lyon store — local customers', description: 'Customers attached to the Lyon point of sale.', type: 'dynamic', folder: 'Retail', contacts: 3120, owner: 'Yanis Benali', created: '2025-12-08', updated: '2026-05-30', status: 'active', tags: ['Retail'], criteria: [{ field: 'City', op: 'is', value: 'Lyon' }] },
-    { id: 'l5', name: 'Re-engagement — inactive 6 months', description: '', type: 'dynamic', folder: 'Reactivation', contacts: 8760, owner: 'Camille Rey', created: '2026-01-19', updated: '2026-04-12', status: 'active', tags: ['Winback'], criteria: [{ field: 'Last purchase', op: '>', value: '180 days' }] },
+    { id: 'l4', name: 'Lyon store — local customers', description: 'Customers attached to the Lyon point of sale.', type: 'dynamic', folder: 'Retail', contacts: 3120, owner: 'Yanis Benali', created: '2025-12-08', updated: '2026-05-30', status: 'active', tags: ['Retail'], segment: segOf(['city', 'is', 'Lyon']) },
+    { id: 'l5', name: 'Re-engagement — inactive 6 months', description: '', type: 'dynamic', folder: 'Reactivation', contacts: 8760, owner: 'Camille Rey', created: '2026-01-19', updated: '2026-04-12', status: 'active', tags: ['Winback'], segment: segOf(['engagementScore', 'lt', '20']) },
     { id: 'l6', name: 'CSV import — March (to clean up)', description: 'Manual import, duplicates to review.', type: 'import', folder: 'Imports', contacts: 0, owner: 'Hugo Martin', created: '2026-03-02', updated: '2026-03-02', status: 'active', tags: ['Import'], criteria: [] },
-    { id: 'l7', name: 'Loyalty program members', description: 'Loyalty card holders.', type: 'dynamic', folder: 'Loyalty & VIP', contacts: 52310, owner: 'Léa Dubois', created: '2025-07-22', updated: '2026-06-01', status: 'active', tags: ['Loyalty', 'Wallet'], criteria: [{ field: 'Tags', op: 'contains', value: 'Loyalty card' }] },
+    { id: 'l7', name: 'Loyalty program members', description: 'Loyalty card holders.', type: 'dynamic', folder: 'Loyalty & VIP', contacts: 52310, owner: 'Léa Dubois', created: '2025-07-22', updated: '2026-06-01', status: 'active', tags: ['Loyalty', 'Wallet'], segment: segOf(['tag', 'is', 'Club friend']) },
     { id: 'l8', name: 'VIP — private evening invitations', description: 'Manual selection for the June 20 event.', type: 'static', folder: 'Events', contacts: 180, owner: 'Camille Rey', created: '2026-05-15', updated: '2026-06-04', status: 'active', tags: ['Event', 'VIP'], criteria: [] },
     { id: 'l9', name: 'Black Friday 2025 buyers', description: 'Contacts who ordered during the sale.', type: 'static', folder: 'Campaigns', contacts: 6420, owner: 'Yanis Benali', created: '2025-12-01', updated: '2026-02-10', status: 'active', tags: ['Promo'], criteria: [] },
-    { id: 'l10', name: 'SMS — mobile opt-in', description: 'Contacts who consented to the SMS channel.', type: 'dynamic', folder: 'Compliance', contacts: 14200, owner: 'Hugo Martin', created: '2025-10-03', updated: '2026-05-20', status: 'active', tags: ['SMS', 'Consent'], criteria: [{ field: 'Preferred channel', op: 'is', value: 'SMS' }] },
-    { id: 'l11', name: 'Birthdays of the month', description: 'Auto-updated every month.', type: 'dynamic', folder: 'Campaigns', contacts: 2310, owner: 'Léa Dubois', created: '2026-02-28', updated: '2026-06-01', status: 'active', tags: ['Automation'], criteria: [{ field: 'Tags', op: 'contains', value: 'June birthday' }] },
-    { id: 'l12', name: 'Key B2B accounts', description: 'Organizations with more than 50 attached contacts.', type: 'dynamic', folder: 'B2B', contacts: 96, owner: 'Yanis Benali', created: '2025-08-30', updated: '2026-04-25', status: 'active', tags: ['B2B'], criteria: [{ field: 'Tags', op: 'contains', value: 'Key account' }] },
-    { id: 'l13', name: 'Unsubscribed — global exclusion', description: 'To exclude from all campaigns.', type: 'dynamic', folder: 'Compliance', contacts: 3870, owner: 'Hugo Martin', created: '2025-06-11', updated: '2026-05-12', status: 'active', tags: ['Suppression'], criteria: [{ field: 'Tags', op: 'contains', value: 'Unsubscribed' }] },
+    { id: 'l10', name: 'SMS — mobile opt-in', description: 'Contacts who consented to the SMS channel.', type: 'dynamic', folder: 'Compliance', contacts: 14200, owner: 'Hugo Martin', created: '2025-10-03', updated: '2026-05-20', status: 'active', tags: ['SMS', 'Consent'], segment: segOf(['acquisitionSource', 'is', 'App']) },
+    { id: 'l11', name: 'Birthdays of the month', description: 'Auto-updated every month.', type: 'dynamic', folder: 'Campaigns', contacts: 2310, owner: 'Léa Dubois', created: '2026-02-28', updated: '2026-06-01', status: 'active', tags: ['Automation'], segment: segOf(['birthdate', 'is_set', '']) },
+    { id: 'l12', name: 'Key B2B accounts', description: 'Organizations with more than 50 attached contacts.', type: 'dynamic', folder: 'B2B', contacts: 96, owner: 'Yanis Benali', created: '2025-08-30', updated: '2026-04-25', status: 'active', tags: ['B2B'], segment: segOf(['acquisitionSource', 'is', 'Partner']) },
+    { id: 'l13', name: 'Unsubscribed — global exclusion', description: 'To exclude from all campaigns.', type: 'dynamic', folder: 'Compliance', contacts: 3870, owner: 'Hugo Martin', created: '2025-06-11', updated: '2026-05-12', status: 'active', tags: ['Suppression'], segment: segOf(['engagementScore', 'eq', '0']) },
     { id: 'l14', name: 'Salesforce import — key accounts', description: 'One-off sync from the external CRM.', type: 'import', folder: 'Imports', contacts: 2040, owner: 'Yanis Benali', created: '2026-05-18', updated: '2026-05-18', status: 'active', tags: ['Import', 'CRM'], criteria: [] },
-  ];
+  ].map((l) => (l.segment ? { ...l, criteria: criteriaOf(l.segment) } : l));
+}
+
+/* Coming back from the segmentation engine (Contacts) with router state:
+   { listUpdated: { id, segment, criteria } } — the list's criteria changed;
+   { listCreated: { …list } } — a new list was saved from those filters;
+   { openList: id } — the user went back without saving. */
+function applyReturn(lists, ret) {
+  if (ret?.listUpdated) {
+    const u = ret.listUpdated;
+    return lists.map((l) => (l.id === u.id ? { ...l, segment: u.segment, criteria: u.criteria, updated: '2026-06-05' } : l));
+  }
+  if (ret?.listCreated) {
+    const c = ret.listCreated;
+    return [{
+      id: c.id, name: c.name, description: c.description ?? '', type: c.type, folder: c.folder,
+      contacts: c.contacts ?? 0, owner: OWNERS[0], created: '2026-06-05', updated: '2026-06-05',
+      status: 'active', tags: [], segment: c.segment, criteria: c.criteria ?? [],
+    }, ...lists];
+  }
+  return lists;
 }
 
 /* ── Synthetic audience profile (deterministic per list) ─────────────────────── */
@@ -296,32 +340,32 @@ const CHART_BLUE   = DS.brandPrimary,   // #2575FC
       CHART_ORANGE = DS.orange400,      // #FE9D55
       CHART_PURPLE = DS.pink700;        // #A23192
 
-function RecordCard({ icon, title, sub, right, children, style }) {
+/* Section card — the DS container shell (borderSection · radius 12 · shadowSm),
+   title over an optional one-line description, as on the Consents page. No
+   icon tile: the title names the block. */
+function RecordCard({ title, sub, right, children, style }) {
   return (
-    <div style={{ background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusXl, boxShadow: DS.shadowSm, padding: 20, display: 'flex', flexDirection: 'column', gap: 16, ...style }}>
-      {(title || icon) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {icon && <span style={{ width: 32, height: 32, borderRadius: DS.radiusLg, background: DS.bgIcons, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</span>}
-          <div style={{ flex: 1, minWidth: 0 }}>
+    <section style={{ background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusXl, boxShadow: DS.shadowSm, padding: 20, display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0, ...style }}>
+      {(title || right) && (
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ minWidth: 0 }}>
             <div style={{ ...TY.titleMd, color: DS.textStrong, fontFamily: DS.ff }}>{title}</div>
-            {sub && <div style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff }}>{sub}</div>}
+            {sub && <div style={{ ...TY.labelMd, color: DS.textSecondary, fontFamily: DS.ff, marginTop: 2 }}>{sub}</div>}
           </div>
           {right}
         </div>
       )}
       {children}
-    </div>
+    </section>
   );
 }
 
-/* One labelled fact inside the Information block: small uppercase label with
-   its value below — left-aligned, no divider lines (unlike the old receipt). */
-function InfoItem({ label, value }) {
+/* One field — label above value, the single field format used across the app. */
+function InfoItem({ label, children }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-      <span style={{ ...TY.labelMd, letterSpacing: '0.04em', textTransform: 'uppercase',
-                     color: DS.textMuted, fontFamily: DS.ff }}>{label}</span>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...TY.bodyMd, color: DS.textDefault, fontFamily: DS.ff }}>{value}</span>
+      <span style={{ ...TY.labelMd, color: DS.textSecondary, fontFamily: DS.ff }}>{label}</span>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', ...TY.bodyMd, color: DS.textStrong, fontFamily: DS.ff }}>{children}</span>
     </div>
   );
 }
@@ -556,38 +600,6 @@ function FolderSelect({ folders, value, counts, total, onChange, onRequestCreate
   );
 }
 
-/* Labeled "Options" menu — a Secondary button that opens Edit / Export / Delete. */
-function OptionsMenu({ items }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const f = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', f);
-    return () => document.removeEventListener('mousedown', f);
-  }, []);
-  const visible = items.filter((it) => it && !it.hidden);
-  if (!visible.length) return null;
-  return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <Btn type="Secondary" size="Medium" iconLeft={<Ico.Dots s={16} c={DS.actionPrimary} />} onClick={() => setOpen((o) => !o)}>Options</Btn>
-      {open && (
-        <div style={{ position: 'absolute', top: 42, right: 0, zIndex: 30, width: 240, background: DS.surfaceCanvas,
-                      border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusLg, boxShadow: DS.shadowSm, padding: 6 }}>
-          {visible.map((it, i) => (
-            <div key={i} role="button" onClick={() => { setOpen(false); it.onClick && it.onClick(); }}
-                 style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 40, padding: '8px 12px', borderRadius: DS.radiusMd, cursor: 'pointer',
-                          ...TY.bodyMd, fontFamily: DS.ff, color: it.danger ? DS.feedbackError : DS.textDefault }}
-                 onMouseEnter={(e) => (e.currentTarget.style.background = it.danger ? DS.feedbackErrorBg : DS.surfaceSubtle)}
-                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
-              {it.icon}{it.label}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 /* ── Full-page List record ──────────────────────────────────────────────────── */
 /* Bulk "Move to another folder" — pick the destination for the ticked lists. */
 function MoveToFolderModal({ open, count, folders, onClose, onConfirm }) {
@@ -618,11 +630,22 @@ function MoveToFolderModal({ open, count, folders, onClose, onConfirm }) {
   );
 }
 
-function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewContacts, onToast }) {
-  const t = TYPES[l.type] || TYPES.static;
-  const TypeIcon = t.icon;
-  const [tab, setTab] = useState('info');
+/* Audience analysis is V2: its content stays below, switched off, and the
+   record shows no tabs until it returns. */
+const AUDIENCE_V2 = false;
+
+const TYPE_STATUS = {
+  dynamic: { label: 'Dynamic · updates automatically', tone: DS.feedbackSuccess },
+  static:  { label: 'Static · managed by hand',        tone: DS.brandPrimary },
+  import:  { label: 'Imported from a file',            tone: DS.textSecondary },
+};
+
+/* Full-page list record, on the Contact record pattern: back link, the DS
+   PageHeader (record type) with Options · View contacts · Edit list, a KPI
+   strip, then the Information and Criteria cards. */
+function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewContacts, onUpdateCriteria, onToast }) {
   const p = buildProfile(l);
+  const status = TYPE_STATUS[l.type] || TYPE_STATUS.static;
 
   const pctLabel = p.pctOfBase < 0.1 ? '<0.1%' : `${p.pctOfBase.toFixed(1)}%`;
   const genderData = [
@@ -645,206 +668,192 @@ function ListRecordPage({ list: l, canManage, onBack, onEdit, onDelete, onViewCo
     .map((label, i) => ({ label, pct: p.recency[i], color: CHART_TEAL }));
   const hasCriteria = l.type === 'dynamic' && l.criteria.length > 0;
   const trendDelta = p.trend[p.trend.length - 1] - p.trend[0];
+  const deltaLabel = `${trendDelta >= 0 ? '+' : '−'}${num(Math.abs(trendDelta))} over 12 months`;
 
   return (
-    <div style={{ paddingBottom: 8 }}>
-      {/* Back */}
-      <div style={{ padding: '18px 32px 0' }}>
+    <div style={{ fontFamily: DS.ff, display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
         <Btn type="Tertiary" size="Small" iconLeft={<Ico.ArrowBack s={16} c={DS.actionPrimary} />} onClick={onBack}>Back to lists</Btn>
-      </div>
 
-      {/* Record header */}
-      <div style={{ padding: '12px 32px 4px', display: 'flex', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-        <span style={{ width: 52, height: 52, borderRadius: DS.radiusXl, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <TypeIcon s={26} c={t.fg} />
-        </span>
-        <div style={{ flex: 1, minWidth: 240 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
-            <span style={{ ...TY.headlineMd, color: DS.textStrong, fontFamily: DS.ff }}>{l.name}</span>
-            <TypeBadge type={l.type} />
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: DS.radiusPill,
-                           padding: '2px 8px', background: DS.surfaceSubtle, color: DS.textSecondary, ...TY.labelMd, fontFamily: DS.ff }}>
-              <Ico.Inbox s={12} c={DS.textSecondary} />{l.folder}
-            </span>
-          </div>
-          <div style={{ ...TY.bodyMd, color: DS.textSecondary, fontFamily: DS.ff }}>{l.description || 'No description'}</div>
-        </div>
-        <OptionsMenu items={[
-          { label: 'Edit', icon: <Ico.Edit s={16} c={DS.textSecondary} />, onClick: () => onEdit(l), hidden: !canManage },
-          { label: 'Export', icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => onToast('Export generated (demo).') },
-          { label: 'Delete', icon: <Ico.Trash s={16} c={DS.feedbackError} />, onClick: () => onDelete(l), danger: true, hidden: !canManage },
-        ]} />
-      </div>
-
-      <div style={{ padding: '12px 32px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-        <Tabs
-          value={tab} onChange={setTab} divider
-          tabs={[
-            { value: 'info', label: 'Information', width: 140 },
-            { value: 'audience', label: 'Audience analysis', width: 180 },
-          ]}
-        />
-
-        {tab === 'info' && (
-        <>
-        {/* Information (left) · contacts share (right) — two separate cards */}
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'stretch' }}>
-          <RecordCard icon={<Ico.Info s={18} c={DS.actionPrimary} />} title="Information" style={{ flex: '2 1 380px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px 24px' }}>
-              <InfoItem label="Created by" value={l.owner} />
-              <InfoItem label="Created on" value={fmtDate(d(l.created))} />
-              <InfoItem label="Folder" value={<><Ico.Inbox s={14} c={DS.textSecondary} />{l.folder}</>} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, borderTop: `1px solid ${DS.borderDivider}`, paddingTop: 14 }}>
-              <span style={{ ...TY.labelMd, letterSpacing: '0.04em', textTransform: 'uppercase',
-                             color: DS.textMuted, fontFamily: DS.ff }}>Description</span>
-              <span style={{ ...TY.bodyMd, color: l.description ? DS.textDefault : DS.textMuted, fontFamily: DS.ff, whiteSpace: 'pre-wrap' }}>
-                {l.description || 'No description provided.'}
+        <div style={{ alignSelf: 'stretch' }}>
+          <PageHeader
+            type="contact"
+            title={l.name}
+            leading={(
+              <span style={{ width: 64, height: 64, borderRadius: DS.radiusXl, background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Ico.List s={28} c={DS.actionPrimary} />
               </span>
-            </div>
-          </RecordCard>
-
-          <RecordCard icon={<Ico.Chart s={18} c={CHART_BLUE} />} title="Share of base" style={{ flex: '1 1 200px' }}>
-            <div style={{ textAlign: 'center', width: '100%', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <div style={{ ...TY.headlineLg, color: DS.textStrong, fontFamily: DS.ff }}>{pctLabel}</div>
-              <div style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff, marginTop: 4 }}>
-                {num(p.total)} of {num(BASE_TOTAL)} contacts
-              </div>
-              <div style={{ height: 6, borderRadius: DS.radiusPill, background: DS.surfaceSubtle, overflow: 'hidden', marginTop: 12 }}>
-                <div style={{ width: `${Math.max(2, Math.min(100, p.pctOfBase))}%`, height: '100%', background: CHART_BLUE, borderRadius: DS.radiusPill }} />
-              </div>
-            </div>
-          </RecordCard>
+            )}
+            status={status.label}
+            statusTone={status.tone}
+            details={[
+              l.folder,
+              `${num(l.contacts)} contacts`,
+              `Created by ${l.owner} on ${fmtDate(d(l.created))}`,
+              `Updated ${fmtDate(d(l.updated))}`,
+            ]}
+            actions={(
+              <>
+                <ActionMenu
+                  label="Options"
+                  size="Md"
+                  items={[
+                    { label: 'Export', icon: <Ico.Download s={16} c={DS.textSecondary} />, onClick: () => onToast('Export generated (demo).') },
+                    { label: 'Delete', icon: <Ico.Trash s={16} c={DS.actionDanger} />, onClick: () => onDelete(l), danger: true, hidden: !canManage },
+                  ]}
+                />
+                <Btn type={canManage ? 'Secondary' : 'Primary'} onClick={onViewContacts}>View contacts</Btn>
+                {canManage && <Btn type="Primary" onClick={() => onEdit(l)}>Edit list</Btn>}
+              </>
+            )}
+          />
         </div>
+      </div>
 
-        {/* Criteria — full width */}
-        <RecordCard icon={<Ico.Filter s={18} c={DS.actionPrimary} />} title="Criteria" sub={hasCriteria ? 'Filters defining this dynamic audience' : undefined}>
+      {/* KPI strip — DS KpiCard Type=Stat */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+        <KpiCard label="Contacts" value={num(p.total)} delta={deltaLabel} trend={trendDelta > 0 ? 'up' : trendDelta < 0 ? 'down' : 'flat'} />
+        <KpiCard label="Share of base" value={pctLabel} sub={`of ${num(BASE_TOTAL)} contacts`} />
+        <KpiCard label="Email opt-in" value={`${p.emailOptin}%`} sub={`${p.emailReach}% have an email`} />
+        <KpiCard label="SMS opt-in" value={`${p.smsOptin}%`} sub={`${p.smsReach}% have a mobile`} />
+      </div>
+
+      {(
+        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          <RecordCard title="Information" style={{ flex: '1 1 380px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '20px 24px' }}>
+              <InfoItem label="Type"><TypeBadge type={l.type} /></InfoItem>
+              <InfoItem label="Folder">{l.folder}</InfoItem>
+              <InfoItem label="Created by">{l.owner}</InfoItem>
+              <InfoItem label="Created on">{fmtDate(d(l.created))}</InfoItem>
+              <InfoItem label="Last updated">{fmtDate(d(l.updated))}</InfoItem>
+              <InfoItem label="Tags">
+                {l.tags?.length ? l.tags.map((tg) => <Badge key={tg} tone="neutral">{tg}</Badge>) : '—'}
+              </InfoItem>
+            </div>
+            <div style={{ borderTop: `1px solid ${DS.borderDivider}`, paddingTop: 16 }}>
+              <InfoItem label="Description">
+                <span style={{ whiteSpace: 'pre-wrap', color: l.description ? DS.textStrong : DS.textSecondary }}>
+                  {l.description || 'No description provided.'}
+                </span>
+              </InfoItem>
+            </div>
+          </RecordCard>
+
+          <RecordCard
+            title="Criteria"
+            sub={hasCriteria ? 'Filters that define this dynamic audience' : undefined}
+            right={l.type === 'dynamic' && canManage
+              ? <Btn type="Secondary" size="Small" onClick={() => onUpdateCriteria(l)}>Update list criteria</Btn>
+              : undefined}
+            style={{ flex: '1 1 380px' }}
+          >
             {hasCriteria ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {l.criteria.map((cr, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: DS.surfaceSubtle, border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusLg, padding: '10px 12px', ...TY.bodyMd, fontFamily: DS.ff }}>
-                    <span style={{ ...TY.labelMd, color: DS.textMuted }}>{i === 0 ? 'WHERE' : 'AND'}</span>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: DS.surfaceSubtle, borderRadius: DS.radiusLg, padding: '10px 12px', ...TY.bodyMd, fontFamily: DS.ff }}>
+                    <span style={{ ...TY.labelMd, color: DS.textSecondary, width: 44 }}>{cr.logic ?? (i === 0 ? 'Where' : 'And')}</span>
                     <span style={{ ...TY.labelLg, color: DS.textStrong }}>{cr.field}</span>
                     <span style={{ color: DS.textSecondary }}>{cr.op}</span>
-                    <span style={{ ...TY.labelLg, color: DS.brandOnSurface }}>{cr.value}</span>
+                    {cr.value !== '' && cr.value != null && <span style={{ ...TY.labelLg, color: DS.brandOnSurface }}>{cr.value}</span>}
                   </div>
                 ))}
               </div>
             ) : (
               <EmptyState
                 icon={<Ico.List s={22} />}
-                title={l.type === 'import' ? 'Imported list' : 'Static list'}
-                sub={l.type === 'import' ? 'Contacts come from a file import — there are no dynamic criteria.' : 'Contacts are added manually — there are no dynamic criteria.'}
+                title={l.type === 'dynamic' ? 'No criteria yet' : l.type === 'import' ? 'Imported list' : 'Static list'}
+                sub={l.type === 'dynamic' ? 'Use “Update list criteria” to define who belongs to this list.'
+                  : l.type === 'import' ? 'Contacts come from a file import — there are no dynamic criteria.' : 'Contacts are added by hand — there are no dynamic criteria.'}
               />
             )}
           </RecordCard>
-        </>
-        )}
+        </div>
+      )}
 
-        {tab === 'audience' && (
+      {AUDIENCE_V2 && (
         <>
-        {/* Contact evolution — last 12 months */}
-        <RecordCard
-          icon={<Ico.TrendUp s={18} c={DS.actionPrimary} />}
-          title="Contacts — last 12 months"
-          sub="Monthly evolution of this list"
-          right={(
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, ...TY.bodyMd, fontFamily: DS.ff, fontWeight: TY.weightSemiBold, color: trendDelta >= 0 ? DS.feedbackSuccess : DS.feedbackError }}>
-              {trendDelta >= 0 ? <Ico.TrendUp s={15} c={DS.feedbackSuccess} /> : <Ico.TrendDown s={15} c={DS.feedbackError} />}
-              {trendDelta >= 0 ? '+' : '−'}{num(Math.abs(trendDelta))} over 12 mo
-            </span>
-          )}
-        >
-          <TrendChart months={p.months} values={p.trend} />
-        </RecordCard>
-
-        {/* View contacts — below the overall chart */}
-        <div style={{ display: 'flex' }}>
-          <Btn type="Primary" size="Medium" iconLeft={<Ico.Users s={18} c={DS.textOnBrand} />} onClick={onViewContacts}>View contacts</Btn>
-        </div>
-
-        {/* Audience profile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-          <Ico.Chart s={18} c={DS.textStrong} />
-          <span style={{ ...TY.titleMd, color: DS.textStrong, fontFamily: DS.ff }}>Audience profile</span>
-          <span style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff }}>· who the contacts in this list are</span>
-        </div>
-
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          <RecordCard icon={<Ico.Users s={18} c={CHART_PURPLE} />} title="Gender split" style={{ flex: '1 1 340px' }}>
-            <Donut data={genderData} centerValue={num(p.total)} centerLabel="contacts" />
+          <RecordCard
+            title="Contacts — last 12 months"
+            sub="Monthly evolution of this list"
+            right={(
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, ...TY.bodyMdBold, fontFamily: DS.ff, color: trendDelta >= 0 ? DS.feedbackSuccess : DS.feedbackError }}>
+                {trendDelta >= 0 ? <Ico.TrendUp s={16} c={DS.feedbackSuccess} /> : <Ico.TrendDown s={16} c={DS.feedbackError} />}
+                {deltaLabel}
+              </span>
+            )}
+          >
+            <TrendChart months={p.months} values={p.trend} />
           </RecordCard>
 
-          <RecordCard icon={<Ico.User s={18} c={CHART_BLUE} />} title="Age cohorts" sub={`Average age ${p.avgAge} years`} style={{ flex: '1 1 340px' }}>
-            <BarList items={ageItems} />
-          </RecordCard>
-
-          <RecordCard icon={<Ico.Refresh s={18} c={DS.feedbackSuccess} />} title="Engagement lifecycle" sub="New · Active · At risk · Lapsed" style={{ flex: '1 1 340px' }}>
-            <BarList items={lifeItems} />
-          </RecordCard>
-
-          <RecordCard icon={<Ico.Star s={18} c={CHART_PURPLE} />} title="Loyalty — purchase frequency" sub={`≈ ${p.avgPurch.toFixed(1)} purchases per contact`} style={{ flex: '1 1 340px' }}>
-            <BarList items={loyItems} />
-          </RecordCard>
-
-          <RecordCard icon={<Ico.Clock s={18} c={CHART_TEAL} />} title="Recency — last purchase" style={{ flex: '1 1 340px' }}>
-            <BarList items={recItems} />
-          </RecordCard>
-
-          <RecordCard icon={<Ico.Globe s={18} c={CHART_BLUE} />} title="Location & catchment" style={{ flex: '1 1 340px' }}>
-            <Donut data={catchmentData} centerValue={`${p.catchment[0]}%`} centerLabel="local" size={130} />
-            <div style={{ borderTop: `1px solid ${DS.borderDivider}`, paddingTop: 10 }}>
-              <div style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff, marginBottom: 6 }}>Top cities</div>
-              {p.cities.map((city, i) => (
-                <div key={city} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', ...TY.labelMd, fontFamily: DS.ff }}>
-                  <span style={{ flex: 1, color: DS.textDefault }}>{city}</span>
-                  <span style={{ color: DS.textSecondary, fontWeight: TY.weightSemiBold }}>{p.cityPct[i]}%</span>
-                </div>
-              ))}
-            </div>
-          </RecordCard>
-
-          <RecordCard icon={<Ico.Mail s={18} c={CHART_INDIGO} />} title="Reachability & consent" sub="Contactable share and opt-in per channel" style={{ flex: '1 1 340px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <ReachRow icon={<Ico.Mail s={14} c={CHART_INDIGO} />} label="Email" reach={p.emailReach} optin={p.emailOptin} color={CHART_INDIGO} />
-              <ReachRow icon={<Ico.Sms s={14} c={CHART_TEAL} />} label="SMS" reach={p.smsReach} optin={p.smsOptin} color={CHART_TEAL} />
-              <ReachRow icon={<Ico.Organization s={14} c={CHART_ORANGE} />} label="Postal" reach={p.postalReach} optin={p.postalReach} color={CHART_ORANGE} />
-            </div>
-          </RecordCard>
-        </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24 }}>
+            <RecordCard title="Gender split">
+              <Donut data={genderData} centerValue={num(p.total)} centerLabel="contacts" />
+            </RecordCard>
+            <RecordCard title="Age cohorts" sub={`Average age ${p.avgAge} years`}>
+              <BarList items={ageItems} />
+            </RecordCard>
+            <RecordCard title="Engagement lifecycle" sub="New · Active · At risk · Lapsed">
+              <BarList items={lifeItems} />
+            </RecordCard>
+            <RecordCard title="Loyalty — purchase frequency" sub={`≈ ${p.avgPurch.toFixed(1)} purchases per contact`}>
+              <BarList items={loyItems} />
+            </RecordCard>
+            <RecordCard title="Recency — last purchase">
+              <BarList items={recItems} />
+            </RecordCard>
+            <RecordCard title="Location & catchment">
+              <Donut data={catchmentData} centerValue={`${p.catchment[0]}%`} centerLabel="local" size={130} />
+              <div style={{ borderTop: `1px solid ${DS.borderDivider}`, paddingTop: 12 }}>
+                <div style={{ ...TY.labelMd, color: DS.textSecondary, fontFamily: DS.ff, marginBottom: 6 }}>Top cities</div>
+                {p.cities.map((city, i) => (
+                  <div key={city} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', ...TY.labelMd, fontFamily: DS.ff }}>
+                    <span style={{ flex: 1, color: DS.textDefault }}>{city}</span>
+                    <span style={{ color: DS.textStrong, fontWeight: TY.weightSemiBold }}>{p.cityPct[i]}%</span>
+                  </div>
+                ))}
+              </div>
+            </RecordCard>
+            <RecordCard title="Reachability & consent" sub="Contactable share and opt-in per channel">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <ReachRow icon={<Ico.Mail s={14} c={CHART_INDIGO} />} label="Email" reach={p.emailReach} optin={p.emailOptin} color={CHART_INDIGO} />
+                <ReachRow icon={<Ico.Sms s={14} c={CHART_TEAL} />} label="SMS" reach={p.smsReach} optin={p.smsOptin} color={CHART_TEAL} />
+                <ReachRow icon={<Ico.Organization s={14} c={CHART_ORANGE} />} label="Postal" reach={p.postalReach} optin={p.postalReach} color={CHART_ORANGE} />
+              </div>
+            </RecordCard>
+          </div>
         </>
-        )}
-      </div>
+      )}
     </div>
   );
 }
 
 /* ── Create / edit panel ────────────────────────────────────────────────────── */
 function ListFormPanel({ open, editing, onClose, onSave, folders = FOLDERS }) {
-  const blank = { name: '', description: '', type: 'static', owner: OWNERS[0], folder: folders[0], tags: '', criteria: [] };
+  // Information only — criteria are edited in the segmentation engine, through
+  // "Update list criteria" on the list record.
+  const blank = { name: '', description: '', type: 'static', owner: OWNERS[0], folder: folders[0], tags: '' };
   const [form, setForm] = useState(blank);
+  const [initial, setInitial] = useState(blank); // what the drawer opened with
   const [err, setErr] = useState({});
   const [confirmClose, setConfirmClose] = useState(false);
   const [wasOpen, setWasOpen] = useState(false);
   if (open !== wasOpen) { // render-time reset on open (no effect)
     setWasOpen(open);
     if (open) {
-      setForm(editing
-        ? { name: editing.name, description: editing.description, type: editing.type, owner: editing.owner, folder: editing.folder || folders[0], tags: editing.tags.join(', '), criteria: editing.criteria.map((c) => ({ ...c })) }
-        : blank);
+      const start = editing
+        ? { name: editing.name, description: editing.description, type: editing.type, owner: editing.owner, folder: editing.folder || folders[0], tags: editing.tags.join(', ') }
+        : blank;
+      setForm(start); setInitial(start);
       setErr({}); setConfirmClose(false);
     }
   }
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-  const dirty = form.name !== '' || form.description !== '' || form.criteria.length > 0;
+  // Only real changes ask before closing — not a pre-filled edit form.
+  const dirty = JSON.stringify(form) !== JSON.stringify(initial);
   const tryClose = () => { if (dirty) setConfirmClose(true); else onClose(); };
-  const addCriterion = () => setForm((f) => ({ ...f, criteria: [...f.criteria, { field: FIELDS[0], op: OPS[0], value: '' }] }));
-  const setCriterion = (i, k, v) => setForm((f) => ({ ...f, criteria: f.criteria.map((c, idx) => (idx === i ? { ...c, [k]: v } : c)) }));
-  const removeCriterion = (i) => setForm((f) => ({ ...f, criteria: f.criteria.filter((_, idx) => idx !== i) }));
   const save = () => {
     const e = {}; if (!form.name.trim()) e.name = 'Name is required.';
-    if (form.type === 'dynamic' && form.criteria.length === 0) e.criteria = 'A dynamic list needs at least one criterion.';
     setErr(e); if (Object.keys(e).length) return; onSave(form, editing);
   };
   return (
@@ -857,7 +866,7 @@ function ListFormPanel({ open, editing, onClose, onSave, folders = FOLDERS }) {
         footer={(
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', width: '100%' }}>
             <Btn type="Tertiary" size="Medium" onClick={tryClose}>Cancel</Btn>
-            <Btn type="Primary" size="Medium" iconLeft={<Ico.Check s={18} />} onClick={save}>{editing ? 'Save' : 'Create list'}</Btn>
+            <Btn type="Primary" size="Medium" onClick={save}>{editing ? 'Save' : 'Create list'}</Btn>
           </div>
         )}
       >
@@ -867,28 +876,10 @@ function ListFormPanel({ open, editing, onClose, onSave, folders = FOLDERS }) {
         <Select label="Type" value={form.type} onChange={(v) => set('type', v)} options={[{ value: 'dynamic', label: 'Dynamic — auto-updated' }, { value: 'static', label: 'Static — manual selection' }, { value: 'import', label: 'Manual import — from a file' }]} />
         <Select label="Folder" value={form.folder} onChange={(v) => set('folder', v)} options={folders.map((f) => ({ value: f, label: f }))} />
         <Select label="Owner" value={form.owner} onChange={(v) => set('owner', v)} options={OWNERS.map((o) => ({ value: o, label: o }))} />
-        {form.type === 'dynamic' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <label style={{ ...TY.bodyMd, color: DS.textSecondary, fontFamily: DS.ff }}>Criteria</label>
-              <Btn type="Tertiary" size="Small" iconLeft={<Ico.Plus s={14} />} onClick={addCriterion}>Add</Btn>
-            </div>
-            {form.criteria.length === 0 && <div style={{ ...TY.labelMd, color: DS.textMuted, fontFamily: DS.ff }}>No criteria — add one to define the audience.</div>}
-            {form.criteria.map((c, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Select value={c.field} onChange={(v) => setCriterion(i, 'field', v)} options={FIELDS.map((f) => ({ value: f, label: f }))} width={130} />
-                <Select value={c.op} onChange={(v) => setCriterion(i, 'op', v)} options={OPS.map((o) => ({ value: o, label: o }))} width={92} />
-                <Field value={c.value} onChange={(e) => setCriterion(i, 'value', e.target.value)} placeholder="value" style={{ flex: 1 }} />
-                <IconBtn icon={<Ico.Trash s={16} c={DS.feedbackError} />} type="Secondary" size="Small" onClick={() => removeCriterion(i)} aria-label="Remove criterion" title="Remove criterion" />
-              </div>
-            ))}
-            {err.criteria && <span style={{ ...TY.labelMd, color: DS.feedbackError, fontFamily: DS.ff }}>{err.criteria}</span>}
-          </div>
-        )}
         <Field label="Tags (comma-separated)" value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="VIP, Loyalty" />
       </div>
       </Modal>
-      {confirmClose && <ConfirmDialog title="Discard changes?" body="The information you entered will be lost." confirmLabel="Discard" cancelLabel="Cancel" confirmIcon={null} danger onConfirm={onClose} onCancel={() => setConfirmClose(false)} />}
+      {confirmClose && <ConfirmDialog title="Discard changes?" body="The information you entered will be lost." confirmLabel="Discard" cancelLabel="Cancel" confirmIcon={null} danger onConfirm={() => { setConfirmClose(false); onClose(); }} onCancel={() => setConfirmClose(false)} />}
     </>
   );
 }
@@ -898,9 +889,11 @@ function ListFormPanel({ open, editing, onClose, onSave, folders = FOLDERS }) {
    ════════════════════════════════════════════════════════════════════════════ */
 export default function ListsV3() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [ret] = useState(() => location.state ?? {});
   const [role, setRole] = useState('admin');
   const [dataState, setDataState] = useState('ready');
-  const [lists, setLists] = useState(buildLists);
+  const [lists, setLists] = useState(() => applyReturn(buildLists(), ret));
   const [query, setQuery] = useState('');
   const [folders, setFolders] = useState(FOLDERS);
   const [folderFilter, setFolderFilter] = useState('all');
@@ -908,18 +901,27 @@ export default function ListsV3() {
   const [renamingFolder, setRenamingFolder] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const [page, setPage] = useState(0);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState(ret.listUpdated?.id ?? ret.listCreated?.id ?? ret.openList ?? null);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [checked, setChecked] = useState([]);   // ids ticked for bulk actions
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [toast, setToast] = useState(ret.listUpdated ? 'List criteria updated. Contacts refresh at the next update.'
+    : ret.listCreated ? `List “${ret.listCreated.name}” created.` : null);
   const [sortKey, setSortKey] = useState('created');
   const [sortDir, setSortDir] = useState('desc');
   const [folderModal, setFolderModal] = useState(false);
   const showToast = (m) => { setToast(m); setTimeout(() => setToast(null), 2600); };
+  /* Consume the return state once: clear the toast it set, and drop it from
+     history so a refresh doesn't re-apply it. */
+  useEffect(() => {
+    if (!location.state) return;
+    navigate(location.pathname, { replace: true, state: null });
+    const t = setTimeout(() => setToast(null), 3200);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const canManage = role === 'admin';
 
   const filtered = lists.filter((l) =>
@@ -981,16 +983,18 @@ export default function ListsV3() {
   // Contacts page and its segment builder rather than opening a form here.
   // ListFormPanel stays for EDIT, which still works on an existing list.
   const openCreate = () => navigate('/contacts');
-  const openEdit = (l) => { setSelected(null); setEditing(l); setFormOpen(true); };
+  // The drawer opens over the current page — editing from the record keeps
+  // the record open behind it.
+  const openEdit = (l) => { setEditing(l); setFormOpen(true); };
   const duplicate = (l) => { const id = 'l' + Date.now(); setLists((ls) => [{ ...l, id, name: l.name + ' (copy)', updated: '2026-06-05', created: '2026-06-05' }, ...ls]); showToast('List duplicated.'); };
   const save = (form, edit) => {
     const tags = form.tags.split(',').map((t) => t.trim()).filter(Boolean);
     if (edit) {
-      setLists((ls) => ls.map((l) => (l.id === edit.id ? { ...l, name: form.name, description: form.description, type: form.type, owner: form.owner, folder: form.folder, tags, criteria: form.criteria, updated: '2026-06-05' } : l)));
+      setLists((ls) => ls.map((l) => (l.id === edit.id ? { ...l, name: form.name, description: form.description, type: form.type, owner: form.owner, folder: form.folder, tags, updated: '2026-06-05' } : l)));
       showToast('List updated.');
     } else {
       const id = 'l' + Date.now();
-      setLists((ls) => [{ id, name: form.name, description: form.description, type: form.type, owner: form.owner, folder: form.folder, tags, criteria: form.criteria, contacts: 0, status: 'active', created: '2026-06-05', updated: '2026-06-05' }, ...ls]);
+      setLists((ls) => [{ id, name: form.name, description: form.description, type: form.type, owner: form.owner, folder: form.folder, tags, criteria: [], contacts: 0, status: 'active', created: '2026-06-05', updated: '2026-06-05' }, ...ls]);
       showToast('List created.');
     }
     setFormOpen(false); setEditing(null);
@@ -1107,6 +1111,9 @@ export default function ListsV3() {
           onEdit={openEdit}
           onDelete={(x) => setDeleteTarget(x)}
           onViewContacts={() => navigate('/contacts')}
+          onUpdateCriteria={(x) => navigate('/contacts', {
+            state: { listCriteria: { id: x.id, name: x.name, segment: segmentOf(x) } },
+          })}
           onToast={showToast}
         />
       ) : (

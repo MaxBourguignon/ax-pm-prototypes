@@ -46,10 +46,13 @@ import { DS, TY } from "../../utils/designSystem";
 import Ico from "../../utils/icons";
 import { Btn } from "../../components/Btn";
 import { Badge, RemovableChip } from "../../components/Tag";
+import { Checkbox } from "../../components/Controls";
 import IconBtn from "../../components/Iconbtn";
 import Modal from "../../components/Modal";
 import EntityPicker from "../../components/EntityPicker";
 import ContactFormDrawer from "./ContactFormDrawer";
+import { TENANT_LISTS } from "./tenantLists";
+import { TENANT_CONSENTS } from "./tenantConsents";
 import MergeContactsModal from "./MergeContactsModal";
 import ActionMenu from "../../components/ActionMenu";
 import KpiCard from "../../components/Kpi";
@@ -295,23 +298,6 @@ function buildConsentRows(history = []) {
                removed from it
    That distinction is the whole point of the drawer: it decides which chips
    carry a cross and which lists the search is allowed to add. */
-const TENANT_LISTS = [
-  { id: 4837, name: "Loyal audience", type: "dynamic", count: 12480, folder: "Loyalty & VIP" },
-  { id: 4874, name: "Loyal fans", type: "dynamic", count: 8340, folder: "Loyalty & VIP" },
-  { id: 4911, name: "Patrons circle", type: "static", count: 96, folder: "Loyalty & VIP" },
-  { id: 4948, name: "VIP evening — June", type: "static", count: 180, folder: "Events" },
-  { id: 4985, name: "Season launch guest list", type: "static", count: 220, folder: "Events" },
-  { id: 5022, name: "Last-minute ticket buyers for the RCT v UBB match", type: "static", count: 1240, folder: "Events" },
-  { id: 5059, name: "Senior segment", type: "dynamic", count: 5120, folder: "Audiences" },
-  { id: 5096, name: "Student segment (under 26)", type: "dynamic", count: 3765, folder: "Audiences" },
-  { id: 5133, name: "Public around", type: "dynamic", count: 21030, folder: "Audiences" },
-  { id: 5170, name: "Public proche", type: "dynamic", count: 18940, folder: "Audiences" },
-  { id: 5207, name: "Schools programme", type: "static", count: 1870, folder: "Audiences" },
-  { id: 5244, name: "Yesterday's buyers", type: "dynamic", count: 412, folder: "Sales" },
-  { id: 5281, name: "List of yesterday's buyers", type: "static", count: 386, folder: "Sales" },
-  { id: 5318, name: "Press and partners", type: "static", count: 145, folder: "Campaigns" },
-  { id: 5355, name: "Newsletter — manual additions", type: "static", count: 640, folder: "Campaigns" },
-];
 const listType = (name) => TENANT_LISTS.find((l) => l.name === name)?.type ?? "static";
 
 /* The membership drawer. Dynamic lists are shown but cannot be removed; static
@@ -432,6 +418,201 @@ function ListsDrawer({ open, onClose, value, onSave }) {
           </>
         )}
       </div>
+    </Modal>
+  );
+}
+
+/* ── Consents ────────────────────────────────────────────────────────────────
+   The tenant's consent catalogue (prototype data). Channel groups the picker. */
+const CONSENT_ORIGIN = "Manual update";
+const CONSENT_DATE = "2026-06-05"; // the prototype's TODAY, as an ISO date
+
+/* The consent drawer — the Lists drawer's workflow, adapted to what a consent
+   is: not a membership but a permission with a state.
+     · the picker OPTS IN (wording says so; a consent already opted in carries
+       its check, an opted-out one can be picked to opt back in)
+     · each current consent is a row with its state badge and one action —
+       "Opt out" or "Opt in" — rather than a chip with a cross, because removing
+       a consent is not deleting it: it records an opt-out and keeps the history
+     · the staged changes are listed as "Will opt in" / "Will opt out" with
+       their badges before Save, each undoable
+   Save writes one action per change (today, origin "Manual update")
+   into the history the Consents tab shows. */
+/* Save asks for the same acknowledgement as the bulk "Add contacts to a
+   consent" flow: a confirmation dialog listing the changes, with a checkbox
+   that must be ticked before they are recorded. */
+function ConfirmConsentChanges({ changes, onCancel, onConfirm }) {
+  const [ack, setAck] = useState(false);
+  const adds = changes.some(([, on]) => on);
+  const removes = changes.some(([, on]) => !on);
+  const verb = adds && removes ? "added to or removed from" : adds ? "added to" : "removed from";
+  return (
+    <Modal
+      open
+      onClose={onCancel}
+      variant="center"
+      size="sm"
+      title="Confirm consent changes"
+      footer={(
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
+          <Btn type="Tertiary" onClick={onCancel}>Cancel</Btn>
+          <Btn type="Primary" disabled={!ack} onClick={onConfirm}>Confirm</Btn>
+        </div>
+      )}
+    >
+      <div style={{ padding: "20px 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+        <span style={{ ...TY.bodyMd, color: DS.textDefault, fontFamily: DS.ff }}>
+          The following {changes.length === 1 ? "change" : "changes"} will be recorded for this contact:
+        </span>
+        <div style={{ border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusLg, padding: "4px 14px" }}>
+          {changes.map(([consent, on], i) => (
+            <div key={consent} style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 36,
+              borderTop: i === 0 ? "none" : `1px solid ${DS.borderDivider}`,
+            }}>
+              <span style={{ ...TY.bodyMd, color: DS.textStrong, fontFamily: DS.ff }}>{consent}</span>
+              <Badge tone={on ? "success" : "danger"}>{on ? "Opt-in" : "Opt-out"}</Badge>
+            </div>
+          ))}
+        </div>
+        <Checkbox
+          checked={ack}
+          onChange={setAck}
+          label={(
+            <span style={{ ...TY.bodySm, color: DS.textSecondary, fontFamily: DS.ff }}>
+              I confirm that this contact has given their consent to be {verb} this type of communication.
+            </span>
+          )}
+        />
+      </div>
+    </Modal>
+  );
+}
+
+function ConsentsDrawer({ open, onClose, value, onSave }) {
+  const [draft, setDraft] = useState({});
+  const [wasOpen, setWasOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const current = Object.fromEntries(value.map((c) => [c.label, c.on]));
+
+  if (open !== wasOpen) {            // render-time reset on open, no effect needed
+    setWasOpen(open);
+    if (open) { setDraft(current); setConfirming(false); }
+  }
+
+  const set = (name, on) => setDraft((d) => ({ ...d, [name]: on }));
+  const unset = (name) => setDraft((d) => {
+    const next = { ...d };
+    if (name in current) next[name] = current[name]; else delete next[name];
+    return next;
+  });
+  const changes = Object.entries(draft).filter(([name, on]) => current[name] !== on);
+  const optIns = changes.filter(([, on]) => on).map(([n]) => n);
+  const optOuts = changes.filter(([, on]) => !on).map(([n]) => n);
+
+  const optedIn = new Set(Object.entries(draft).filter(([, on]) => on).map(([n]) => n));
+  const pickable = TENANT_CONSENTS.map((c) => ({ id: c.name, name: c.name, channel: c.channel }));
+
+  const sectionLabel = {
+    ...TY.labelMd, letterSpacing: "0.04em", textTransform: "uppercase",
+    color: DS.textMuted, fontFamily: DS.ff,
+  };
+  const row = {
+    display: "flex", alignItems: "center", gap: 8, minHeight: 36, padding: "4px 0",
+    borderTop: `1px solid ${DS.borderDivider}`,
+  };
+  const name = { flex: 1, minWidth: 0, ...TY.bodyMd, color: DS.textStrong, fontFamily: DS.ff, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Consents"
+      subtitle="Opt this contact in or out"
+      width={400}
+      footer={(
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", width: "100%" }}>
+          <Btn type="Tertiary" onClick={onClose}>Cancel</Btn>
+          <Btn type="Primary" disabled={changes.length === 0} onClick={() => setConfirming(true)}>
+            Save
+          </Btn>
+        </div>
+      )}
+    >
+      <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+        <EntityPicker
+          entities={pickable}
+          selectedIds={optedIn}
+          onSelect={(n) => set(n, true)}
+          groupBy="channel"
+          hideSelected={false}
+          placeholder="Opt in to a consent..."
+          emptyLabel={({ query, allSelected }) => (query
+            ? "No consent matches this search"
+            : allSelected ? "This contact is opted in to every consent" : "Start typing to search…")}
+        />
+
+        <span style={sectionLabel}>Current consents</span>
+        {value.length === 0 ? (
+          <span style={{ ...TY.bodySm, color: DS.textMuted, fontFamily: DS.ff }}>
+            No consent recorded for this contact yet.
+          </span>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {value.map((c, i) => {
+              const staged = draft[c.label] !== c.on;
+              return (
+                <div key={c.label} style={{ ...row, borderTop: i === 0 ? "none" : row.borderTop, opacity: staged ? 0.5 : 1 }}>
+                  <span style={name}>{c.label}</span>
+                  <Badge tone={c.on ? "success" : "danger"}>{c.on ? "Opt-in" : "Opt-out"}</Badge>
+                  <Btn type="Tertiary" size="Sm" disabled={staged} onClick={() => set(c.label, !c.on)}
+                       style={{ width: 72 }}>
+                    {c.on ? "Opt out" : "Opt in"}
+                  </Btn>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* What Save will record — only shown once there is a change. The
+            cross undoes it. */}
+        {[["Will opt in", optIns, true], ["Will opt out", optOuts, false]].map(([label, names, on]) => (
+          names.length > 0 && (
+            <div key={label} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+              <span style={sectionLabel}>{label}</span>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {names.map((n) => (
+                  <RemovableChip key={n} onRemove={() => unset(n)}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: on ? DS.feedbackSuccess : DS.feedbackError }} />
+                      {n}
+                    </span>
+                  </RemovableChip>
+                ))}
+              </div>
+            </div>
+          )
+        ))}
+
+        {changes.length > 0 && (
+          <span style={{ ...TY.bodySm, color: DS.textSecondary, fontFamily: DS.ff }}>
+            Each change is recorded today with the origin “{CONSENT_ORIGIN}”. The consent history is kept.
+          </span>
+        )}
+      </div>
+      {confirming && (
+        <ConfirmConsentChanges
+          changes={changes}
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => {
+            setConfirming(false);
+            onSave(changes.map(([consent, on]) => ({
+              consent, date: CONSENT_DATE, origin: CONSENT_ORIGIN, action: on ? "Opt-in" : "Opt-out",
+            })));
+          }}
+        />
+      )}
     </Modal>
   );
 }
@@ -748,8 +929,8 @@ function NotesBlock({ notes, onEdit }) {
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <IconBtn
             kind="Filled"
-            size="Md"
-            icon={<Ico.EditSquare s={16} />}
+            size="Sm"
+            icon={<Ico.EditSquare s={14} />}
             title={text ? "Edit notes" : "Add a note"}
             aria-label={text ? "Edit notes" : "Add a note"}
             onClick={onEdit}
@@ -792,6 +973,9 @@ function ContactRecordView({ contactId }) {
      being read straight off the record each render. */
   const [lists, setLists] = useState(() => contact?.lists ?? []);
   const [listsDrawerOpen, setListsDrawerOpen] = useState(false);
+  /* Consent actions are appended from the drawer, so the history is state too. */
+  const [consentHistory, setConsentHistory] = useState(() => contact?.consentHistory ?? []);
+  const [consentsDrawerOpen, setConsentsDrawerOpen] = useState(false);
   /* The fields the Edit drawer owns. Held in state so an edit shows up
      everywhere the record reads them — header, rail and all. */
   const [details, setDetails] = useState(() => ({
@@ -828,7 +1012,7 @@ function ContactRecordView({ contactId }) {
            user reaches for less often ship hidden, so the default table stays
            readable and the column configuration does the rest. */
         columns: [
-          { key: "purchaseDate", label: "Purchase date" },
+          { key: "purchaseDate", label: "Purchase date", locked: true }, // identity column — always shown, first
           { key: "purchaseNumber", label: "Purchase number" },
           { key: "purchaseId", label: "Purchase ID", defaultHidden: true },
           { key: "productType", label: "Product type", defaultHidden: true },
@@ -854,7 +1038,7 @@ function ContactRecordView({ contactId }) {
         label: "Received tickets",
         groupBy: "purchaseId",
         columns: [
-          { key: "purchaseDate", label: "Purchase date" },
+          { key: "purchaseDate", label: "Purchase date", locked: true }, // identity column — always shown, first
           { key: "boughtBy", label: "Bought by" },
           { key: "purchaseNumber", label: "Purchase number", defaultHidden: true },
           { key: "purchaseId", label: "Purchase ID", defaultHidden: true },
@@ -916,7 +1100,7 @@ function ContactRecordView({ contactId }) {
           { key: "origin", label: "Origin" },
           { key: "action", label: "Action", type: "status" },
         ],
-        rows: buildConsentRows(contact.consentHistory),
+        rows: buildConsentRows(consentHistory),
       },
       access: { label: "Access controls", columns: [{ key: "label", label: "Access" }], rows: [] },
       contributions: {
@@ -931,7 +1115,7 @@ function ContactRecordView({ contactId }) {
         })),
       },
     };
-  }, [contact]);
+  }, [contact, consentHistory]);
 
   if (!contact) {
     return (
@@ -1243,8 +1427,8 @@ function ContactRecordView({ contactId }) {
             action={(
               <IconBtn
                 kind="Filled"
-                size="Md"
-                icon={<Ico.EditSquare s={16} />}
+                size="Sm"
+                icon={<Ico.EditSquare s={14} />}
                 title="Edit lists"
                 aria-label="Edit lists"
                 onClick={() => setListsDrawerOpen(true)}
@@ -1255,7 +1439,17 @@ function ContactRecordView({ contactId }) {
             title="Consents"
             open={openSections.consents}
             onToggle={() => toggle("consents")}
-            states={currentConsents(contact.consentHistory)}
+            states={currentConsents(consentHistory)}
+            action={(
+              <IconBtn
+                kind="Filled"
+                size="Sm"
+                icon={<Ico.EditSquare s={14} />}
+                title="Edit consents"
+                aria-label="Edit consents"
+                onClick={() => setConsentsDrawerOpen(true)}
+              />
+            )}
           />
           <RailSection
             title="Preferences"
@@ -1305,6 +1499,12 @@ function ContactRecordView({ contactId }) {
         onClose={() => setListsDrawerOpen(false)}
         value={lists}
         onSave={(next) => { setLists(next); setListsDrawerOpen(false); }}
+      />
+      <ConsentsDrawer
+        open={consentsDrawerOpen}
+        onClose={() => setConsentsDrawerOpen(false)}
+        value={currentConsents(consentHistory)}
+        onSave={(actions) => { setConsentHistory((h) => [...actions, ...h]); setConsentsDrawerOpen(false); }}
       />
     </div>
   );

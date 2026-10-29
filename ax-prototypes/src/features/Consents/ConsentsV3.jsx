@@ -35,7 +35,7 @@ import { EmptyState, ErrorState, ConfirmDialog } from '../../components/Feedback
      - list    the DS Table (toolbar search + bulk Options, two-line cells,
                row ActionMenu, selection) replaces BannerTable
      - drawers ContactFormDrawer's blue section bands, label-above-value
-               fields, full-width Select (big arrow), Secondary Cancel
+               fields, full-width Select (big arrow), Tertiary Cancel
    Local-only, no DS counterpart: the evolution line chart, the sparkline
    and the activity-log timeline.
    ===================================================================== */
@@ -785,7 +785,7 @@ function DetailDrawer({ consent, onExport }) {
 // =====================================================================
 //  Create / edit drawer (+ unsaved-changes guard)
 //  Same build as ContactFormDrawer: blue section bands, label above the
-//  field, full-width Select, Secondary Cancel + one Primary.
+//  field, full-width Select, Tertiary Cancel + one Primary.
 // =====================================================================
 const CHANNELS = ['Email', 'SMS', 'WhatsApp', 'Push'];
 
@@ -823,7 +823,7 @@ function CreateDrawer({ open, editing, onRequestClose, onSaved }) {
              title={editing ? 'Edit consent' : 'Create a consent'}
              footer={
                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', width: '100%' }}>
-                 <Btn type="Secondary" size="Medium" onClick={attemptClose}>Cancel</Btn>
+                 <Btn type="Tertiary" size="Medium" onClick={attemptClose}>Cancel</Btn>
                  <Btn type="Primary" size="Medium" disabled={!name.trim()} onClick={save}>{editing ? 'Save' : 'Create consent'}</Btn>
                </div>
              }>

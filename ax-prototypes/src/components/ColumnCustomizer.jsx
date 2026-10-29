@@ -2,13 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { DS, TY } from "../utils/designSystem";
 import Ico from "../utils/icons";
 import { Btn } from "./Btn";
+import { ModalHeader } from "./Modal";
 
-// Bigger drag handle — two columns of dots
+// Drag handle — two bars, as on the official column-configuration panel.
 const GripIcon = ({ s = 20, c = DS.textMuted }) => (
   <svg width={s} height={s} viewBox="0 0 20 20" fill="none">
-    <circle cx="7.5" cy="5"  r="1.6" fill={c} /><circle cx="12.5" cy="5"  r="1.6" fill={c} />
-    <circle cx="7.5" cy="10" r="1.6" fill={c} /><circle cx="12.5" cy="10" r="1.6" fill={c} />
-    <circle cx="7.5" cy="15" r="1.6" fill={c} /><circle cx="12.5" cy="15" r="1.6" fill={c} />
+    <rect x="3" y="6.5" width="14" height="2" rx="1" fill={c} />
+    <rect x="3" y="11.5" width="14" height="2" rx="1" fill={c} />
   </svg>
 );
 
@@ -22,10 +22,11 @@ const GripIcon = ({ s = 20, c = DS.textMuted }) => (
 // `label` overrides the trigger button's text — the Contacts table says
 // "Configure columns"; a per-tab customiser can say which tab it configures.
 //
-// No DS node: the DS has a TableToolbar slot for a column-config button but no
-// spec for the panel behind it. Panel chrome follows the DS menu surface
-// (surfaceCanvas, borderSection, radiusLg) and the type scale; the drag-reorder
-// interaction is codebase-only.
+// Panel: the official modal header (ModalHeader — Gradient/Brand, title +
+// subtitle, framed close) in its compact size, then one 36px row per column split by hairlines
+// (grip · checkbox · label), and a footer with Reset + the shown count.
+// A column flagged `locked` in allColumns (the identity column) stays shown
+// and in place: greyed checkbox, no drag.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ColumnCustomizer({ config, allColumns, defaultConfig, onChange, label = "Configure columns" }) {
@@ -44,15 +45,20 @@ export default function ColumnCustomizer({ config, allColumns, defaultConfig, on
   useEffect(() => {
     if (!open) return;
     const h = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    const k = (e) => { if (e.key === "Escape") setOpen(false); };
     document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+    document.addEventListener("keydown", k);
+    return () => { document.removeEventListener("mousedown", h); document.removeEventListener("keydown", k); };
   }, [open]);
 
   const labelOf = (key) => allColumns.find((c) => c.key === key)?.label ?? key;
   const visibleCount = config.filter((c) => c.visible).length;
 
-  const toggle = (key) =>
+  const isLocked = (key) => !!allColumns.find((c) => c.key === key)?.locked;
+  const toggle = (key) => {
+    if (isLocked(key)) return;
     onChange(config.map((c) => (c.key === key ? { ...c, visible: !c.visible } : c)));
+  };
 
   // Drag to reorder: dropping onto row `to` lands the item at that slot
   // (below it when dragging down, above it when dragging up).
@@ -78,54 +84,51 @@ export default function ColumnCustomizer({ config, allColumns, defaultConfig, on
       {open && (
         <div style={{
           position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 9999,
-          width: 300, background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`,
-          borderRadius: DS.radiusLg, boxShadow: "0 12px 32px rgba(15,23,42,.16)",
+          width: 272, background: DS.surfaceCanvas, borderRadius: DS.radiusLg,
+          boxShadow: "0 18px 50px rgba(15,23,42,.22)",
           display: "flex", flexDirection: "column", overflow: "hidden",
         }}>
-          {/* Header */}
-          <div style={{ padding: "12px 14px", borderBottom: `1px solid ${DS.borderDivider}` }}>
-            <p style={{ margin: 0, fontFamily: DS.ff, ...TY.bodySmBold, color: DS.textStrong }}>{label}</p>
-            <p style={{ margin: "2px 0 0", fontFamily: DS.ff, ...TY.captionSm, color: DS.textMuted }}>Toggle visibility and reorder columns</p>
-          </div>
+          <ModalHeader compact title={label} subtitle="Show, hide and reorder columns" onClose={() => setOpen(false)} />
 
           {/* List — drag rows to reorder */}
-          <div style={{ maxHeight: 300, overflowY: "auto", padding: "6px 0" }}>
+          <div style={{ maxHeight: 288, overflowY: "auto" }}>
             {config.map((c, i) => {
+              const locked   = isLocked(c.key);
               const dragging = dragIndex === i;
               const isOver   = overIndex === i && dragIndex !== null && dragIndex !== i;
               const dir      = dragIndex !== null ? (dragIndex < i ? "down" : "up") : null;
               return (
                 <div key={c.key}
-                  draggable
+                  draggable={!locked}
                   onDragStart={(e) => { setDragIndex(i); e.dataTransfer.effectAllowed = "move"; }}
-                  onDragOver={(e) => { e.preventDefault(); setOverIndex(i); }}
+                  onDragOver={(e) => { if (!locked) { e.preventDefault(); setOverIndex(i); } }}
                   onDrop={(e) => { e.preventDefault(); reorder(dragIndex, i); clearDrag(); }}
                   onDragEnd={clearDrag}
+                  onClick={() => toggle(c.key)}
                   style={{
-                    display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 36,
-                    cursor: "grab", opacity: dragging ? 0.4 : 1,
+                    display: "flex", alignItems: "center", gap: 8, padding: "0 14px", height: 36,
+                    boxSizing: "border-box", cursor: locked ? "default" : "pointer",
+                    opacity: dragging ? 0.4 : 1,
                     background: dragging ? DS.surfaceSubtle : "transparent",
-                    borderTop:    `2px solid ${isOver && dir === "up"   ? DS.actionPrimary : "transparent"}`,
-                    borderBottom: `2px solid ${isOver && dir === "down" ? DS.actionPrimary : "transparent"}`,
+                    borderTop: i === 0 ? "none" : `1px solid ${isOver && dir === "up" ? DS.actionPrimary : DS.borderDivider}`,
+                    boxShadow: isOver && dir === "down" ? `inset 0 -2px 0 ${DS.actionPrimary}` : "none",
                   }}>
                   {/* Drag handle */}
-                  <span style={{ display: "flex", flexShrink: 0, cursor: "grab" }}>
-                    <GripIcon s={20} c={DS.textMuted} />
+                  <span style={{ display: "flex", flexShrink: 0, cursor: locked ? "default" : "grab" }}>
+                    <GripIcon s={16} c={locked ? DS.borderDefault : DS.textMuted} />
                   </span>
 
                   {/* Visibility checkbox */}
-                  <div onClick={() => toggle(c.key)}
-                    style={{
-                      width: 16, height: 16, borderRadius: DS.radiusSm, flexShrink: 0, cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      border: `1.5px solid ${c.visible ? DS.actionPrimary : DS.borderDefault}`,
-                      background: c.visible ? DS.actionPrimary : DS.surfaceCanvas,
-                      boxSizing: "border-box",
-                    }}>
-                    {c.visible && <Ico.Check s={12} c={DS.textOnBrand} />}
-                  </div>
+                  <span style={{
+                    width: 16, height: 16, borderRadius: DS.radiusMd, flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box",
+                    border: `1.5px solid ${locked ? DS.borderDefault : c.visible ? DS.actionPrimary : DS.borderDefault}`,
+                    background: locked ? DS.surfaceSubtle : c.visible ? DS.actionPrimary : DS.surfaceCanvas,
+                  }}>
+                    {c.visible && <Ico.Check s={12} c={locked ? DS.textMuted : DS.textOnBrand} />}
+                  </span>
 
-                  <span style={{ flex: 1, fontFamily: DS.ff, ...TY.bodySm, color: c.visible ? DS.textStrong : DS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <span style={{ flex: 1, fontFamily: DS.ff, ...TY.bodySm, color: locked ? DS.textMuted : DS.textDefault, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {labelOf(c.key)}
                   </span>
                 </div>
@@ -134,13 +137,13 @@ export default function ColumnCustomizer({ config, allColumns, defaultConfig, on
           </div>
 
           {/* Footer */}
-          <div style={{ padding: "10px 14px", borderTop: `1px solid ${DS.borderDivider}`, background: DS.surfaceSubtle, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span
+          <div style={{ padding: "10px 14px", borderTop: `1px solid ${DS.borderDivider}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <button type="button"
               onClick={() => onChange(defaultConfig.map((c) => ({ ...c })))}
-              style={{ fontFamily: DS.ff, ...TY.labelMd, color: DS.actionPrimary, cursor: "pointer" }}>
-              Reset to default
-            </span>
-            <span style={{ fontFamily: DS.ff, ...TY.captionSm, color: DS.textMuted }}>{visibleCount} shown</span>
+              style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", fontFamily: DS.ff, ...TY.labelMd, fontWeight: 600, color: DS.actionPrimary }}>
+              Reset
+            </button>
+            <span style={{ fontFamily: DS.ff, ...TY.labelMd, fontWeight: 400, color: DS.textMuted }}>{visibleCount} shown</span>
           </div>
         </div>
       )}
