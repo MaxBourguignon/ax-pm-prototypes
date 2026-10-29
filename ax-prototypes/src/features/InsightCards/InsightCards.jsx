@@ -111,8 +111,8 @@ export default function InsightCards() {
 
   const tabMenu = [
     { label: 'Rename tab', icon: <Ico.Edit s={16} c={DS.textSecondary} />, onClick: () => { setTabName(tab.name); setTabModal({ mode: 'rename', id: tab.id }); } },
-    { label: 'Move left', icon: <Ico.ChevLeft s={16} c={DS.textSecondary} />, onClick: () => moveTab(-1), disabled: tabs[0].id === tab.id },
-    { label: 'Move right', icon: <Ico.ChevRight s={16} c={DS.textSecondary} />, onClick: () => moveTab(1), disabled: tabs[tabs.length - 1].id === tab.id },
+    { label: 'Move left', icon: <Ico.ArrowLeftSmall s={16} c={DS.textSecondary} />, onClick: () => moveTab(-1), disabled: tabs[0].id === tab.id },
+    { label: 'Move right', icon: <Ico.ArrowRightSmall s={16} c={DS.textSecondary} />, onClick: () => moveTab(1), disabled: tabs[tabs.length - 1].id === tab.id },
     { label: 'Delete tab', icon: <Ico.Trash s={16} c={DS.actionDanger} />, danger: true, disabled: tabs.length === 1,
       onClick: () => { setMoveTarget(tabs.find((t) => t.id !== tab.id)?.id ?? ''); setTabModal({ mode: 'delete', id: tab.id }); } },
   ];

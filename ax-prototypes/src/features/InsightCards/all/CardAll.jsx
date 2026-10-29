@@ -285,7 +285,7 @@ export default function CardAll({
               {manual ? `Manual entry · ${USERS[card.createdBy]?.name ?? ''}` : ''}
             </span>
             {canSegment && (
-              <Btn type="Ghost" size="Sm" iconRight={<Ico.ChevRight s={14} c={DS.actionPrimary} />} style={{ color: DS.actionPrimary }}
+              <Btn type="Ghost" size="Sm" iconRight={<Ico.ArrowRightSmall s={14} c={DS.actionPrimary} />} style={{ color: DS.actionPrimary }}
                    onClick={() => onOpenSegment(card)}>
                 Open as segment
               </Btn>

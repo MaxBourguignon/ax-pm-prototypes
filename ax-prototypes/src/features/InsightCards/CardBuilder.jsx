@@ -225,7 +225,7 @@ export default function CardBuilder({ open, initial, tabs, defaultTab, period, c
                 <Chip key={p} label={p} onClick={() => setPrompt(p)} />
               ))}
               <span style={{ flex: 1 }} />
-              <Btn type="Primary" size="Sm" disabled={!prompt.trim() || phase === 'building'} iconRight={<Ico.ChevRight s={14} c={DS.textInverse} />} onClick={onBuild}>Build</Btn>
+              <Btn type="Primary" size="Sm" disabled={!prompt.trim() || phase === 'building'} iconRight={<Ico.ArrowRightSmall s={14} c={DS.textInverse} />} onClick={onBuild}>Build</Btn>
             </div>
 
             {phase === 'failed' && (

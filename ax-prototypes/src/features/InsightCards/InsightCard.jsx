@@ -207,7 +207,7 @@ export default function InsightCard({ card, period, comparison, tabs, highlight,
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 28 }}>
           <span style={{ ...TY.captionSm, fontFamily: DS.ff, color: DS.textMuted }}>Data as of {DATA_AS_OF}</span>
           {countsPeople && !card.noAccess && !failed && (
-            <Btn type="Ghost" size="Sm" iconRight={<Ico.ChevRight s={14} c={DS.actionPrimary} />} style={{ color: DS.actionPrimary }}
+            <Btn type="Ghost" size="Sm" iconRight={<Ico.ArrowRightSmall s={14} c={DS.actionPrimary} />} style={{ color: DS.actionPrimary }}
                  onClick={() => onOpenSegment(card, value)}>
               Open as segment
             </Btn>
