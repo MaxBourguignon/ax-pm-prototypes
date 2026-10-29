@@ -12,6 +12,10 @@ import PerformancesPage from './features/Performances/PerformancePage'
 import PerformanceV3 from './features/Performances/PerformanceV3'
 import ListsV3 from './features/Lists/ListsV3'
 import ArenaForm from './features/Arenaform/Arenaform'
+import LoyaltySettings from './features/Loyalty/LoyaltySettings'
+import LoyaltyDashboard from './features/Loyalty/LoyaltyDashboard'
+import AdminHub from './features/SsoAdmin/AdminHub'
+import AdminHubBranding from './features/SsoAdmin/AdminHubBranding'
 
 function App() {
 
@@ -32,7 +36,14 @@ function App() {
                     <Route path="/performances-v3" element={<PerformanceV3 />} />
                     <Route path="/lists-v3" element={<ListsV3 />} />
                     <Route path="/arenaform" element={<ArenaForm />} />
+                    <Route path="/loyalty/settings"  element={<LoyaltySettings />} />
+                    <Route path="/loyalty/dashboard" element={<LoyaltyDashboard />} />
                 </Route>
+
+                {/* SSO Admin Hub — client-facing surface, deliberately outside AppLayoutSidebar:
+                    end clients must never see Arenametrix's own internal nav/sidebar chrome. */}
+                <Route path="/sso-admin" element={<AdminHub />} />
+                <Route path="/sso-admin/branding" element={<AdminHubBranding />} />
             </Routes>
         </BrowserRouter>
     )

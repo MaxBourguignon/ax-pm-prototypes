@@ -122,6 +122,15 @@ const NAV_TABS_L1 = [
     subitems: [
     ],
   },
+  {
+    id: "loyalty",
+    label: "Loyalty",
+    icon: <Ico.Star s={16} c="rgba(255,255,255,0.80)" />,
+    subitems: [
+      { id: "loyalty-dashboard", label: "Dashboard",   link: "/loyalty/dashboard" },
+      { id: "loyalty-settings",  label: "Paramétrage", link: "/loyalty/settings"  },
+    ],
+  },
 ];
 
 // ── SubItem ───────────────────────────────────────────────────────────────────

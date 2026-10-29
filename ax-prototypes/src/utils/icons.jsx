@@ -69,6 +69,9 @@ const Ico = {
   Inbox:     ({ s = 16, c = DS.textSecondary }) => <svg width={s} height={s} viewBox="0 0 20 20" fill="none"><path d="M3 11l2-6.5h10L17 11v4.5a1 1 0 01-1 1H4a1 1 0 01-1-1V11z" stroke={c} strokeWidth="1.5" strokeLinejoin="round"/><path d="M3 11h4l1 2h4l1-2h4" stroke={c} strokeWidth="1.5" strokeLinejoin="round"/></svg>,
   Share:     ({ s = 16, c = DS.neutral900 }) => <svg width={s} height={s} viewBox="0 0 20 20" fill="none"><circle cx="6" cy="10" r="2" stroke={c} strokeWidth="1.5"/><circle cx="14" cy="5.5" r="2" stroke={c} strokeWidth="1.5"/><circle cx="14" cy="14.5" r="2" stroke={c} strokeWidth="1.5"/><path d="M7.7 9l4.6-2.5M7.7 11l4.6 2.5" stroke={c} strokeWidth="1.5" strokeLinecap="round"/></svg>,
   Bell:      ({ s = 16, c = DS.neutral900 }) => <svg width={s} height={s} viewBox="0 0 20 20" fill="none"><path d="M10 3a4 4 0 00-4 4c0 3-1.5 4.5-1.5 4.5h11S14 10 14 7a4 4 0 00-4-4z" stroke={c} strokeWidth="1.5" strokeLinejoin="round"/><path d="M8.5 14.5a1.5 1.5 0 003 0" stroke={c} strokeWidth="1.5" strokeLinecap="round"/></svg>,
+
+  // ── Added for Module Loyalty (not in Figma DS — custom SVG) ─────────────────
+  Medal:     ({ s = 16, c = DS.feedbackWarning }) => <svg width={s} height={s} viewBox="0 0 20 20" fill="none"><circle cx="10" cy="13" r="4.5" stroke={c} strokeWidth="1.5"/><path d="M10 11.5l.95 1.9 2.1.3-1.52 1.49.36 2.1L10 16.3l-1.89 1-0.01-.01.36-2.09L6.95 13.7l2.1-.3z" fill={c} stroke="none"/><path d="M7 8.5L5 3h10L13 8.5" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 8.5a4.5 4.5 0 016 0" stroke={c} strokeWidth="1.5" strokeLinecap="round"/></svg>,
 };
 
 export default Ico;
