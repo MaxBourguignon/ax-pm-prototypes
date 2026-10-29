@@ -79,6 +79,7 @@ export const SOURCES = [
       { field: 'Sales channel', values: ['Online', 'Box office', 'Partner resale', 'Mobile app'] },
       { field: 'Scanned at entry', values: ['Yes', 'No'] },
       { field: 'Supporter group (custom)', values: ['Ultras', 'Family club', 'Business club', 'None'] },
+      { field: 'Events attended this season (calculated)', values: ['1', '2 to 4', '5 or more'], needs: 'calcFields' },
       { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
       { field: 'Country', values: ['France', 'Belgium', 'Netherlands', 'Switzerland'] },
     ],
@@ -97,6 +98,7 @@ export const SOURCES = [
       { field: 'Section', values: ['Section A', 'Section B', 'Main stand', 'Family zone'] },
       { field: 'Renewed for next season', values: ['Yes', 'No'] },
       { field: 'Member since (custom)', values: ['Before 2015', '2015 to 2020', 'After 2020'] },
+      { field: 'Total spend this season (calculated)', values: ['Under €250', '€250 to €1,000', 'Over €1,000'], needs: 'calcFields' },
       { field: 'City', values: ['Paris', 'Lyon', 'Lille', 'Marseille', 'Bordeaux'] },
       { field: 'Country', values: ['France', 'Belgium', 'Netherlands', 'Switzerland'] },
     ],
@@ -268,13 +270,18 @@ export const INITIAL_CARDS = [
     title: 'Sales by channel', subtitle: 'Main event tickets',
     conditions: ['Event is Main event, 8 November'], createdBy: 'hugo', createdAt: '7 Oct' },
 
+  { id: 'm8', tab: 'matchday', kind: 'number', measure: 'people', source: 'ticket', needs: ['calcFields'],
+    title: 'Loyal fans', subtitle: 'Buyers at 5 or more events this season',
+    conditions: ['Season is 26/27', 'Events attended this season (calculated) is 5 or more'], value: 2140, prev: { yesterday: 2131, lastYear: 1985 },
+    createdBy: 'sarah', createdAt: '28 Oct' },
+
   // Registrations
   { id: 'r1', tab: 'registrations', kind: 'number', measure: 'people', source: 'registration',
     title: 'Kidsclub members 26/27', subtitle: 'Unique registrants, confirmed',
     conditions: ['Registration type is Kidsclub', 'Season is 26/27', 'Status is Confirmed'], value: 1860, prev: { yesterday: 1852, lastYear: 1610 },
     createdBy: 'camille', createdAt: '10 Oct' },
   { id: 'r2', tab: 'registrations', kind: 'breakdown', measure: 'people', source: 'registration', split: 'Registration type',
-    title: 'Registrants by type', subtitle: 'Season 26/27',
+    title: 'Registrants by type', subtitle: 'Season 26/27', chart: 'donut',
     conditions: ['Season is 26/27'], createdBy: 'camille', createdAt: '10 Oct' },
   { id: 'r3', tab: 'registrations', kind: 'share', measure: 'people', source: 'registration',
     title: 'Open day: showed up', subtitle: 'Share of all registrants',
@@ -286,6 +293,10 @@ export const INITIAL_CARDS = [
     createdBy: 'sarah', createdAt: '12 Oct' },
 
   // Merchandise: Batch 2
+  { id: 'w6', tab: 'shop', kind: 'number', measure: 'people', source: 'ecommerce', needs: ['segmentCond'],
+    title: 'Shop buyers with a subscription', subtitle: 'Bought merchandise and hold a 26/27 subscription',
+    conditions: ['Season is 26/27', 'In segment: Subscription holders 26/27'], value: 3615, prev: { yesterday: 3602, lastYear: 3290 },
+    createdBy: 'camille', createdAt: '28 Oct' },
   { id: 'w1', tab: 'shop', kind: 'target', measure: 'revenue', source: 'ecommerce',
     title: 'Merchandise revenue this season', subtitle: 'Season 26/27',
     conditions: ['Season is 26/27'], value: 450779, target: 410000, prev: { yesterday: 448200, lastYear: 391000 },
@@ -308,7 +319,7 @@ export const INITIAL_CARDS = [
     conditions: ['Order status is Paid'], value: 61240, prev: { yesterday: 59980, lastYear: 52100 },
     createdBy: 'sarah', createdAt: '4 Oct' },
 
-  // Notes: manual text cards (Batch 2, to confirm)
+  // Notes: manual text cards (Batch 2)
   { id: 'n1', tab: 'notes', kind: 'text',
     title: 'Kidsclub', subtitle: 'Improving and growing the kidsclub',
     text: 'Today members come in through imports and direct debit.\nForm on the new website, then automatically into the marketing platform and the fan profile.\nAn automation notifies the kidsclub team of every new member.',
@@ -323,9 +334,14 @@ export const INITIAL_CARDS = [
     createdBy: 'hugo', createdAt: '12 Oct' },
 ];
 
+/* Saved segments, offered as a condition from Batch 3 ("In segment: ...").
+   A segment can come from another shop, which is how a card combines shops. */
+export const SEGMENTS = ['Subscription holders 26/27', 'Ticket buyers, main event', 'Kidsclub members 26/27'];
+export const SEGMENT_PREFIX = 'In segment: ';
+
 /** The features a card needs before it can exist. */
 export function needsOf(card) {
-  const n = ['page'];
+  const n = ['page', ...(card.needs ?? [])];
   if (card.kind === 'manualData') return [...n, 'manualData'];
   if (card.kind === 'text') return [...n, 'manualText'];
   n.push(card.kind);

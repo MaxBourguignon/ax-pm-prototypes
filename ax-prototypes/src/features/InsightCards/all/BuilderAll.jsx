@@ -11,9 +11,11 @@
  *   6 Title
  *
  * The batch limits each step: Batch 1 counts profiles only (number,
- * breakdown, share of all); Batch 2 adds counting transactions, revenue,
- * per day, progress to a target and days until an event (countdown); Batch 3
- * adds "Describe your number" (a scripted AI stand-in) and Compare with.
+ * breakdown as bars or a donut, share of all); Batch 2 adds counting
+ * transactions, revenue, per day, progress to a target and days until an
+ * event (countdown); Batch 3 adds "Describe your number" (a scripted AI
+ * stand-in), Compare with, a saved segment as a condition and calculated
+ * custom fields.
  */
 import React from 'react';
 import { DS, TY } from '../../../utils/designSystem';
@@ -26,14 +28,14 @@ import Chip from '../../../components/Chip';
 import Skeleton from '../../../components/Skeleton';
 import Card from '../../../components/Card';
 import { CardBodyAll } from './CardAll';
-import { SOURCES, sourceOf, kindsFor, EVENTS, AI_PROMPTS, AI_SCRIPTS_ALL, COMPARISONS, defaultCompare } from './mockDataAll';
+import { SOURCES, sourceOf, kindsFor, EVENTS, AI_PROMPTS, AI_SCRIPTS_ALL, COMPARISONS, defaultCompare, SEGMENTS, SEGMENT_PREFIX } from './mockDataAll';
 import { has } from './batches';
 
 let _k = 1;
 const kid = () => `q${_k++}`;
 
 const EMPTY = {
-  source: '', measure: '', conditions: [], kind: 'number', split: '', target: '',
+  source: '', measure: '', conditions: [], kind: 'number', split: '', chart: 'bars', target: '',
   compare: 'yesterday', title: '', subtitle: '', value: null,
 };
 
@@ -61,9 +63,20 @@ function Step({ n, title, hint, children }) {
   );
 }
 
-/* Pick one field of the card's own source and one value: "Status is Active". */
-function ConditionPicker({ source, onAdd, onCancel }) {
-  const fields = sourceOf(source)?.fields ?? [];
+/* The fields of a source that the batch offers: calculated custom fields
+   wait for Batch 3. */
+const fieldsIn = (source, batch) => (sourceOf(source)?.fields ?? []).filter((f) => !f.needs || has(batch, f.needs));
+
+/* Pick one field of the card's own source and one value: "Status is Active".
+   From Batch 3 a saved segment is offered too, which may come from another
+   shop: "In segment: Subscription holders 26/27". */
+const SEGMENT_FIELD = 'In segment';
+
+function ConditionPicker({ source, batch, onAdd, onCancel }) {
+  const fields = [
+    ...fieldsIn(source, batch),
+    ...(has(batch, 'segmentCond') ? [{ field: SEGMENT_FIELD, values: SEGMENTS }] : []),
+  ];
   const [field, setField] = React.useState(fields[0]?.field ?? '');
   const values = fields.find((f) => f.field === field)?.values ?? [];
   const [value, setValue] = React.useState(values[0] ?? '');
@@ -72,12 +85,12 @@ function ConditionPicker({ source, onAdd, onCancel }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, borderRadius: DS.radiusLg, border: `1px solid ${DS.borderDefault}`, background: DS.surfaceCanvas }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 8, alignItems: 'center' }}>
         <Select value={field} options={fields.map((f) => ({ value: f.field, label: f.field }))} onChange={setField} />
-        <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary }}>is</span>
+        <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary }}>{field === SEGMENT_FIELD ? ':' : 'is'}</span>
         <Select value={value} options={values.map((v) => ({ value: v, label: v }))} onChange={setValue} />
       </div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         <Btn type="Ghost" size="Sm" onClick={onCancel}>Cancel</Btn>
-        <Btn type="Secondary" size="Sm" disabled={!field || !value} onClick={() => onAdd(`${field} is ${value}`)}>Add</Btn>
+        <Btn type="Secondary" size="Sm" disabled={!field || !value} onClick={() => onAdd(field === SEGMENT_FIELD ? `${SEGMENT_PREFIX}${value}` : `${field} is ${value}`)}>Add</Btn>
       </div>
     </div>
   );
@@ -118,7 +131,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
   const isCountdown = form.measure === 'days';
   /* Split by a field you have not already fixed with a condition. */
   const usedFields = form.conditions.map((c) => c.label.split(' is ')[0]);
-  const splitFields = (src?.fields ?? []).filter((f) => !usedFields.includes(f.field));
+  const splitFields = fieldsIn(form.source, batch).filter((f) => !usedFields.includes(f.field));
   /* Compare with another value of one of your own conditions: pick the
      condition, then the value to compare with (e.g. Season 26/27 vs. 25/26). */
   const condFields = [...new Set(form.conditions.map((c) => c.label.split(' is ')[0]))]
@@ -149,7 +162,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
   React.useEffect(() => {
     if (!open) return;
     if (initial?.id) {
-      setForm({ ...EMPTY, ...initial, target: initial.target ?? '', subtitle: initial.subtitle ?? '', compare: initial.compare ?? 'yesterday',
+      setForm({ ...EMPTY, ...initial, chart: initial.chart ?? 'bars', target: initial.target ?? '', subtitle: initial.subtitle ?? '', compare: initial.compare ?? 'yesterday',
         conditions: (initial.conditions ?? []).map((label) => ({ id: kid(), label, flagged: false })) });
       setTab(initial.tab);
     } else {
@@ -203,6 +216,11 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
       title: form.title.trim(), subtitle: form.subtitle,
       conditions: form.conditions.map((c) => c.label),
       split: form.kind === 'breakdown' ? form.split : undefined,
+      chart: form.kind === 'breakdown' ? form.chart : undefined,
+      needs: [
+        ...(form.conditions.some((c) => c.label.startsWith(SEGMENT_PREFIX)) ? ['segmentCond'] : []),
+        ...((src?.fields ?? []).some((f) => f.needs === 'calcFields' && (form.split === f.field && form.kind === 'breakdown' || form.conditions.some((c) => c.label.startsWith(`${f.field} is `)))) ? ['calcFields'] : []),
+      ],
       event: isCountdown ? eventValue(eventCond?.label.slice(9)) : undefined,
       base: form.kind === 'share' ? { label: src.noun, value: Math.round(v / 0.45) } : undefined,
       target: form.kind === 'target' ? Number(form.target) : undefined,
@@ -297,7 +315,7 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
                   </div>
                   {picker ? (
                     <ConditionPicker
-                      key={form.source} source={form.source} onCancel={() => setPicker(false)}
+                      key={form.source} source={form.source} batch={batch} onCancel={() => setPicker(false)}
                       onAdd={(label) => { patch({ conditions: [...form.conditions, { id: kid(), label, flagged: false }] }); setPicker(false); }}
                     />
                   ) : (
@@ -316,7 +334,10 @@ export default function BuilderAll({ open, initial, batch, tabs, defaultTab, onC
                     <Select value={form.kind} options={kinds} onChange={(v) => patch({ kind: v })} />
                   )}
                   {form.kind === 'breakdown' && (
-                    <Select label="Split by" value={form.split} options={splitFields.map((f) => ({ value: f.field, label: f.field }))} onChange={(v) => patch({ split: v })} />
+                    <>
+                      <Select label="Split by" value={form.split} options={splitFields.map((f) => ({ value: f.field, label: f.field }))} onChange={(v) => patch({ split: v })} />
+                      <Select label="Draw as" value={form.chart} options={[{ value: 'bars', label: 'Bars' }, { value: 'donut', label: 'Donut' }]} onChange={(v) => patch({ chart: v })} />
+                    </>
                   )}
                   {form.kind === 'share' && (
                     <span style={{ ...TY.bodySm, color: DS.textSecondary }}>Shows the number as a share of all {src.noun}, without your conditions.</span>

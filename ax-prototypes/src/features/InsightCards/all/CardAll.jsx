@@ -2,8 +2,8 @@
  * CardAll: one card on the all-batches Insights page.
  *
  *   number      value + a fixed comparison per shop                   Batch 1
- *   breakdown   top 5 + "Other" as bars                                Batch 1
- *   share       value as a share of a base, % bar (third format, TBD)  Batch 1
+ *   breakdown   top 5 + "Other" as bars or a donut                     Batch 1
+ *   share       value as a share of a base, % bar                      Batch 1
  *   perDay      bar series per day                                     Batch 2
  *   target      value + progress bar towards a target                  Batch 2
  *   countdown   days until an event                                    Batch 2
@@ -72,12 +72,18 @@ const Small = ({ children, style }) => (
   <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary, ...style }}>{children}</span>
 );
 
-function BreakdownBars({ rows, measure }) {
+/* A row opens as a segment (Batch 3) when the card counts people; "Other"
+   is a remainder, not a value, so it does not. */
+const rowProps = (r, onRow) => (onRow && r.label !== 'Other'
+  ? { onClick: () => onRow(r), title: `Open ${r.label} as a segment`, style: { cursor: 'pointer' } }
+  : { style: {} });
+
+function BreakdownBars({ rows, measure, onRow }) {
   const max = Math.max(...rows.map((r) => r.value));
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {rows.map((r) => (
-        <div key={r.label} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 2fr auto', alignItems: 'center', gap: 10 }}>
+        <div key={r.label} {...rowProps(r, onRow)} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 2fr auto', alignItems: 'center', gap: 10, ...rowProps(r, onRow).style }}>
           <span title={r.label} style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.label}</span>
           <div style={{ height: 6, borderRadius: 3, background: DS.surfaceMuted }}>
             <div style={{ width: `${Math.max(2, (r.value / max) * 100)}%`, height: '100%', borderRadius: 3, background: DS.textMuted }} />
@@ -89,7 +95,43 @@ function BreakdownBars({ rows, measure }) {
   );
 }
 
-export function CardBodyAll({ card, comparison }) {
+/* The donut uses the brand blue in steps, with "Other" in grey, so the
+   segments stay one family and the legend carries the labels. */
+const DONUT_COLORS = [DS.blue600, DS.blue400, DS.blue300, DS.blue200, DS.blue100];
+
+function BreakdownDonut({ rows, measure, onRow }) {
+  const total = rows.reduce((a, r) => a + r.value, 0) || 1;
+  const R = 34; const C = 2 * Math.PI * R;
+  let offset = 0;
+  const color = (r, i) => (r.label === 'Other' ? DS.neutral300 : DONUT_COLORS[i % DONUT_COLORS.length]);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <svg width={96} height={96} viewBox="0 0 96 96" style={{ flexShrink: 0 }} role="img" aria-label="Donut chart">
+        <g transform="rotate(-90 48 48)">
+          {rows.map((r, i) => {
+            const len = (r.value / total) * C;
+            const seg = <circle key={r.label} cx={48} cy={48} r={R} fill="none" stroke={color(r, i)} strokeWidth={14}
+                                strokeDasharray={`${Math.max(0, len - 1.5)} ${C}`} strokeDashoffset={-offset} />;
+            offset += len;
+            return seg;
+          })}
+        </g>
+      </svg>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {rows.map((r, i) => (
+          <div key={r.label} {...rowProps(r, onRow)} style={{ display: 'flex', alignItems: 'center', gap: 8, ...rowProps(r, onRow).style }}>
+            <span style={{ width: 8, height: 8, borderRadius: 4, background: color(r, i), flexShrink: 0 }} />
+            <span title={r.label} style={{ flex: 1, minWidth: 0, ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.label}</span>
+            <span style={{ ...TY.bodySmBold, fontFamily: DS.ff, color: DS.textStrong }}>{fmtValue(r.value, measure)}</span>
+            <span style={{ ...TY.captionSm, fontFamily: DS.ff, color: DS.textMuted, width: 32, textAlign: 'right' }}>{Math.round((r.value / total) * 100)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function CardBodyAll({ card, comparison, onRow }) {
   const prev = card.prev?.[comparison];
   const variation = comparison === 'none' ? null : (
     <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -98,8 +140,10 @@ export function CardBodyAll({ card, comparison }) {
   );
 
   switch (card.kind) {
-    case 'breakdown':
-      return <BreakdownBars rows={rowsFor(card.source, card.split)} measure={card.measure} />;
+    case 'breakdown': {
+      const Chart = card.chart === 'donut' ? BreakdownDonut : BreakdownBars;
+      return <Chart rows={rowsFor(card.source, card.split)} measure={card.measure} onRow={onRow} />;
+    }
 
     case 'share': {
       const pct = card.base?.value ? (card.value / card.base.value) * 100 : 0;
@@ -218,6 +262,7 @@ function Definition({ card, batch }) {
       {card.conditions && row('Conditions', card.conditions.join(' AND '))}
       {card.measure && row('Measure', measureOf(card.source, card.measure)?.label ?? card.measure)}
       {card.kind === 'breakdown' && row('Split by', card.split)}
+      {card.kind === 'breakdown' && row('Drawn as', card.chart === 'donut' ? 'Donut' : 'Bars')}
       {card.kind === 'perDay' && row('Per day of', sourceOf(card.source)?.dateField)}
       {card.kind === 'share' && row('Share of', `all ${card.base?.label ?? sourceOf(card.source)?.noun}`)}
       {card.prev && row('Compared with', compareLabel(card, comparisonOf(card, batch)))}
@@ -233,7 +278,11 @@ export default function CardAll({
   dragProps, dragging, dropHint,
 }) {
   const [showDef, setShowDef] = React.useState(false);
-  const canSegment = has(batch, 'segment') && card.measure === 'people' && ['number', 'share'].includes(card.kind);
+  const canSegment = has(batch, 'segment') && card.measure === 'people' && ['number', 'share', 'breakdown'].includes(card.kind);
+  /* On a breakdown each row is its own group: the card's conditions plus "split is row". */
+  const openRow = canSegment && card.kind === 'breakdown'
+    ? (r) => onOpenSegment({ ...card, value: r.value, conditions: [...(card.conditions ?? []), `${card.split} is ${r.label}`] })
+    : undefined;
   const manual = card.kind === 'manualData' || card.kind === 'text';
   const dnd = has(batch, 'dnd');
 
@@ -273,7 +322,7 @@ export default function CardAll({
           <ActionMenu items={menu} size="Sm" width={220} />
         </div>
 
-        <CardBodyAll card={card} comparison={comparisonOf(card, batch)} />
+        <CardBodyAll card={card} comparison={comparisonOf(card, batch)} onRow={openRow} />
 
         {showDef && <Definition card={card} batch={batch} />}
 
@@ -284,7 +333,10 @@ export default function CardAll({
             <span style={{ ...TY.captionSm, fontFamily: DS.ff, color: DS.textMuted }}>
               {manual ? `Manual entry · ${USERS[card.createdBy]?.name ?? ''}` : ''}
             </span>
-            {canSegment && (
+            {canSegment && card.kind === 'breakdown' && (
+              <span style={{ ...TY.captionSm, fontFamily: DS.ff, color: DS.textMuted }}>Click a row to open it as a segment</span>
+            )}
+            {canSegment && card.kind !== 'breakdown' && (
               <Btn type="Ghost" size="Sm" iconRight={<Ico.ArrowRightSmall s={14} c={DS.actionPrimary} />} style={{ color: DS.actionPrimary }}
                    onClick={() => onOpenSegment(card)}>
                 Open as segment
