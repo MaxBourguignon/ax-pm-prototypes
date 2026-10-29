@@ -91,11 +91,12 @@ export function RewardModal({ open, reward, tiers, onClose, onSave }) {
   }
 
   const footer = (
-    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+    <>
+      <span style={{ flex: 1 }} />
       <Btn type="Ghost" onClick={onClose}>{t('common.cancel')}</Btn>
       <Btn type="Secondary" onClick={() => save('draft')}>{t('rm.saveDraft')}</Btn>
       <Btn type="Primary" iconLeft={<Ico.Check s={16} />} onClick={() => save('active')}>{t('rm.saveReward')}</Btn>
-    </div>
+    </>
   );
 
   const shopName = t(`rm.src.${f.codeSource}`);
@@ -103,7 +104,7 @@ export function RewardModal({ open, reward, tiers, onClose, onSave }) {
   return (
     <Modal open={open} onClose={onClose} variant="center" width={760} footer={footer}
       title={reward ? t('rm.titleEdit') : t('rm.titleNew')} subtitle={t('rm.subtitle')}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, fontFamily: DS.ff }}>
+      <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20, fontFamily: DS.ff }}>
 
         {/* 1 · Reward */}
         <Section title={t('rm.s1')}>

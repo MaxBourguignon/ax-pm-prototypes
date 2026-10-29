@@ -2,15 +2,14 @@
  * Loyalty — Rewards page (/loyalty/rewards).
  * Post-MVP exploration: the MVP spec puts point consumption and rewards out of
  * scope (loyalty_reward, redeem_reward(), fulfilment, stock). Flagged in the header.
- *   KPI row · catalogue (filter by distribution, create / edit / duplicate / delete,
- *   activate) · requests awaiting manual validation (approve / reject).
+ *   KPI row · catalogue (filter by distribution, create / edit / duplicate / delete, activate).
  */
 import React from 'react';
 import { DS, TY } from '../../utils/designSystem';
 import Ico from '../../utils/icons';
 import { Btn } from '../../components/Btn';
 import { Toggle } from '../../components/Controls';
-import { StatusBadge, Avatar } from '../../components/Tag';
+import { StatusBadge } from '../../components/Tag';
 import { Chip } from '../../components/Chip';
 import { Skeleton } from '../../components/Skeleton';
 import { EmptyState, ErrorState } from '../../components/Feedback';
@@ -24,8 +23,7 @@ import { TierBadge } from './TierBadge';
 import { RewardModal } from './RewardModal';
 import { DISTRIBUTIONS } from './rewardDistributions';
 import { useLang } from './i18n';
-import { LangSwitch } from './LangSwitch';
-import { REWARDS, REWARD_STATS, PENDING_REQUESTS, LOYALTY_TIERS } from './loyaltyMock';
+import { REWARDS, REWARD_STATS, LOYALTY_TIERS } from './loyaltyMock';
 
 let _uid = 1;
 const copyId = () => `copy-${_uid++}`;
@@ -42,7 +40,7 @@ function RewardRow({ reward, tiers, onToggle, onEdit, onDuplicate, onDelete }) {
   const isActive = reward.status === 'active';
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 110px 120px 150px 44px 36px', gap: 16,
+    <div style={{ display: 'grid', gridTemplateColumns: '40px minmax(240px, 1fr) 110px 120px 140px 40px 32px', gap: 16,
                   alignItems: 'center', padding: '12px 16px', borderRadius: 8,
                   border: `1px solid ${DS.borderDefault}`, background: isActive ? DS.bgCard : DS.bgSurface }}>
       <span style={{ width: 40, height: 40, borderRadius: 8, background: DS.bgIcons, display: 'flex',
@@ -61,14 +59,16 @@ function RewardRow({ reward, tiers, onToggle, onEdit, onDuplicate, onDelete }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6,
                       ...TY.labelMd, fontWeight: 400, fontFamily: DS.ff, color: DS.textSecondary }}>
-          <DistIcon s={12} c={DS.textSecondary} /> {t(`rw.dist.${reward.distribution}`)}
-          <span>·</span> {t('rw.redeemed', { n: fmt(reward.redeemed) })}
+          <DistIcon s={12} c={DS.textSecondary} />
+          <span style={{ whiteSpace: 'nowrap' }}>{t(`rw.dist.${reward.distribution}`)}</span>
+          <span>·</span>
+          <span style={{ whiteSpace: 'nowrap' }}>{t('rw.redeemed', { n: fmt(reward.redeemed) })}</span>
         </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <Ico.Star s={14} c={DS.feedbackWarning} />
-        <span style={{ ...TY.labelLg, fontFamily: DS.ff, color: DS.textStrong }}>{fmt(reward.cost)} pts</span>
+        <span style={{ ...TY.labelLg, fontFamily: DS.ff, color: DS.textStrong, whiteSpace: 'nowrap' }}>{fmt(reward.cost)} pts</span>
       </div>
 
       <div>
@@ -96,61 +96,11 @@ function RewardRow({ reward, tiers, onToggle, onEdit, onDuplicate, onDelete }) {
   );
 }
 
-function PendingPanel({ requests, rewards, tiers, onDecide }) {
-  const { t, tr, fmt, lang } = useLang();
-  const date = (d) => new Date(d).toLocaleDateString(lang === 'fr' ? 'fr-BE' : 'en-GB', { day: 'numeric', month: 'short' });
-
-  return (
-    <Card style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Ico.Clock s={18} c={DS.actionPrimary} />
-          <span style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault }}>{t('rw.pendingTitle')}</span>
-          {requests.length > 0 && <StatusBadge status="warning">{requests.length}</StatusBadge>}
-        </div>
-        <div style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 4 }}>{t('rw.pendingSub')}</div>
-      </div>
-
-      {requests.length === 0 ? (
-        <div style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary, padding: '16px 0' }}>
-          {t('rw.pendingNone')}
-        </div>
-      ) : requests.map(req => {
-        const reward = rewards.find(r => r.id === req.reward);
-        const tier = tiers.find(x => x.id === req.tier);
-        return (
-          <div key={req.id} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, borderRadius: 8,
-                                     border: `1px solid ${DS.borderDefault}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Avatar name={req.fan} size={32} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ ...TY.labelLg, fontFamily: DS.ff, color: DS.textStrong }}>{req.fan}</span>
-                  {tier && <TierBadge name={tier.name} color={tier.color} size="small" />}
-                </div>
-                <div style={{ ...TY.labelMd, fontWeight: 400, fontFamily: DS.ff, color: DS.textSecondary }}>
-                  {reward ? `${tr(reward.name)} · ${fmt(reward.cost)} pts` : '—'} · {t('rw.requestedOn', { d: date(req.date) })}
-                </div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <Btn type="Ghost" size="Sm" onClick={() => onDecide(req.id, false)}>{t('rw.reject')}</Btn>
-              <Btn type="Primary" size="Sm" iconLeft={<Ico.Check s={14} />} onClick={() => onDecide(req.id, true)}>
-                {t('rw.approve')}
-              </Btn>
-            </div>
-          </div>
-        );
-      })}
-    </Card>
-  );
-}
-
 function RewardsSkeleton() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        {[1, 2, 3, 4].map(i => (
+        {[1, 2, 3].map(i => (
           <div key={i} style={{ flex: '1 1 200px', minHeight: 110, background: DS.bgCard, borderRadius: 10,
                                 border: `1px solid ${DS.borderDefault}`, padding: 16, display: 'flex',
                                 flexDirection: 'column', gap: 10 }}>
@@ -169,7 +119,6 @@ export default function LoyaltyRewards() {
   const { t, fmt } = useLang();
   const [pageState, setPageState] = React.useState('ready');
   const [rewards, setRewards]     = React.useState(REWARDS.map(r => ({ ...r })));
-  const [requests, setRequests]   = React.useState(PENDING_REQUESTS);
   const [filter, setFilter]       = React.useState('all');
   const [modal, setModal]         = React.useState(null); // null | 'new' | reward
   const [toast, setToast]         = React.useState(null);
@@ -186,11 +135,6 @@ export default function LoyaltyRewards() {
     setRewards(prev => exists ? prev.map(x => x.id === r.id ? r : x) : [...prev, r]);
     notify(exists ? t('rw.updated') : t('rw.created'));
     setModal(null);
-  }
-
-  function decide(id, approved) {
-    setRequests(prev => prev.filter(r => r.id !== id));
-    notify(approved ? t('rw.approved') : t('rw.rejected'));
   }
 
   function renderContent() {
@@ -212,40 +156,34 @@ export default function LoyaltyRewards() {
             icon={<Ico.Check s={18} c={DS.teal500} />} accent={DS.teal500} />
           <KpiCard title={t('rw.kpi.spent')} value={fmt(REWARD_STATS.points_spent)} sub={t('rw.kpi.spentSub', { n: spentPct })}
             icon={<Ico.Star s={18} c={DS.feedbackWarning} />} accent={DS.feedbackWarning} />
-          <KpiCard title={t('rw.kpi.pending')} value={fmt(requests.length)} sub={t('rw.kpi.pendingSub')}
-            icon={<Ico.Clock s={18} c={DS.textSecondary} />} accent={DS.textSecondary} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(300px, 1fr)', gap: 20, alignItems: 'start' }}>
-          <Card style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-              <span style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault }}>{t('rw.catalog')}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary }}>{t('rw.filter')}</span>
-                <Chip label={t('common.all')} selected={filter === 'all'} onClick={() => setFilter('all')} />
-                {DISTRIBUTIONS.map(d => (
-                  <Chip key={d.id} label={t(`rw.dist.${d.id}`)} selected={filter === d.id} onClick={() => setFilter(d.id)} />
-                ))}
-              </div>
+        <Card style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <span style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault }}>{t('rw.catalog')}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary }}>{t('rw.filter')}</span>
+              <Chip label={t('common.all')} selected={filter === 'all'} onClick={() => setFilter('all')} />
+              {DISTRIBUTIONS.map(d => (
+                <Chip key={d.id} label={t(`rw.dist.${d.id}`)} selected={filter === d.id} onClick={() => setFilter(d.id)} />
+              ))}
             </div>
+          </div>
 
-            {visible.length === 0 ? (
-              <div style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary, padding: '24px 0' }}>{t('rw.noMatch')}</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {visible.map(r => (
-                  <RewardRow key={r.id} reward={r} tiers={tiers}
-                    onToggle={v => setRewards(prev => prev.map(x => x.id === r.id ? { ...x, status: v ? 'active' : 'draft' } : x))}
-                    onEdit={() => setModal(r)}
-                    onDuplicate={() => { setRewards(prev => [...prev, { ...r, id: copyId(), status: 'draft', redeemed: 0 }]); notify(t('rw.duplicated')); }}
-                    onDelete={() => { setRewards(prev => prev.filter(x => x.id !== r.id)); notify(t('rw.deleted')); }} />
-                ))}
-              </div>
-            )}
-          </Card>
-
-          <PendingPanel requests={requests} rewards={rewards} tiers={tiers} onDecide={decide} />
-        </div>
+          {visible.length === 0 ? (
+            <div style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary, padding: '24px 0' }}>{t('rw.noMatch')}</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {visible.map(r => (
+                <RewardRow key={r.id} reward={r} tiers={tiers}
+                  onToggle={v => setRewards(prev => prev.map(x => x.id === r.id ? { ...x, status: v ? 'active' : 'draft' } : x))}
+                  onEdit={() => setModal(r)}
+                  onDuplicate={() => { setRewards(prev => [...prev, { ...r, id: copyId(), status: 'draft', redeemed: 0 }]); notify(t('rw.duplicated')); }}
+                  onDelete={() => { setRewards(prev => prev.filter(x => x.id !== r.id)); notify(t('rw.deleted')); }} />
+              ))}
+            </div>
+          )}
+        </Card>
       </div>
     );
   }
@@ -259,7 +197,6 @@ export default function LoyaltyRewards() {
         actions={
           <>
             <StatusBadge status="info">{t('rw.postMvp')}</StatusBadge>
-            <LangSwitch />
             {pageState === 'ready' && (
               <Btn type="Primary" iconLeft={<Ico.Plus s={16} />} onClick={() => setModal('new')}>{t('rw.new')}</Btn>
             )}

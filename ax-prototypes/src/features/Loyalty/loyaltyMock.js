@@ -2,7 +2,7 @@
 
 export const LOYALTY_PROGRAM = {
   id: 'prog-001',
-  name: 'Fidélité RCSC 2025–2026',
+  name: 'RCSC Loyalty 2025–2026',
   status: 'active',
   eligible_segment: 'seg-saison',
   start_date: '2025-08-15',
@@ -91,8 +91,3 @@ export const REWARDS = [
 
 export const REWARD_STATS = { redeemed: 345, points_spent: 168400, points_awarded: 412500 };
 
-export const PENDING_REQUESTS = [
-  { id: 'pr1', reward: 'rw3', fan: 'Camille Dupont', tier: 't3', date: '2026-10-27' },
-  { id: 'pr2', reward: 'rw4', fan: 'Lucas Martin',   tier: 't4', date: '2026-10-26' },
-  { id: 'pr3', reward: 'rw3', fan: 'Inès Lambert',   tier: 't4', date: '2026-10-24' },
-];

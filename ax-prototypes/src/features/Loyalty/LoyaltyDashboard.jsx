@@ -11,7 +11,6 @@ import { StatePreview } from '../../components/StatePreview';
 import Card from '../../components/Card';
 import { TierBadge } from './TierBadge';
 import { useLang } from './i18n';
-import { LangSwitch } from './LangSwitch';
 import { SNAPSHOT_STATS, TIER_DISTRIBUTION, TOP_ACTIONS, LOYALTY_TIERS } from './loyaltyMock';
 
 const PERIODS = ['30d', '90d', '12m', 'season'];
@@ -283,7 +282,6 @@ export default function LoyaltyDashboard() {
         icon={<Ico.Chart s={20} c={DS.actionPrimary} />}
         title={t('dash.title')}
         description={t('dash.desc')}
-        actions={<LangSwitch />}
       />
 
       <div style={{ padding: 24 }}>

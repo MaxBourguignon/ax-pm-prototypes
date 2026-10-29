@@ -176,16 +176,17 @@ export function ActionRuleModal({ open, rule, tiers, onClose, onSave }) {
   }
 
   const footer = (
-    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+    <>
+      <span style={{ flex: 1 }} />
       <Btn type="Secondary" onClick={onClose}>{t('common.cancel')}</Btn>
       <Btn type="Primary" iconLeft={<Ico.Check s={16} />} onClick={save}>{t('am.saveRule')}</Btn>
-    </div>
+    </>
   );
 
   return (
     <Modal open={open} onClose={onClose} variant="center" width={760} footer={footer}
       title={rule ? t('am.titleEdit') : t('am.titleNew')} subtitle={t('am.subtitle')}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, fontFamily: DS.ff }}>
+      <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20, fontFamily: DS.ff }}>
 
         {/* 1 · Identification */}
         <Section title={t('am.s1')}>

@@ -16,7 +16,6 @@ import { ActionMenu } from '../../components/ActionMenu';
 import { TierTable } from './TierTable';
 import { ActionRuleModal } from './ActionRuleModal';
 import { useLang } from './i18n';
-import { LangSwitch } from './LangSwitch';
 import { LOYALTY_PROGRAM, LOYALTY_TIERS, LOYALTY_RULES, SEGMENTS } from './loyaltyMock';
 
 const TABS = [
@@ -420,14 +419,11 @@ export default function LoyaltySettings() {
         title={t('settings.title')}
         description={t('settings.desc')}
         actions={
-          <>
-            {pageState === 'ready' && (
-              <StatusBadge status={isActive ? 'active' : 'inactive'}>
-                {isActive ? t('settings.progActive') : t('settings.progInactive')}
-              </StatusBadge>
-            )}
-            <LangSwitch />
-          </>
+          pageState === 'ready' ? (
+            <StatusBadge status={isActive ? 'active' : 'inactive'}>
+              {isActive ? t('settings.progActive') : t('settings.progInactive')}
+            </StatusBadge>
+          ) : null
         }
       />
 
