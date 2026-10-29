@@ -518,7 +518,7 @@ export default function AdminHubBranding() {
           to="/sso-admin"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none', color: DS.textSecondary, ...TY.b2, fontFamily: DS.ff }}
         >
-          <Ico.ChevLeft s={14} c={DS.textSecondary} /> Back to Admin Hub
+          <Ico.ArrowLeftSmall s={14} c={DS.textSecondary} /> Back to Admin Hub
         </NavLink>
       </div>
 

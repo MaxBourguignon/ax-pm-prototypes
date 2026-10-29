@@ -79,7 +79,7 @@ function EntryCard({ icon: Icon, title, description, ctaLabel, external, onClick
         <Btn
           type="Tertiary"
           size="Small"
-          iconRight={external ? <Ico.Globe s={14} c={DS.actionPrimary} /> : <Ico.ChevRight s={14} c={DS.actionPrimary} />}
+          iconRight={external ? <Ico.Globe s={14} c={DS.actionPrimary} /> : <Ico.ArrowRightSmall s={14} c={DS.actionPrimary} />}
         >
           {ctaLabel}
         </Btn>
