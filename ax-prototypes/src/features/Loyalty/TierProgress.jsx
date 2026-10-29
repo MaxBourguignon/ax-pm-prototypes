@@ -11,16 +11,16 @@ export function TierProgress({ current, nextTierAt, tierColor, nextTierName }) {
   return (
     <div style={{ width: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textDefault, fontWeight: 600 }}>
+        <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textStrong, fontWeight: 600 }}>
           {fmt(current)} pts
         </span>
-        <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>
+        <span style={{ ...TY.labelMd, fontWeight: 400, fontFamily: DS.ff, color: DS.textSecondary }}>
           {atMax
             ? t('tiers.maxReached')
             : t('tiers.ptsBefore', { n: fmt(remaining), tier: nextTierName })}
         </span>
       </div>
-      <div style={{ height: 6, background: DS.borderDefault, borderRadius: 999, overflow: 'hidden' }}>
+      <div style={{ height: 6, background: DS.surfaceMuted, borderRadius: 999, overflow: 'hidden' }}>
         <div style={{
           height: '100%', width: `${pct}%`,
           background: tierColor || DS.actionPrimary,

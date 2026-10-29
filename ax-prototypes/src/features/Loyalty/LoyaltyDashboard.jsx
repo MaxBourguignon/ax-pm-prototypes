@@ -8,7 +8,7 @@ import { EmptyState, ErrorState } from '../../components/Feedback';
 import { PageHeader } from '../../components/PageHeader';
 import { KpiCard } from '../../components/Kpi';
 import { StatePreview } from '../../components/StatePreview';
-import Card from '../../components/Card';
+import { Section, Note } from './LoyaltyUI';
 import { TierBadge } from './TierBadge';
 import { useLang } from './i18n';
 import { SNAPSHOT_STATS, TIER_DISTRIBUTION, TOP_ACTIONS, LOYALTY_TIERS } from './loyaltyMock';
@@ -21,50 +21,47 @@ function TierTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
-    <div style={{ background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
-                  borderRadius: 8, padding: '8px 14px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+    <div style={{ background: DS.surfaceCanvas, border: `1px solid ${DS.borderDefault}`,
+                  borderRadius: DS.radiusLg, padding: '8px 12px', boxShadow: DS.shadowSm }}>
       <TierBadge name={d.tier} color={d.color} size="small" />
-      <div style={{ marginTop: 6, ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }}>
-        <strong>{fmt(d.count)}</strong> {t('dash.fans')}
+      <div style={{ marginTop: 6, ...TY.bodySm, fontFamily: DS.ff, color: DS.textDefault }}>
+        <strong style={{ color: DS.textStrong }}>{fmt(d.count)}</strong> {t('dash.fans')}
       </div>
     </div>
   );
 }
 
 // ── Loading Skeletons ──────────────────────────────────────────────────────────
+// Same shells as the ready state: KPI cards, then two DS sections.
+const SKELETON_SHELL = {
+  background: DS.surfaceCanvas, border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusXl,
+  boxShadow: DS.shadowSm, boxSizing: 'border-box',
+};
+
 function DashboardSkeleton() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Period selector skeleton */}
-      <div style={{ display: 'flex', gap: 8 }}>
-        {[100, 120, 110, 130].map((w, i) => <Skeleton key={i} w={w} h={32} r={10} />)}
-      </div>
-      {/* KPI cards */}
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        {[1,2,3,4].map(i => (
-          <div key={i} style={{ flex: '1 1 200px', minWidth: 200, minHeight: 110,
-                                background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
-                                borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Skeleton w={120} h={14} r={3} />
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} style={{ ...SKELETON_SHELL, flex: '1 1 200px', minWidth: 200, minHeight: 112,
+                                padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Skeleton w={120} h={12} r={3} />
             <Skeleton w={80} h={28} r={4} />
             <Skeleton w={140} h={12} r={3} />
           </div>
         ))}
       </div>
-      {/* Charts row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <div style={{ background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
-                      borderRadius: 10, padding: 24, height: 320 }}>
-          <Skeleton w={160} h={18} r={4} />
-          <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
-            <Skeleton w={240} h={240} r={120} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 20 }}>
+        <div style={{ ...SKELETON_SHELL, padding: '16px 20px 20px', height: 360 }}>
+          <Skeleton w={160} h={20} r={4} />
+          <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}>
+            <Skeleton w={200} h={200} r={100} />
           </div>
         </div>
-        <div style={{ background: DS.bgCard, border: `1px solid ${DS.borderDefault}`,
-                      borderRadius: 10, padding: 24, height: 320 }}>
-          <Skeleton w={160} h={18} r={4} />
-          <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {[1,2,3].map(i => <Skeleton key={i} w="100%" h={48} r={6} />)}
+        <div style={{ ...SKELETON_SHELL, padding: '16px 20px 20px', height: 360 }}>
+          <Skeleton w={160} h={20} r={4} />
+          <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} w="100%" h={40} r={6} />)}
           </div>
         </div>
       </div>
@@ -72,25 +69,13 @@ function DashboardSkeleton() {
   );
 }
 
-// ── Widget wrapper with per-widget error state ─────────────────────────────────
-function Widget({ title, icon: Icon, children, error }) {
+// ── Widget — DS section with a per-widget error state ─────────────────────────
+function Widget({ title, children, error }) {
   const { t } = useLang();
   return (
-    <Card style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        {Icon && <Icon s={18} c={DS.actionPrimary} />}
-        <span style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault }}>{title}</span>
-      </div>
-      {error ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px',
-                      background: DS.feedbackErrorBg, borderRadius: 6 }}>
-          <Ico.Alert s={16} c={DS.feedbackError} />
-          <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.feedbackErrorText }}>
-            {t('dash.widgetError')}
-          </span>
-        </div>
-      ) : children}
-    </Card>
+    <Section title={title}>
+      {error ? <Note tone="error">{t('dash.widgetError')}</Note> : children}
+    </Section>
   );
 }
 
@@ -104,20 +89,20 @@ export default function LoyaltyDashboard() {
   const pts     = stats.points_awarded[period] || 0;
   const manual  = stats.manual_adjustments[period] || 0;
 
-  // Render custom legend entry
-  const renderLegend = (props) => {
-    const { payload } = props;
-    return (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', justifyContent: 'center', marginTop: 8 }}>
-        {payload.map((entry, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 10, height: 10, borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
-            <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textDefault }}>{entry.value}</span>
-          </div>
-        ))}
-      </div>
-    );
-  };
+  const th = { ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary, padding: '8px 12px', textAlign: 'left', background: DS.surfaceHeader };
+  const td = { ...TY.bodyMd, fontFamily: DS.ff, color: DS.textStrong, padding: '10px 12px', borderTop: `1px solid ${DS.borderTableSep}`, fontVariantNumeric: 'tabular-nums' };
+
+  // Custom legend — 8px dots, labelMd, as on Overview
+  const renderLegend = ({ payload }) => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', justifyContent: 'center', marginTop: 8 }}>
+      {payload.map((entry, i) => (
+        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...TY.labelMd, fontFamily: DS.ff, color: DS.textDefault }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: entry.color, flexShrink: 0 }} />
+          {entry.value}
+        </span>
+      ))}
+    </div>
+  );
 
   function renderContent() {
     if (pageState === 'loading') return <DashboardSkeleton />;
@@ -125,7 +110,7 @@ export default function LoyaltyDashboard() {
     if (pageState === 'empty') {
       return (
         <EmptyState
-          icon={<Ico.Chart s={28} c={DS.textSecondary} />}
+          icon={<Ico.Loyalty s={28} c={DS.textSecondary} />}
           title={t('dash.emptyTitle')}
           sub={t('dash.emptySub')}
           cta={null}
@@ -134,139 +119,93 @@ export default function LoyaltyDashboard() {
     }
 
     if (pageState === 'error') {
-      return (
-        <ErrorState
-          title={t('dash.errorTitle')}
-          sub={t('dash.errorSub')}
-        />
-      );
+      return <ErrorState title={t('dash.errorTitle')} sub={t('dash.errorSub')} />;
     }
 
     // ready
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        {/* Period selector */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>{t('dash.period')}</span>
-          {PERIODS.map(p => (
-            <Chip key={p} label={t(`dash.p.${p}`)} selected={period === p}
-              onClick={() => setPeriod(p)} />
-          ))}
-        </div>
-
-        {/* KPI cards */}
+        {/* KPI cards — DS Stat type (no icon / accent) */}
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          <KpiCard
-            title={t('dash.kpi.enrolled')}
-            value={fmt(stats.fans_enrolled)}
-            sub={t('dash.kpi.enrolledSub', { n: stats.pct_eligible })}
-            icon={<Ico.Users s={18} c={DS.actionPrimary} />}
-            accent={DS.actionPrimary}
-          />
-          <KpiCard
-            title={t('dash.kpi.coverage')}
-            value={`${stats.pct_eligible}%`}
-            sub={t('dash.kpi.coverageSub')}
-            icon={<Ico.Chart s={18} c={DS.teal500} />}
-            accent={DS.teal500}
-          />
-          <KpiCard
-            title={t('dash.kpi.points')}
-            value={fmt(pts)}
-            sub={t(`dash.p.${period}`)}
-            icon={<Ico.Star s={18} c={DS.feedbackWarning} />}
-            accent={DS.feedbackWarning}
-          />
-          <KpiCard
-            title={t('dash.kpi.manual')}
-            value={fmt(manual)}
-            sub={t(`dash.p.${period}`)}
-            icon={<Ico.Edit s={18} c={DS.textSecondary} />}
-            accent={DS.textSecondary}
-          />
+          <KpiCard label={t('dash.kpi.enrolled')} value={fmt(stats.fans_enrolled)}
+            sub={t('dash.kpi.enrolledSub', { n: stats.pct_eligible })} />
+          <KpiCard label={t('dash.kpi.coverage')} value={`${stats.pct_eligible}%`}
+            sub={t('dash.kpi.coverageSub')} />
+          <KpiCard label={t('dash.kpi.points')} value={fmt(pts)} sub={t(`dash.p.${period}`)} />
+          <KpiCard label={t('dash.kpi.manual')} value={fmt(manual)} sub={t(`dash.p.${period}`)} />
         </div>
 
         {/* Charts row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 20 }}>
 
           {/* Donut — Tier distribution */}
-          <Widget title={t('dash.tierSplit')} icon={Ico.Donut}>
-            <ResponsiveContainer width="100%" height={280}>
+          <Widget title={t('dash.tierSplit')}>
+            <ResponsiveContainer width="100%" height={260}>
               <PieChart>
                 <Pie data={TIER_DISTRIBUTION} cx="50%" cy="45%"
-                  innerRadius={65} outerRadius={100} paddingAngle={3} dataKey="count">
+                  innerRadius={62} outerRadius={96} paddingAngle={3} dataKey="count" stroke="none">
                   {TIER_DISTRIBUTION.map((entry, i) => (
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip content={<TierTooltip />} />
-                <Legend content={renderLegend} formatter={(v) => v} />
+                <Legend content={renderLegend} />
               </PieChart>
             </ResponsiveContainer>
 
             {/* Count summary */}
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              {TIER_DISTRIBUTION.map((t, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8,
-                                      padding: '8px 12px', background: DS.bgSurface,
-                                      borderRadius: 8, flex: '1 1 100px' }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: t.color, flexShrink: 0 }} />
-                  <div>
-                    <div style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault }}>{fmt(t.count)}</div>
-                    <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>{t.tier}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: 8 }}>
+              {TIER_DISTRIBUTION.map((d) => (
+                <div key={d.tier} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
+                                           background: DS.surfaceSubtle, borderRadius: DS.radiusLg }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ ...TY.bodyMdBold, fontFamily: DS.ff, color: DS.textStrong }}>{fmt(d.count)}</div>
+                    <div style={{ ...TY.labelMd, fontWeight: 400, fontFamily: DS.ff, color: DS.textSecondary }}>{d.tier}</div>
                   </div>
                 </div>
               ))}
             </div>
           </Widget>
 
-          {/* Top actions table */}
-          <Widget title={t('dash.topActions')} icon={Ico.Zap}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0,
-                          border: `1px solid ${DS.borderDefault}`, borderRadius: 8, overflow: 'hidden' }}>
-              {/* Header */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 120px',
-                            background: DS.blue100, padding: '10px 16px' }}>
-                {[t('dash.col.action'), t('dash.col.events'), t('dash.col.points')].map((h, i) => (
-                  <span key={i} style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary,
-                                          textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</span>
-                ))}
-              </div>
-
-              {TOP_ACTIONS.map((row, i) => (
-                <div key={i} style={{
-                  display: 'grid', gridTemplateColumns: '1fr 100px 120px',
-                  padding: '14px 16px', alignItems: 'center',
-                  borderTop: i > 0 ? `1px solid ${DS.borderDefault}` : 'none',
-                  background: DS.bgCard,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ width: 24, height: 24, borderRadius: 6, background: DS.bgIcons,
-                                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Ico.Zap s={14} c={DS.actionPrimary} />
-                    </span>
-                    <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }}>{tr(row.action)}</span>
-                  </div>
-                  <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }}>{fmt(row.events)}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Ico.Star s={14} c={DS.feedbackWarning} />
-                    <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault, fontWeight: 600 }}>
-                      {fmt(row.points)}
-                    </span>
-                  </div>
-                </div>
-              ))}
+          {/* Top actions table — DS table header + separators */}
+          <Widget title={t('dash.topActions')}>
+            <div style={{ border: `1px solid ${DS.borderSection}`, borderRadius: DS.radiusLg, overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={th}>{t('dash.col.action')}</th>
+                    <th style={{ ...th, textAlign: 'right' }}>{t('dash.col.events')}</th>
+                    <th style={{ ...th, textAlign: 'right' }}>{t('dash.col.points')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TOP_ACTIONS.map((row, i) => (
+                    <tr key={i}>
+                      <td style={td}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ width: 28, height: 28, borderRadius: DS.radiusMd, background: DS.brandPrimarySubtle,
+                                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Ico.Zap s={14} c={DS.actionPrimary} />
+                          </span>
+                          <span style={{ color: DS.textDefault }}>{tr(row.action)}</span>
+                        </span>
+                      </td>
+                      <td style={{ ...td, textAlign: 'right' }}>{fmt(row.events)}</td>
+                      <td style={{ ...td, textAlign: 'right', fontWeight: 600 }}>{fmt(row.points)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             {/* Tier legend (reference) */}
-            <div style={{ marginTop: 8 }}>
-              <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginBottom: 8 }}>
-                {t('dash.activeTiers')}
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <span style={{ ...TY.labelMd, fontFamily: DS.ff, color: DS.textSecondary }}>{t('dash.activeTiers')}</span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {LOYALTY_TIERS.map(t => (
-                  <TierBadge key={t.id} name={t.name} color={t.color} size="small" />
+                {LOYALTY_TIERS.map(tier => (
+                  <TierBadge key={tier.id} name={tier.name} color={tier.color} size="small" />
                 ))}
               </div>
             </div>
@@ -277,16 +216,20 @@ export default function LoyaltyDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100%', background: DS.bgPage }}>
+    <div style={{ minHeight: '100%', fontFamily: DS.ff, display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 48 }}>
       <PageHeader
-        icon={<Ico.Chart s={20} c={DS.actionPrimary} />}
         title={t('dash.title')}
         description={t('dash.desc')}
+        actions={pageState === 'ready' ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {PERIODS.map(p => (
+              <Chip key={p} label={t(`dash.p.${p}`)} selected={period === p} onClick={() => setPeriod(p)} />
+            ))}
+          </div>
+        ) : null}
       />
 
-      <div style={{ padding: 24 }}>
-        {renderContent()}
-      </div>
+      {renderContent()}
 
       <StatePreview groups={[{
         label: t('common.state'),

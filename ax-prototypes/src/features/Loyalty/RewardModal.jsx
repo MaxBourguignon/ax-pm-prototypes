@@ -46,7 +46,7 @@ function Section({ title, children, last }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: last ? 0 : 20,
                   borderBottom: last ? 'none' : `1px solid ${DS.borderDefault}` }}>
-      <div style={{ ...TY.h5, fontFamily: DS.ff, color: DS.textStrong }}>{title}</div>
+      <div style={{ ...TY.bodyMdBold, fontFamily: DS.ff, color: DS.textStrong }}>{title}</div>
       {children}
     </div>
   );
@@ -93,16 +93,16 @@ export function RewardModal({ open, reward, tiers, onClose, onSave }) {
   const footer = (
     <>
       <span style={{ flex: 1 }} />
-      <Btn type="Ghost" onClick={onClose}>{t('common.cancel')}</Btn>
+      <Btn type="Tertiary" onClick={onClose}>{t('common.cancel')}</Btn>
       <Btn type="Secondary" onClick={() => save('draft')}>{t('rm.saveDraft')}</Btn>
-      <Btn type="Primary" iconLeft={<Ico.Check s={16} />} onClick={() => save('active')}>{t('rm.saveReward')}</Btn>
+      <Btn type="Primary" onClick={() => save('active')}>{t('rm.saveReward')}</Btn>
     </>
   );
 
   const shopName = t(`rm.src.${f.codeSource}`);
 
   return (
-    <Modal open={open} onClose={onClose} variant="center" width={760} footer={footer}
+    <Modal open={open} onClose={onClose} variant="center" size="lg" footer={footer}
       title={reward ? t('rm.titleEdit') : t('rm.titleNew')} subtitle={t('rm.subtitle')}>
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20, fontFamily: DS.ff }}>
 
@@ -153,8 +153,8 @@ export function RewardModal({ open, reward, tiers, onClose, onSave }) {
               return (
                 <button key={d.id} type="button" onClick={() => set('distribution', d.id)} aria-pressed={on}
                   style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: 12, textAlign: 'left',
-                           cursor: 'pointer', borderRadius: 8, fontFamily: DS.ff,
-                           background: on ? DS.brandPrimarySubtle : DS.bgCard,
+                           cursor: 'pointer', borderRadius: DS.radiusLg, fontFamily: DS.ff,
+                           background: on ? DS.brandPrimarySubtle : DS.surfaceCanvas,
                            border: `1px solid ${on ? DS.actionPrimary : DS.borderDefault}` }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 8, ...TY.labelLg, color: DS.textStrong }}>
                     <Icon s={16} c={DS.actionPrimary} /> {t(`rw.dist.${d.id}`)}
@@ -193,7 +193,7 @@ export function RewardModal({ open, reward, tiers, onClose, onSave }) {
                 <div style={grid('2fr 1fr')}>
                   <button type="button" onClick={() => set('codesLoaded', f.codesLoaded || 500)}
                     style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: 20,
-                             cursor: 'pointer', borderRadius: 8, fontFamily: DS.ff, background: DS.bgSurface,
+                             cursor: 'pointer', borderRadius: DS.radiusLg, fontFamily: DS.ff, background: DS.surfaceSubtle,
                              border: `1.5px dashed ${f.codesLoaded ? DS.feedbackSuccess : DS.borderDefault}` }}>
                     {f.codesLoaded ? (
                       <span style={{ display: 'flex', alignItems: 'center', gap: 6, ...TY.labelLg, color: DS.feedbackSuccess }}>
@@ -211,8 +211,8 @@ export function RewardModal({ open, reward, tiers, onClose, onSave }) {
                     onChange={e => set('lowStock', toInt(e.target.value))} style={{ width: '100%' }} />
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, borderRadius: 8,
-                              border: `1px solid ${DS.borderDefault}`, background: DS.bgSurface }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, borderRadius: DS.radiusLg,
+                              border: `1px solid ${DS.borderDefault}`, background: DS.surfaceSubtle }}>
                   <div>
                     <div style={{ ...TY.labelLg, color: DS.textStrong }}>{t('rm.connector', { shop: shopName })}</div>
                     <div style={{ ...TY.labelMd, fontWeight: 400, color: DS.textSecondary }}>{t('rm.connectorSub')}</div>
@@ -262,7 +262,7 @@ export function RewardModal({ open, reward, tiers, onClose, onSave }) {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 14px', borderRadius: 8,
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 14px', borderRadius: DS.radiusLg,
                         background: DS.feedbackInfoBg, border: `1px solid ${DS.feedbackInfo}` }}>
             <Ico.Info s={16} c={DS.feedbackInfo} />
             <span style={{ ...TY.bodySm, color: DS.feedbackInfo }}>{t('rm.pointsInfo')}</span>

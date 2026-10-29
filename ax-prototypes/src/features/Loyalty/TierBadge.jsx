@@ -11,7 +11,7 @@ export function TierBadge({ name, color, size = 'medium' }) {
       background: color || DS.neutral500,
       color: color === '#FFD700' ? '#1a1a1a' : DS.textInverse,
       fontFamily: DS.ff,
-      ...(sm ? TY.b3 : TY.b2),
+      ...(sm ? TY.labelMd : TY.bodySm),
       fontWeight: 600,
       whiteSpace: 'nowrap',
     }}>

@@ -88,7 +88,7 @@ function Section({ title, help, children }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 20,
                   borderBottom: `1px solid ${DS.borderDefault}` }}>
       <div>
-        <div style={{ ...TY.h5, fontFamily: DS.ff, color: DS.textStrong }}>{title}</div>
+        <div style={{ ...TY.bodyMdBold, fontFamily: DS.ff, color: DS.textStrong }}>{title}</div>
         {help && <div style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 2 }}>{help}</div>}
       </div>
       {children}
@@ -103,13 +103,13 @@ function CategoryTile({ cat, selected, onClick, t }) {
   return (
     <button type="button" onClick={onClick} aria-pressed={selected}
       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', textAlign: 'left',
-               cursor: 'pointer', borderRadius: 8, fontFamily: DS.ff,
-               background: selected ? DS.brandPrimarySubtle : DS.bgCard,
+               cursor: 'pointer', borderRadius: DS.radiusLg, fontFamily: DS.ff,
+               background: selected ? DS.brandPrimarySubtle : DS.surfaceCanvas,
                border: `1px solid ${selected ? DS.actionPrimary : DS.borderDefault}`,
                transition: 'border-color .15s, background .15s' }}>
-      <span style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, display: 'flex',
+      <span style={{ width: 32, height: 32, borderRadius: DS.radiusLg, flexShrink: 0, display: 'flex',
                      alignItems: 'center', justifyContent: 'center',
-                     background: selected ? DS.bgCard : DS.bgIcons }}>
+                     background: selected ? DS.surfaceCanvas : DS.bgIcons }}>
         <Icon s={16} c={DS.actionPrimary} />
       </span>
       <span style={{ minWidth: 0 }}>
@@ -178,13 +178,13 @@ export function ActionRuleModal({ open, rule, tiers, onClose, onSave }) {
   const footer = (
     <>
       <span style={{ flex: 1 }} />
-      <Btn type="Secondary" onClick={onClose}>{t('common.cancel')}</Btn>
-      <Btn type="Primary" iconLeft={<Ico.Check s={16} />} onClick={save}>{t('am.saveRule')}</Btn>
+      <Btn type="Tertiary" onClick={onClose}>{t('common.cancel')}</Btn>
+      <Btn type="Primary" onClick={save}>{t('am.saveRule')}</Btn>
     </>
   );
 
   return (
-    <Modal open={open} onClose={onClose} variant="center" width={760} footer={footer}
+    <Modal open={open} onClose={onClose} variant="center" size="lg" footer={footer}
       title={rule ? t('am.titleEdit') : t('am.titleNew')} subtitle={t('am.subtitle')}>
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20, fontFamily: DS.ff }}>
 
@@ -339,7 +339,7 @@ export function ActionRuleModal({ open, rule, tiers, onClose, onSave }) {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8,
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: DS.radiusLg,
                         background: DS.feedbackInfoBg, border: `1px solid ${DS.feedbackInfo}` }}>
             <Ico.Star s={16} c={DS.feedbackInfo} />
             <span style={{ ...TY.bodySm, color: DS.feedbackInfo }}>
@@ -351,7 +351,7 @@ export function ActionRuleModal({ open, rule, tiers, onClose, onSave }) {
 
         {/* 5 · Caps & stacking */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ ...TY.h5, fontFamily: DS.ff, color: DS.textStrong }}>{t('am.s5')}</div>
+          <div style={{ ...TY.bodyMdBold, fontFamily: DS.ff, color: DS.textStrong }}>{t('am.s5')}</div>
           <div style={grid('1fr 1fr 1fr')}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
               <Field label={t('am.capMember')} type="number" placeholder={t('common.unlimited')}
@@ -383,7 +383,7 @@ export function ActionRuleModal({ open, rule, tiers, onClose, onSave }) {
 
 function InlineInfo({ children }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 14px', borderRadius: 8,
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 14px', borderRadius: DS.radiusLg,
                   background: DS.feedbackInfoBg, border: `1px solid ${DS.feedbackInfo}` }}>
       <Ico.Info s={16} c={DS.feedbackInfo} />
       <span style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.feedbackInfo }}>{children}</span>

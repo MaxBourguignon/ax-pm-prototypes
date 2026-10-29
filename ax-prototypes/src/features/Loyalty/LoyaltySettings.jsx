@@ -11,7 +11,8 @@ import { EmptyState, ErrorState } from '../../components/Feedback';
 import { PageHeader } from '../../components/PageHeader';
 import { Toast } from '../../components/Toast';
 import { StatePreview } from '../../components/StatePreview';
-import Card from '../../components/Card';
+import { Tabs } from '../../components/Tabs';
+import { Section, HeadRow, Note } from './LoyaltyUI';
 import { ActionMenu } from '../../components/ActionMenu';
 import { TierTable } from './TierTable';
 import { ActionRuleModal } from './ActionRuleModal';
@@ -19,61 +20,16 @@ import { useLang } from './i18n';
 import { LOYALTY_PROGRAM, LOYALTY_TIERS, LOYALTY_RULES, SEGMENTS } from './loyaltyMock';
 
 const TABS = [
-  { id: 'programme',   label: 'settings.tab.programme', icon: Ico.Settings },
-  { id: 'tiers',       label: 'settings.tab.tiers',     icon: Ico.Star },
-  { id: 'rules',       label: 'settings.tab.rules',     icon: Ico.Zap },
+  { value: 'programme', label: 'settings.tab.programme' },
+  { value: 'tiers',     label: 'settings.tab.tiers' },
+  { value: 'rules',     label: 'settings.tab.rules' },
 ];
-
-function TabBar({ active, onChange }) {
-  const { t } = useLang();
-  return (
-    <div style={{ background: DS.bgCard, borderBottom: `1px solid ${DS.borderDefault}`,
-                  padding: '0 24px', display: 'flex', gap: 4 }}>
-      {TABS.map(tab => {
-        const isActive = tab.id === active;
-        const Icon = tab.icon;
-        return (
-          <button key={tab.id} type="button" onClick={() => onChange(tab.id)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 16px',
-                     background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: DS.ff,
-                     ...TY.b2, fontWeight: isActive ? 600 : 400,
-                     color: isActive ? DS.actionPrimary : DS.textSecondary,
-                     borderBottom: isActive ? `3px solid ${DS.actionPrimary}` : '3px solid transparent',
-                     transition: 'color 0.15s, border-color 0.15s', marginBottom: -1 }}>
-            <Icon s={16} c={isActive ? DS.actionPrimary : DS.textSecondary} />
-            {t(tab.label)}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function SectionTitle({ title, sub }) {
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault }}>{title}</div>
-      {sub && <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 4 }}>{sub}</div>}
-    </div>
-  );
-}
-
-function InfoBanner({ children }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px',
-                  background: DS.feedbackInfoBg, borderRadius: 6,
-                  border: `1px solid ${DS.feedbackInfo}` }}>
-      <Ico.Info s={16} c={DS.feedbackInfo} />
-      <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.feedbackInfo }}>{children}</span>
-    </div>
-  );
-}
 
 function LoadingSkeleton() {
   return (
-    <Card style={{ padding: 24 }}>
+    <Section>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <Skeleton w={180} h={18} r={4} />
+        <Skeleton w={180} h={20} r={4} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
           {[200, 160, 220, 140].map((w, i) => (
             <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -83,7 +39,7 @@ function LoadingSkeleton() {
           ))}
         </div>
       </div>
-    </Card>
+    </Section>
   );
 }
 
@@ -119,15 +75,13 @@ function ProgrammeTab({ programme, setProgramme, errors, setErrors, notify }) {
   }
 
   return (
-    <Card style={{ padding: 24 }}>
-      <SectionTitle title={t('prog.title')} sub={t('prog.sub')} />
+    <Section title={t('prog.title')} sub={t('prog.sub')}>
 
       {/* Status row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '12px 16px', background: DS.bgSurface, borderRadius: 8, marginBottom: 24,
-                    border: `1px solid ${DS.borderDefault}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                    padding: '12px 16px', background: DS.surfaceSubtle, borderRadius: DS.radiusLg }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>{t('prog.status')}</span>
+          <span style={{ ...TY.bodyMd, fontFamily: DS.ff, color: DS.textSecondary }}>{t('prog.status')}</span>
           <StatusBadge status={isActive ? 'active' : 'inactive'}>
             {isActive ? t('prog.active') : t('prog.inactive')}
           </StatusBadge>
@@ -162,7 +116,7 @@ function ProgrammeTab({ programme, setProgramme, errors, setErrors, notify }) {
           {isActive && (
             <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Ico.Info s={12} c={DS.textSecondary} />
-              <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>
+              <span style={{ ...TY.labelMd, fontWeight: 400, fontFamily: DS.ff, color: DS.textSecondary }}>
                 {t('prog.startLocked')}
               </span>
             </div>
@@ -176,21 +130,13 @@ function ProgrammeTab({ programme, setProgramme, errors, setErrors, notify }) {
       </div>
 
       {errors.eligible_segment && (
-        <div style={{ marginTop: 8 }}>
-          <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.feedbackError }}>
-            {errors.eligible_segment}
-          </span>
-        </div>
+        <span style={{ ...TY.labelMd, fontWeight: 400, fontFamily: DS.ff, color: DS.feedbackError, marginTop: -8 }}>
+          {errors.eligible_segment}
+        </span>
       )}
 
-      {isActive && (
-        <div style={{ marginTop: 20 }}>
-          <InfoBanner>
-            {t('prog.activeInfo')}
-          </InfoBanner>
-        </div>
-      )}
-    </Card>
+      {isActive && <Note>{t('prog.activeInfo')}</Note>}
+    </Section>
   );
 }
 
@@ -199,10 +145,9 @@ function ProgrammeTab({ programme, setProgramme, errors, setErrors, notify }) {
 function TiersTab({ tiers, setTiers }) {
   const { t } = useLang();
   return (
-    <Card style={{ padding: 24 }}>
-      <SectionTitle title={t('tiers.title')} sub={t('tiers.sub')} />
+    <Section title={t('tiers.title')} sub={t('tiers.sub')}>
       <TierTable tiers={tiers} setTiers={setTiers} />
-    </Card>
+    </Section>
   );
 }
 
@@ -252,39 +197,32 @@ function RulesTab({ rules, setRules, tiers, notify }) {
   const COL = '1fr 80px 140px 1fr 36px';
 
   return (
-    <Card style={{ padding: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-        <SectionTitle title={t('rules.title')} sub={t('rules.sub')} />
+    <Section title={t('rules.title')} sub={t('rules.sub')}
+      right={(
         <Btn type="Secondary" size="Medium" iconLeft={<Ico.Plus s={16} />} onClick={() => setModal('new')}>
           {t('rules.new')}
         </Btn>
-      </div>
+      )}>
 
-      {/* Table header */}
-      <div style={{ display: 'grid', gridTemplateColumns: COL, gap: 16,
-                    padding: '0 12px 10px', alignItems: 'center' }}>
-        {[t('rules.col.action'), t('rules.col.active'), t('rules.col.points'), t('rules.col.desc'), ''].map((h, i) => (
-          <span key={i} style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary,
-                                  textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</span>
-        ))}
-      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <HeadRow cols={COL} labels={[t('rules.col.action'), t('rules.col.active'), t('rules.col.points'), t('rules.col.desc'), '']} />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {rules.map(rule => {
           const summary = calcSummary(rule);
           return (
           <div key={rule.id} style={{
             display: 'grid', gridTemplateColumns: COL, gap: 16, padding: '12px',
-            alignItems: 'center', background: rule.active ? DS.bgCard : DS.bgSurface,
-            border: `1px solid ${DS.borderDefault}`, borderRadius: 8,
+            alignItems: 'center', background: rule.active ? DS.surfaceCanvas : DS.surfaceSubtle,
+            border: `1px solid ${DS.borderDefault}`, borderRadius: DS.radiusLg,
             opacity: rule.active ? 1 : 0.75, transition: 'opacity 0.2s, background 0.2s',
           }}>
             {/* Action name */}
             <div>
-              <div style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault, fontWeight: rule.active ? 600 : 400 }}>
+              <div style={{ ...TY.bodyMdBold, fontFamily: DS.ff, color: DS.textStrong }}>
                 {tr(rule.label)}
               </div>
-              <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 2 }}>
+              <div style={{ ...TY.monoMd, fontFamily: DS.ffm, color: DS.textSecondary, marginTop: 2 }}>
                 {rule.action}
               </div>
             </div>
@@ -295,7 +233,7 @@ function RulesTab({ rules, setRules, tiers, notify }) {
             {/* Points field (Fixed mode) or calculation summary */}
             {summary ? (
               <button type="button" onClick={() => setModal(rule)} title={t('rules.configure')}
-                style={{ ...TY.b3, fontFamily: DS.ff, color: DS.actionPrimary, background: 'none', border: 'none',
+                style={{ ...TY.labelMd, fontWeight: 600, fontFamily: DS.ff, color: DS.actionPrimary, background: 'none', border: 'none',
                          padding: 0, textAlign: 'left', cursor: 'pointer' }}>
                 {summary}
               </button>
@@ -328,27 +266,19 @@ function RulesTab({ rules, setRules, tiers, notify }) {
           );
         })}
       </div>
+      </div>
 
-      {Object.keys(ruleErrors).length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: '10px 14px',
-                      background: DS.feedbackErrorBg, borderRadius: 6,
-                      border: `1px solid ${DS.feedbackError}` }}>
-          <Ico.Warn s={16} c={DS.feedbackError} />
-          <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.feedbackErrorText }}>
-            {t('rules.err.fix')}
-          </span>
-        </div>
-      )}
+      {Object.keys(ruleErrors).length > 0 && <Note tone="error">{t('rules.err.fix')}</Note>}
 
-      <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
-        <Btn type="Primary" size="Medium" iconLeft={<Ico.Check s={16} />} onClick={saveRules}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Btn type="Primary" size="Medium" onClick={saveRules}>
           {t('rules.save')}
         </Btn>
       </div>
 
       <ActionRuleModal open={modal !== null} rule={modal === 'new' ? null : modal} tiers={tiers}
         onClose={() => setModal(null)} onSave={saveFromModal} />
-    </Card>
+    </Section>
   );
 }
 
@@ -374,7 +304,7 @@ export default function LoyaltySettings() {
     if (pageState === 'empty') {
       return (
         <EmptyState
-          icon={<Ico.Star s={28} c={DS.textSecondary} />}
+          icon={<Ico.Loyalty s={28} c={DS.textSecondary} />}
           title={t('settings.emptyTitle')}
           sub={t('settings.emptySub')}
           cta={
@@ -413,9 +343,8 @@ export default function LoyaltySettings() {
   }
 
   return (
-    <div style={{ minHeight: '100%', background: DS.bgPage }}>
+    <div style={{ minHeight: '100%', fontFamily: DS.ff, display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 48 }}>
       <PageHeader
-        icon={<Ico.Star s={20} c={DS.actionPrimary} />}
         title={t('settings.title')}
         description={t('settings.desc')}
         actions={
@@ -428,12 +357,11 @@ export default function LoyaltySettings() {
       />
 
       {pageState === 'ready' && (
-        <TabBar active={tab} onChange={setTab} />
+        <Tabs value={tab} onChange={setTab} divider width={140}
+          tabs={TABS.map(x => ({ value: x.value, label: t(x.label) }))} />
       )}
 
-      <div style={{ padding: 24 }}>
-        {renderContent()}
-      </div>
+      {renderContent()}
 
       <Toast toast={toast} />
 

@@ -1,7 +1,7 @@
 /**
  * Loyalty — Rewards page (/loyalty/rewards).
  * Post-MVP exploration: the MVP spec puts point consumption and rewards out of
- * scope (loyalty_reward, redeem_reward(), fulfilment, stock). Flagged in the header.
+ * scope (loyalty_reward, redeem_reward(), fulfilment, stock).
  *   KPI row · catalogue (filter by distribution, create / edit / duplicate / delete, activate).
  */
 import React from 'react';
@@ -18,7 +18,7 @@ import { KpiCard } from '../../components/Kpi';
 import { Toast } from '../../components/Toast';
 import { ActionMenu } from '../../components/ActionMenu';
 import { StatePreview } from '../../components/StatePreview';
-import Card from '../../components/Card';
+import { Section } from './LoyaltyUI';
 import { TierBadge } from './TierBadge';
 import { RewardModal } from './RewardModal';
 import { DISTRIBUTIONS } from './rewardDistributions';
@@ -41,16 +41,16 @@ function RewardRow({ reward, tiers, onToggle, onEdit, onDuplicate, onDelete }) {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '40px minmax(240px, 1fr) 110px 120px 140px 40px 32px', gap: 16,
-                  alignItems: 'center', padding: '12px 16px', borderRadius: 8,
-                  border: `1px solid ${DS.borderDefault}`, background: isActive ? DS.bgCard : DS.bgSurface }}>
-      <span style={{ width: 40, height: 40, borderRadius: 8, background: DS.bgIcons, display: 'flex',
+                  alignItems: 'center', padding: '12px 16px', borderRadius: DS.radiusLg,
+                  border: `1px solid ${DS.borderDefault}`, background: isActive ? DS.surfaceCanvas : DS.surfaceSubtle }}>
+      <span style={{ width: 40, height: 40, borderRadius: DS.radiusLg, background: DS.brandPrimarySubtle, display: 'flex',
                      alignItems: 'center', justifyContent: 'center' }}>
-        <Ico.Medal s={20} c={DS.actionPrimary} />
+        <Ico.Loyalty s={20} c={DS.actionPrimary} />
       </span>
 
       <div style={{ minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ ...TY.labelLg, fontFamily: DS.ff, color: DS.textStrong }}>{tr(reward.name)}</span>
+          <span style={{ ...TY.bodyMdBold, fontFamily: DS.ff, color: DS.textStrong }}>{tr(reward.name)}</span>
           {!isActive && <StatusBadge status="inactive">{t('rw.draft')}</StatusBadge>}
         </div>
         <div style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 2,
@@ -68,7 +68,7 @@ function RewardRow({ reward, tiers, onToggle, onEdit, onDuplicate, onDelete }) {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <Ico.Star s={14} c={DS.feedbackWarning} />
-        <span style={{ ...TY.labelLg, fontFamily: DS.ff, color: DS.textStrong, whiteSpace: 'nowrap' }}>{fmt(reward.cost)} pts</span>
+        <span style={{ ...TY.bodyMdBold, fontFamily: DS.ff, color: DS.textStrong, whiteSpace: 'nowrap' }}>{fmt(reward.cost)} pts</span>
       </div>
 
       <div>
@@ -101,16 +101,17 @@ function RewardsSkeleton() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
         {[1, 2, 3].map(i => (
-          <div key={i} style={{ flex: '1 1 200px', minHeight: 110, background: DS.bgCard, borderRadius: 10,
-                                border: `1px solid ${DS.borderDefault}`, padding: 16, display: 'flex',
+          <div key={i} style={{ flex: '1 1 200px', minHeight: 112, background: DS.surfaceCanvas, borderRadius: DS.radiusXl,
+                                border: `1px solid ${DS.borderSection}`, boxShadow: DS.shadowSm, padding: 20, display: 'flex',
                                 flexDirection: 'column', gap: 10 }}>
-            <Skeleton w={120} h={14} r={3} /><Skeleton w={80} h={28} r={4} /><Skeleton w={140} h={12} r={3} />
+            <Skeleton w={120} h={12} r={3} /><Skeleton w={80} h={28} r={4} /><Skeleton w={140} h={12} r={3} />
           </div>
         ))}
       </div>
-      <Card style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <Section>
+        <Skeleton w={160} h={20} r={4} />
         {[1, 2, 3, 4].map(i => <Skeleton key={i} w="100%" h={64} r={8} />)}
-      </Card>
+      </Section>
     </div>
   );
 }
@@ -142,7 +143,7 @@ export default function LoyaltyRewards() {
     if (pageState === 'error') return <ErrorState title={t('rw.errorTitle')} sub={t('rw.errorSub')} />;
     if (pageState === 'empty') {
       return (
-        <EmptyState icon={<Ico.Medal s={28} c={DS.textSecondary} />} title={t('rw.emptyTitle')} sub={t('rw.emptySub')}
+        <EmptyState icon={<Ico.Loyalty s={28} c={DS.textSecondary} />} title={t('rw.emptyTitle')} sub={t('rw.emptySub')}
           cta={<Btn type="Primary" iconLeft={<Ico.Plus s={16} />} onClick={() => setModal('new')}>{t('rw.new')}</Btn>} />
       );
     }
@@ -150,17 +151,13 @@ export default function LoyaltyRewards() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          <KpiCard title={t('rw.kpi.active')} value={fmt(activeCount)} sub={t('rw.kpi.activeSub', { n: rewards.length })}
-            icon={<Ico.Medal s={18} c={DS.actionPrimary} />} accent={DS.actionPrimary} />
-          <KpiCard title={t('rw.kpi.redeemed')} value={fmt(REWARD_STATS.redeemed)} sub={t('rw.kpi.redeemedSub')}
-            icon={<Ico.Check s={18} c={DS.teal500} />} accent={DS.teal500} />
-          <KpiCard title={t('rw.kpi.spent')} value={fmt(REWARD_STATS.points_spent)} sub={t('rw.kpi.spentSub', { n: spentPct })}
-            icon={<Ico.Star s={18} c={DS.feedbackWarning} />} accent={DS.feedbackWarning} />
+          <KpiCard label={t('rw.kpi.active')} value={fmt(activeCount)} sub={t('rw.kpi.activeSub', { n: rewards.length })} />
+          <KpiCard label={t('rw.kpi.redeemed')} value={fmt(REWARD_STATS.redeemed)} sub={t('rw.kpi.redeemedSub')} />
+          <KpiCard label={t('rw.kpi.spent')} value={fmt(REWARD_STATS.points_spent)} sub={t('rw.kpi.spentSub', { n: spentPct })} />
         </div>
 
-        <Card style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-            <span style={{ ...TY.h4, fontFamily: DS.ff, color: DS.textDefault }}>{t('rw.catalog')}</span>
+        <Section title={t('rw.catalog')}
+          right={(
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary }}>{t('rw.filter')}</span>
               <Chip label={t('common.all')} selected={filter === 'all'} onClick={() => setFilter('all')} />
@@ -168,7 +165,7 @@ export default function LoyaltyRewards() {
                 <Chip key={d.id} label={t(`rw.dist.${d.id}`)} selected={filter === d.id} onClick={() => setFilter(d.id)} />
               ))}
             </div>
-          </div>
+          )}>
 
           {visible.length === 0 ? (
             <div style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary, padding: '24px 0' }}>{t('rw.noMatch')}</div>
@@ -183,30 +180,26 @@ export default function LoyaltyRewards() {
               ))}
             </div>
           )}
-        </Card>
+        </Section>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100%', background: DS.bgPage }}>
+    <div style={{ minHeight: '100%', fontFamily: DS.ff, display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 48 }}>
       <PageHeader
-        icon={<Ico.Medal s={20} c={DS.actionPrimary} />}
         title={t('rw.title')}
         description={t('rw.desc')}
         actions={
-          <>
-            <StatusBadge status="info">{t('rw.postMvp')}</StatusBadge>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {pageState === 'ready' && (
-              <Btn type="Primary" iconLeft={<Ico.Plus s={16} />} onClick={() => setModal('new')}>{t('rw.new')}</Btn>
+              <Btn type="Primary" size="Medium" iconLeft={<Ico.Plus s={18} />} onClick={() => setModal('new')}>{t('rw.new')}</Btn>
             )}
-          </>
+          </div>
         }
       />
 
-      <div style={{ padding: 24 }}>
-        {renderContent()}
-      </div>
+      {renderContent()}
 
       <RewardModal open={modal !== null} reward={modal === 'new' ? null : modal} tiers={tiers}
         onClose={() => setModal(null)} onSave={saveReward} />

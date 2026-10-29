@@ -258,7 +258,6 @@ const STR = {
     'rw.navLabel': 'Rewards',
     'rw.title': 'Rewards',
     'rw.desc': 'Catalogue of rewards fans unlock with their points.',
-    'rw.postMvp': 'Post-MVP — exploration',
     'rw.new': 'New reward',
     'rw.kpi.active': 'Active rewards',
     'rw.kpi.activeSub': 'out of {n} in the catalogue',

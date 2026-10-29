@@ -6,6 +6,7 @@ import { Field } from '../../components/Field';
 import { ActionMenu } from '../../components/ActionMenu';
 import { TierBadge } from './TierBadge';
 import { useLang } from './i18n';
+import { HeadRow, Note } from './LoyaltyUI';
 
 let _uid = 100;
 const uid = () => `new-${_uid++}`;
@@ -45,13 +46,13 @@ function ColorPicker({ value, onChange }) {
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
       <button type="button" onClick={() => setOpen(o => !o)} title={t('tiers.changeColor')}
         style={{ width: 28, height: 28, borderRadius: '50%', background: value,
-                 border: `2px solid ${DS.bgCard}`, outline: `2px solid ${DS.borderDefault}`,
+                 border: `2px solid ${DS.surfaceCanvas}`, outline: `2px solid ${DS.borderDefault}`,
                  cursor: 'pointer', transition: 'outline-color 0.15s' }}>
       </button>
       {open && (
-        <div style={{ position: 'absolute', top: 34, left: 0, zIndex: 20, background: DS.bgCard,
-                      border: `1px solid ${DS.borderDefault}`, borderRadius: 8, padding: 8,
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.12)', display: 'grid',
+        <div style={{ position: 'absolute', top: 34, left: 0, zIndex: 20, background: DS.surfaceCanvas,
+                      border: `1px solid ${DS.borderDefault}`, borderRadius: DS.radiusLg, padding: 8,
+                      boxShadow: DS.shadowMd, display: 'grid',
                       gridTemplateColumns: 'repeat(4, 24px)', gap: 6 }}>
           {PRESET_COLORS.map(c => (
             <button key={c} type="button" onClick={() => { onChange(c); setOpen(false); }}
@@ -83,37 +84,30 @@ export function TierTable({ tiers, setTiers }) {
   const COLS = '20px 1fr 130px 130px 44px 36px';
 
   return (
-    <div>
-      {/* Table header */}
-      <div style={{ display: 'grid', gridTemplateColumns: COLS, gap: 12,
-                    padding: '0 12px 10px', alignItems: 'center' }}>
-        {['', t('tiers.col.name'), t('tiers.col.min'), t('tiers.col.max'), t('tiers.col.color'), ''].map((h, i) => (
-          <span key={i} style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary,
-                                  textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</span>
-        ))}
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
+      <HeadRow cols={COLS} gap={12} labels={['', t('tiers.col.name'), t('tiers.col.min'), t('tiers.col.max'), t('tiers.col.color'), '']} />
 
       {tiers.length === 0 && (
         <div style={{ padding: '28px 16px', textAlign: 'center',
-                      border: `1.5px dashed ${DS.borderDefault}`, borderRadius: 8, marginBottom: 12 }}>
-          <div style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>
+                      border: `1.5px dashed ${DS.borderDefault}`, borderRadius: DS.radiusLg }}>
+          <div style={{ ...TY.bodyMdBold, fontFamily: DS.ff, color: DS.textStrong }}>
             {t('tiers.none')}
           </div>
-          <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 4 }}>
+          <div style={{ ...TY.bodySm, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 4 }}>
             {t('tiers.suggestion')}
           </div>
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {tiers.map(tier => {
           const isOverlap = overlapping.has(tier.id);
           return (
             <div key={tier.id} style={{
               display: 'grid', gridTemplateColumns: COLS, gap: 12, padding: '10px 12px',
-              alignItems: 'center', background: DS.bgCard,
+              alignItems: 'center', background: DS.surfaceCanvas,
               border: `1px solid ${isOverlap ? DS.feedbackError : DS.borderDefault}`,
-              borderRadius: 8, transition: 'border-color 0.15s',
+              borderRadius: DS.radiusLg, transition: 'border-color 0.15s',
             }}>
               <div style={{ cursor: 'grab', display: 'flex', alignItems: 'center' }}>
                 <Ico.Drag s={16} c={DS.textSecondary} />
@@ -153,20 +147,13 @@ export function TierTable({ tiers, setTiers }) {
         })}
       </div>
 
-      {overlapping.size > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '10px 14px',
-                      background: DS.feedbackErrorBg, borderRadius: 6,
-                      border: `1px solid ${DS.feedbackError}` }}>
-          <Ico.Warn s={16} c={DS.feedbackError} />
-          <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.feedbackErrorText }}>
-            {t('tiers.overlapMsg')}
-          </span>
-        </div>
-      )}
+      {overlapping.size > 0 && <Note tone="error">{t('tiers.overlapMsg')}</Note>}
 
-      <Btn type="Secondary" size="Small" iconLeft={<Ico.Plus s={16} />} onClick={addTier}>
-        {t('tiers.add')}
-      </Btn>
+      <div style={{ marginTop: 4 }}>
+        <Btn type="Secondary" size="Small" iconLeft={<Ico.Plus s={16} />} onClick={addTier}>
+          {t('tiers.add')}
+        </Btn>
+      </div>
     </div>
   );
 }
