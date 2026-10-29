@@ -16,8 +16,6 @@ import ArenaForm from './features/Arenaform/Arenaform'
 import LoyaltySettings from './features/Loyalty/LoyaltySettings'
 import LoyaltyDashboard from './features/Loyalty/LoyaltyDashboard'
 import LoyaltyRewards from './features/Loyalty/LoyaltyRewards'
-import AdminHub from './features/SsoAdmin/AdminHub'
-import AdminHubBranding from './features/SsoAdmin/AdminHubBranding'
 import SmsManagement from './features/Sms/SmsManagement'
 import EntityMerge from './features/Admin/EntityMerge'
 import InsightCards from './features/InsightCards/InsightCards'
@@ -55,11 +53,6 @@ function App() {
                     <Route path="/insights" element={<InsightCards />} />
                     <Route path="/insights/all-batches" element={<InsightsAll />} />
                 </Route>
-
-                {/* SSO Admin Hub — client-facing surface, deliberately outside AppLayoutSidebar:
-                    end clients must never see Arenametrix's own internal nav/sidebar chrome. */}
-                <Route path="/sso-admin" element={<AdminHub />} />
-                <Route path="/sso-admin/branding" element={<AdminHubBranding />} />
             </Routes>
         </BrowserRouter>
     )

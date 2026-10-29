@@ -8,7 +8,6 @@ const MODULES = [
   { icon: "⚗️", label: "ArenaForm", desc: "Exhaustive form builder the foster engagement and acquisition", bg: "#EFF6FF", link: "/arenaform" },
   { icon: "📋", label: "Lists page V3", desc: "New contact lists page to segment and manage your CRM audiences", bg: "#EFF6FF", link: "/lists-v3" },
   { icon: "🏅", label: "Loyalty module", desc: "Loyalty programme — score fan engagement and reward your best supporters", bg: "#EFF6FF", link: "/loyalty/dashboard" },
-  { icon: "🔑", label: "SSO Admin Hub", desc: "Landing hub for SSO / My Account clients — analytics, user & event management, and self-service branding & content", bg: "#EFF6FF", link: "/sso-admin" },
   { icon: "📱", label: "SMS Management", desc: "Build, send and analyze SMS campaigns directly from your CRM segments", bg: "#EFF6FF", link: "/sms" },
   { icon: "💡", label: "Insight Cards", desc: "Build your own key numbers by hand or in plain text, and open the people behind them as a segment", bg: "#EFF6FF", link: "/insights" },
   { icon: "📈", label: "Acquisition", desc: "See where your CRM contacts come from — by source type, source name, and over time", bg: "#EFF6FF", link: "/acquisition" },
