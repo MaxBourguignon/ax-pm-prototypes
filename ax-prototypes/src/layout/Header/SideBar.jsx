@@ -182,6 +182,7 @@ const NAV_TABS_L1 = [
     subitems: [
       { id: "loyalty-dashboard", label: "Dashboard",   link: "/loyalty/dashboard" },
       { id: "loyalty-settings",  label: "Paramétrage", link: "/loyalty/settings"  },
+      { id: "loyalty-rewards",   label: "Rewards",     link: "/loyalty/rewards"   },
     ],
   },
 ];

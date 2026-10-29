@@ -12,24 +12,29 @@ import { PageHeader } from '../../components/PageHeader';
 import { Toast } from '../../components/Toast';
 import { StatePreview } from '../../components/StatePreview';
 import Card from '../../components/Card';
+import { ActionMenu } from '../../components/ActionMenu';
 import { TierTable } from './TierTable';
+import { ActionRuleModal } from './ActionRuleModal';
+import { useLang } from './i18n';
+import { LangSwitch } from './LangSwitch';
 import { LOYALTY_PROGRAM, LOYALTY_TIERS, LOYALTY_RULES, SEGMENTS } from './loyaltyMock';
 
 const TABS = [
-  { id: 'programme',   label: 'Programme',         icon: Ico.Settings },
-  { id: 'tiers',       label: 'Tiers de fidélité', icon: Ico.Star },
-  { id: 'rules',       label: 'Règles de points',  icon: Ico.Zap },
+  { id: 'programme',   label: 'settings.tab.programme', icon: Ico.Settings },
+  { id: 'tiers',       label: 'settings.tab.tiers',     icon: Ico.Star },
+  { id: 'rules',       label: 'settings.tab.rules',     icon: Ico.Zap },
 ];
 
 function TabBar({ active, onChange }) {
+  const { t } = useLang();
   return (
     <div style={{ background: DS.bgCard, borderBottom: `1px solid ${DS.borderDefault}`,
                   padding: '0 24px', display: 'flex', gap: 4 }}>
-      {TABS.map(t => {
-        const isActive = t.id === active;
-        const Icon = t.icon;
+      {TABS.map(tab => {
+        const isActive = tab.id === active;
+        const Icon = tab.icon;
         return (
-          <button key={t.id} type="button" onClick={() => onChange(t.id)}
+          <button key={tab.id} type="button" onClick={() => onChange(tab.id)}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 16px',
                      background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: DS.ff,
                      ...TY.b2, fontWeight: isActive ? 600 : 400,
@@ -37,7 +42,7 @@ function TabBar({ active, onChange }) {
                      borderBottom: isActive ? `3px solid ${DS.actionPrimary}` : '3px solid transparent',
                      transition: 'color 0.15s, border-color 0.15s', marginBottom: -1 }}>
             <Icon s={16} c={isActive ? DS.actionPrimary : DS.textSecondary} />
-            {t.label}
+            {t(tab.label)}
           </button>
         );
       })}
@@ -86,13 +91,14 @@ function LoadingSkeleton() {
 // ── Programme Tab ─────────────────────────────────────────────────────────────
 
 function ProgrammeTab({ programme, setProgramme, errors, setErrors, notify }) {
+  const { t, tr } = useLang();
   const isActive = programme.status === 'active';
 
   function validate() {
     const e = {};
-    if (!programme.name.trim()) e.name = 'Le nom du programme est requis';
-    if (!programme.start_date)  e.start_date = 'La date de début est requise';
-    if (!programme.eligible_segment) e.eligible_segment = 'Le segment éligible est requis';
+    if (!programme.name.trim()) e.name = t('prog.err.name');
+    if (!programme.start_date)  e.start_date = t('prog.err.start');
+    if (!programme.eligible_segment) e.eligible_segment = t('prog.err.segment');
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -100,11 +106,11 @@ function ProgrammeTab({ programme, setProgramme, errors, setErrors, notify }) {
   function handleToggle() {
     if (isActive) {
       setProgramme(p => ({ ...p, status: 'inactive' }));
-      notify('Programme désactivé');
+      notify(t('prog.deactivated'));
     } else {
       if (!validate()) return;
       setProgramme(p => ({ ...p, status: 'active' }));
-      notify('Programme activé avec succès');
+      notify(t('prog.activated'));
     }
   }
 
@@ -115,42 +121,41 @@ function ProgrammeTab({ programme, setProgramme, errors, setErrors, notify }) {
 
   return (
     <Card style={{ padding: 24 }}>
-      <SectionTitle title="Configuration du programme"
-        sub="Définissez le nom, le segment éligible et les paramètres généraux du programme." />
+      <SectionTitle title={t('prog.title')} sub={t('prog.sub')} />
 
       {/* Status row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '12px 16px', background: DS.bgSurface, borderRadius: 8, marginBottom: 24,
                     border: `1px solid ${DS.borderDefault}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>Statut du programme :</span>
+          <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>{t('prog.status')}</span>
           <StatusBadge status={isActive ? 'active' : 'inactive'}>
-            {isActive ? 'Actif' : 'Inactif'}
+            {isActive ? t('prog.active') : t('prog.inactive')}
           </StatusBadge>
         </div>
         <Btn type={isActive ? 'Secondary' : 'Primary'} size="Medium"
           iconLeft={isActive ? <Ico.Cross s={16} /> : <Ico.Check s={16} />}
           onClick={handleToggle}>
-          {isActive ? 'Désactiver le programme' : 'Activer le programme'}
+          {isActive ? t('prog.deactivate') : t('prog.activate')}
         </Btn>
       </div>
 
       {/* Form grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <Field label="Nom du programme *"
+        <Field label={t('prog.name')}
           value={programme.name}
           onChange={e => set('name', e.target.value)}
-          placeholder="ex : Fidélité RCSC 2025–2026"
+          placeholder={t('prog.namePh')}
           error={errors.name} />
 
-        <Select label="Segment éligible *"
+        <Select label={t('prog.segment')}
           value={programme.eligible_segment}
-          options={SEGMENTS}
+          options={SEGMENTS.map(o => ({ ...o, label: tr(o.label) }))}
           onChange={v => set('eligible_segment', v)}
-          placeholder="Choisir un segment…" />
+          placeholder={t('prog.segmentPh')} />
 
         <div>
-          <Field label="Date de début *"
+          <Field label={t('prog.start')}
             type="date" value={programme.start_date || ''}
             onChange={e => set('start_date', e.target.value)}
             disabled={isActive}
@@ -159,16 +164,16 @@ function ProgrammeTab({ programme, setProgramme, errors, setErrors, notify }) {
             <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Ico.Info s={12} c={DS.textSecondary} />
               <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary }}>
-                Non modifiable après activation
+                {t('prog.startLocked')}
               </span>
             </div>
           )}
         </div>
 
-        <Field label="Expiration des points (mois)"
+        <Field label={t('prog.expiry')}
           type="number" value={programme.expiration_months === null ? '' : String(programme.expiration_months)}
           onChange={e => set('expiration_months', e.target.value === '' ? null : parseInt(e.target.value, 10))}
-          placeholder="Aucune expiration" />
+          placeholder={t('prog.expiryPh')} />
       </div>
 
       {errors.eligible_segment && (
@@ -182,8 +187,7 @@ function ProgrammeTab({ programme, setProgramme, errors, setErrors, notify }) {
       {isActive && (
         <div style={{ marginTop: 20 }}>
           <InfoBanner>
-            Le programme est actif. Les points sont calculés automatiquement à partir des données Walnut.
-            La date de début ne peut plus être modifiée.
+            {t('prog.activeInfo')}
           </InfoBanner>
         </div>
       )}
@@ -194,10 +198,10 @@ function ProgrammeTab({ programme, setProgramme, errors, setErrors, notify }) {
 // ── Tiers Tab ─────────────────────────────────────────────────────────────────
 
 function TiersTab({ tiers, setTiers }) {
+  const { t } = useLang();
   return (
     <Card style={{ padding: 24 }}>
-      <SectionTitle title="Tiers de fidélité"
-        sub="Définissez les paliers de fidélité et leurs plages de points. Les plages ne doivent pas se chevaucher." />
+      <SectionTitle title={t('tiers.title')} sub={t('tiers.sub')} />
       <TierTable tiers={tiers} setTiers={setTiers} />
     </Card>
   );
@@ -205,8 +209,11 @@ function TiersTab({ tiers, setTiers }) {
 
 // ── Rules Tab ─────────────────────────────────────────────────────────────────
 
-function RulesTab({ rules, setRules, notify }) {
+function RulesTab({ rules, setRules, tiers, notify }) {
+  const { t, tr, lang } = useLang();
   const [ruleErrors, setRuleErrors] = React.useState({});
+  // null = closed · 'new' = create · rule object = configure that rule
+  const [modal, setModal] = React.useState(null);
 
   function updateRule(id, field, value) {
     setRules(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
@@ -216,34 +223,57 @@ function RulesTab({ rules, setRules, notify }) {
   function saveRules() {
     const errs = {};
     rules.forEach(r => {
-      if (r.active) {
+      if (r.active && (r.config?.calc?.mode ?? 'fixed') === 'fixed') {
         const v = parseInt(String(r.pts), 10);
-        if (isNaN(v) || v <= 0) errs[r.id] = 'Doit être un entier positif';
+        if (isNaN(v) || v <= 0) errs[r.id] = t('rules.err.positive');
       }
     });
     if (Object.keys(errs).length > 0) { setRuleErrors(errs); return; }
     setRuleErrors({});
-    notify('Règles de points enregistrées');
+    notify(t('rules.saved'));
   }
 
-  const COL = '1fr 80px 140px 1fr';
+  function saveFromModal(rule) {
+    const exists = rules.some(r => r.id === rule.id);
+    setRules(prev => exists ? prev.map(r => r.id === rule.id ? rule : r) : [...prev, rule]);
+    notify(exists ? t('rules.updated') : t('rules.created'));
+    setModal(null);
+  }
+
+  // Non-fixed modes can't be edited inline — the table shows the modal's summary instead.
+  function calcSummary(rule) {
+    const c = rule.config?.calc;
+    if (!c || c.mode === 'fixed') return null;
+    if (c.mode === 'euro')     return t('am.pv.euro', { n: c.perEuro });
+    if (c.mode === 'brackets') return t('am.pv.brackets', { n: c.brackets.length });
+    if (c.mode === 'streak')   return t('am.pv.streak', { pts: c.streakPts, n: c.streakN });
+    return t('am.pv.multiplier', { base: c.multBase, x: c.multX });
+  }
+
+  const COL = '1fr 80px 140px 1fr 36px';
 
   return (
     <Card style={{ padding: 24 }}>
-      <SectionTitle title="Barème des points"
-        sub="Configurez les points attribués pour chaque action Walnut. Les actions inactives ne génèrent aucun point." />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+        <SectionTitle title={t('rules.title')} sub={t('rules.sub')} />
+        <Btn type="Secondary" size="Medium" iconLeft={<Ico.Plus s={16} />} onClick={() => setModal('new')}>
+          {t('rules.new')}
+        </Btn>
+      </div>
 
       {/* Table header */}
       <div style={{ display: 'grid', gridTemplateColumns: COL, gap: 16,
                     padding: '0 12px 10px', alignItems: 'center' }}>
-        {['Action', 'Actif', 'Points', 'Description interne'].map((h, i) => (
+        {[t('rules.col.action'), t('rules.col.active'), t('rules.col.points'), t('rules.col.desc'), ''].map((h, i) => (
           <span key={i} style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary,
                                   textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</span>
         ))}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {rules.map(rule => (
+        {rules.map(rule => {
+          const summary = calcSummary(rule);
+          return (
           <div key={rule.id} style={{
             display: 'grid', gridTemplateColumns: COL, gap: 16, padding: '12px',
             alignItems: 'center', background: rule.active ? DS.bgCard : DS.bgSurface,
@@ -253,7 +283,7 @@ function RulesTab({ rules, setRules, notify }) {
             {/* Action name */}
             <div>
               <div style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault, fontWeight: rule.active ? 600 : 400 }}>
-                {rule.label}
+                {tr(rule.label)}
               </div>
               <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 2 }}>
                 {rule.action}
@@ -263,25 +293,41 @@ function RulesTab({ rules, setRules, notify }) {
             {/* Toggle */}
             <Toggle on={rule.active} onChange={v => updateRule(rule.id, 'active', v)} />
 
-            {/* Points field */}
-            <Field
-              value={String(rule.pts)}
-              onChange={e => updateRule(rule.id, 'pts', e.target.value)}
-              type="number"
-              disabled={!rule.active}
-              error={ruleErrors[rule.id]}
-              placeholder="pts"
-            />
+            {/* Points field (Fixed mode) or calculation summary */}
+            {summary ? (
+              <button type="button" onClick={() => setModal(rule)} title={t('rules.configure')}
+                style={{ ...TY.b3, fontFamily: DS.ff, color: DS.actionPrimary, background: 'none', border: 'none',
+                         padding: 0, textAlign: 'left', cursor: 'pointer' }}>
+                {summary}
+              </button>
+            ) : (
+              <Field
+                value={String(rule.pts)}
+                onChange={e => updateRule(rule.id, 'pts', e.target.value)}
+                type="number"
+                disabled={!rule.active}
+                error={ruleErrors[rule.id]}
+                placeholder="pts"
+              />
+            )}
 
             {/* Description */}
             <Field
-              value={rule.description}
-              onChange={e => updateRule(rule.id, 'description', e.target.value)}
+              value={tr(rule.description)}
+              onChange={e => updateRule(rule.id, 'description', { ...rule.description, [lang]: e.target.value })}
               disabled={!rule.active}
-              placeholder="Description interne…"
+              placeholder={t('rules.descPh')}
             />
+
+            <ActionMenu items={[
+              { label: t('rules.configure'), icon: <Ico.Settings s={16} c={DS.textSecondary} />,
+                onClick: () => setModal(rule) },
+              { label: t('common.delete'), icon: <Ico.Trash s={16} c={DS.feedbackError} />, danger: true,
+                onClick: () => { setRules(prev => prev.filter(r => r.id !== rule.id)); notify(t('rules.deleted')); } },
+            ]} />
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {Object.keys(ruleErrors).length > 0 && (
@@ -290,16 +336,19 @@ function RulesTab({ rules, setRules, notify }) {
                       border: `1px solid ${DS.feedbackError}` }}>
           <Ico.Warn s={16} c={DS.feedbackError} />
           <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.feedbackErrorText }}>
-            Corrigez les valeurs de points invalides avant d'enregistrer.
+            {t('rules.err.fix')}
           </span>
         </div>
       )}
 
       <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
         <Btn type="Primary" size="Medium" iconLeft={<Ico.Check s={16} />} onClick={saveRules}>
-          Enregistrer les règles
+          {t('rules.save')}
         </Btn>
       </div>
+
+      <ActionRuleModal open={modal !== null} rule={modal === 'new' ? null : modal} tiers={tiers}
+        onClose={() => setModal(null)} onSave={saveFromModal} />
     </Card>
   );
 }
@@ -307,6 +356,7 @@ function RulesTab({ rules, setRules, notify }) {
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function LoyaltySettings() {
+  const { t } = useLang();
   const [pageState, setPageState] = React.useState('ready');
   const [tab, setTab]             = React.useState('programme');
   const [programme, setProgramme] = React.useState({ ...LOYALTY_PROGRAM });
@@ -326,11 +376,11 @@ export default function LoyaltySettings() {
       return (
         <EmptyState
           icon={<Ico.Star s={28} c={DS.textSecondary} />}
-          title="Aucun programme de fidélité"
-          sub="Créez votre premier programme pour commencer à scorer l'engagement de vos fans."
+          title={t('settings.emptyTitle')}
+          sub={t('settings.emptySub')}
           cta={
             <Btn type="Primary" iconLeft={<Ico.Plus s={16} />} onClick={() => setPageState('ready')}>
-              Créer un programme
+              {t('settings.emptyCta')}
             </Btn>
           }
         />
@@ -340,8 +390,8 @@ export default function LoyaltySettings() {
     if (pageState === 'error') {
       return (
         <ErrorState
-          title="Impossible de charger le paramétrage"
-          sub="Une erreur est survenue lors du chargement des données du programme."
+          title={t('settings.errorTitle')}
+          sub={t('settings.errorSub')}
         />
       );
     }
@@ -357,7 +407,7 @@ export default function LoyaltySettings() {
           <TiersTab tiers={tiers} setTiers={setTiers} />
         )}
         {tab === 'rules' && (
-          <RulesTab rules={rules} setRules={setRules} notify={notify} />
+          <RulesTab rules={rules} setRules={setRules} tiers={tiers} notify={notify} />
         )}
       </>
     );
@@ -367,14 +417,17 @@ export default function LoyaltySettings() {
     <div style={{ minHeight: '100%', background: DS.bgPage }}>
       <PageHeader
         icon={<Ico.Star s={20} c={DS.actionPrimary} />}
-        title="Paramétrage Loyalty"
-        description="Configurez votre programme de fidélité, les tiers et les règles de points."
+        title={t('settings.title')}
+        description={t('settings.desc')}
         actions={
-          pageState === 'ready' ? (
-            <StatusBadge status={isActive ? 'active' : 'inactive'}>
-              {isActive ? 'Programme actif' : 'Programme inactif'}
-            </StatusBadge>
-          ) : null
+          <>
+            {pageState === 'ready' && (
+              <StatusBadge status={isActive ? 'active' : 'inactive'}>
+                {isActive ? t('settings.progActive') : t('settings.progInactive')}
+              </StatusBadge>
+            )}
+            <LangSwitch />
+          </>
         }
       />
 
@@ -389,14 +442,14 @@ export default function LoyaltySettings() {
       <Toast toast={toast} />
 
       <StatePreview groups={[{
-        label: 'État',
+        label: t('common.state'),
         value: pageState,
         onChange: setPageState,
         options: [
-          { id: 'ready',   label: 'Prêt' },
-          { id: 'loading', label: 'Chargement' },
-          { id: 'empty',   label: 'Vide' },
-          { id: 'error',   label: 'Erreur' },
+          { id: 'ready',   label: t('common.ready') },
+          { id: 'loading', label: t('common.loading') },
+          { id: 'empty',   label: t('common.empty') },
+          { id: 'error',   label: t('common.error') },
         ],
       }]} />
     </div>

@@ -10,21 +10,15 @@ import { KpiCard } from '../../components/Kpi';
 import { StatePreview } from '../../components/StatePreview';
 import Card from '../../components/Card';
 import { TierBadge } from './TierBadge';
+import { useLang } from './i18n';
+import { LangSwitch } from './LangSwitch';
 import { SNAPSHOT_STATS, TIER_DISTRIBUTION, TOP_ACTIONS, LOYALTY_TIERS } from './loyaltyMock';
 
-const PERIODS = [
-  { id: '30d',    label: '30 derniers jours' },
-  { id: '90d',    label: '90 derniers jours' },
-  { id: '12m',    label: '12 derniers mois' },
-  { id: 'season', label: 'Saison en cours' },
-];
-
-function fmt(n) {
-  return n.toLocaleString('fr-BE');
-}
+const PERIODS = ['30d', '90d', '12m', 'season'];
 
 // ── Custom Recharts tooltip ────────────────────────────────────────────────────
 function TierTooltip({ active, payload }) {
+  const { t, fmt } = useLang();
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
@@ -32,7 +26,7 @@ function TierTooltip({ active, payload }) {
                   borderRadius: 8, padding: '8px 14px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
       <TierBadge name={d.tier} color={d.color} size="small" />
       <div style={{ marginTop: 6, ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }}>
-        <strong>{fmt(d.count)}</strong> fans
+        <strong>{fmt(d.count)}</strong> {t('dash.fans')}
       </div>
     </div>
   );
@@ -81,6 +75,7 @@ function DashboardSkeleton() {
 
 // ── Widget wrapper with per-widget error state ─────────────────────────────────
 function Widget({ title, icon: Icon, children, error }) {
+  const { t } = useLang();
   return (
     <Card style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -92,7 +87,7 @@ function Widget({ title, icon: Icon, children, error }) {
                       background: DS.feedbackErrorBg, borderRadius: 6 }}>
           <Ico.Alert s={16} c={DS.feedbackError} />
           <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.feedbackErrorText }}>
-            Données temporairement indisponibles
+            {t('dash.widgetError')}
           </span>
         </div>
       ) : children}
@@ -102,6 +97,7 @@ function Widget({ title, icon: Icon, children, error }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function LoyaltyDashboard() {
+  const { t, tr, fmt } = useLang();
   const [pageState, setPageState] = React.useState('ready');
   const [period, setPeriod]       = React.useState('season');
 
@@ -131,8 +127,8 @@ export default function LoyaltyDashboard() {
       return (
         <EmptyState
           icon={<Ico.Chart s={28} c={DS.textSecondary} />}
-          title="Aucune donnée disponible"
-          sub="Activez un programme de fidélité pour commencer à collecter des données et visualiser les KPIs."
+          title={t('dash.emptyTitle')}
+          sub={t('dash.emptySub')}
           cta={null}
         />
       );
@@ -141,8 +137,8 @@ export default function LoyaltyDashboard() {
     if (pageState === 'error') {
       return (
         <ErrorState
-          title="Impossible de charger le dashboard"
-          sub="Une erreur est survenue lors du chargement des données de fidélité."
+          title={t('dash.errorTitle')}
+          sub={t('dash.errorSub')}
         />
       );
     }
@@ -153,40 +149,40 @@ export default function LoyaltyDashboard() {
 
         {/* Period selector */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>Période :</span>
+          <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>{t('dash.period')}</span>
           {PERIODS.map(p => (
-            <Chip key={p.id} label={p.label} selected={period === p.id}
-              onClick={() => setPeriod(p.id)} />
+            <Chip key={p} label={t(`dash.p.${p}`)} selected={period === p}
+              onClick={() => setPeriod(p)} />
           ))}
         </div>
 
         {/* KPI cards */}
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           <KpiCard
-            title="Fans inscrits"
+            title={t('dash.kpi.enrolled')}
             value={fmt(stats.fans_enrolled)}
-            sub={`${stats.pct_eligible}% du segment éligible`}
+            sub={t('dash.kpi.enrolledSub', { n: stats.pct_eligible })}
             icon={<Ico.Users s={18} c={DS.actionPrimary} />}
             accent={DS.actionPrimary}
           />
           <KpiCard
-            title="% segment couvert"
+            title={t('dash.kpi.coverage')}
             value={`${stats.pct_eligible}%`}
-            sub="Part du segment avec un solde de points"
+            sub={t('dash.kpi.coverageSub')}
             icon={<Ico.Chart s={18} c={DS.teal500} />}
             accent={DS.teal500}
           />
           <KpiCard
-            title="Points attribués"
+            title={t('dash.kpi.points')}
             value={fmt(pts)}
-            sub={PERIODS.find(p => p.id === period)?.label}
+            sub={t(`dash.p.${period}`)}
             icon={<Ico.Star s={18} c={DS.feedbackWarning} />}
             accent={DS.feedbackWarning}
           />
           <KpiCard
-            title="Ajustements manuels"
+            title={t('dash.kpi.manual')}
             value={fmt(manual)}
-            sub={PERIODS.find(p => p.id === period)?.label}
+            sub={t(`dash.p.${period}`)}
             icon={<Ico.Edit s={18} c={DS.textSecondary} />}
             accent={DS.textSecondary}
           />
@@ -196,7 +192,7 @@ export default function LoyaltyDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
           {/* Donut — Tier distribution */}
-          <Widget title="Répartition par tier" icon={Ico.Donut}>
+          <Widget title={t('dash.tierSplit')} icon={Ico.Donut}>
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie data={TIER_DISTRIBUTION} cx="50%" cy="45%"
@@ -227,13 +223,13 @@ export default function LoyaltyDashboard() {
           </Widget>
 
           {/* Top actions table */}
-          <Widget title="Top actions (points attribués)" icon={Ico.Zap}>
+          <Widget title={t('dash.topActions')} icon={Ico.Zap}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0,
                           border: `1px solid ${DS.borderDefault}`, borderRadius: 8, overflow: 'hidden' }}>
               {/* Header */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 120px',
                             background: DS.blue100, padding: '10px 16px' }}>
-                {['Action', 'Événements', 'Points totaux'].map((h, i) => (
+                {[t('dash.col.action'), t('dash.col.events'), t('dash.col.points')].map((h, i) => (
                   <span key={i} style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary,
                                           textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</span>
                 ))}
@@ -251,7 +247,7 @@ export default function LoyaltyDashboard() {
                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <Ico.Zap s={14} c={DS.actionPrimary} />
                     </span>
-                    <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }}>{row.action}</span>
+                    <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }}>{tr(row.action)}</span>
                   </div>
                   <span style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }}>{fmt(row.events)}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -267,7 +263,7 @@ export default function LoyaltyDashboard() {
             {/* Tier legend (reference) */}
             <div style={{ marginTop: 8 }}>
               <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginBottom: 8 }}>
-                Tiers actifs
+                {t('dash.activeTiers')}
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {LOYALTY_TIERS.map(t => (
@@ -285,8 +281,9 @@ export default function LoyaltyDashboard() {
     <div style={{ minHeight: '100%', background: DS.bgPage }}>
       <PageHeader
         icon={<Ico.Chart s={20} c={DS.actionPrimary} />}
-        title="Dashboard Loyalty"
-        description="Suivez la dynamique du programme de fidélité et la répartition des fans par tier."
+        title={t('dash.title')}
+        description={t('dash.desc')}
+        actions={<LangSwitch />}
       />
 
       <div style={{ padding: 24 }}>
@@ -294,14 +291,14 @@ export default function LoyaltyDashboard() {
       </div>
 
       <StatePreview groups={[{
-        label: 'État',
+        label: t('common.state'),
         value: pageState,
         onChange: setPageState,
         options: [
-          { id: 'ready',   label: 'Prêt' },
-          { id: 'loading', label: 'Chargement' },
-          { id: 'empty',   label: 'Vide' },
-          { id: 'error',   label: 'Erreur' },
+          { id: 'ready',   label: t('common.ready') },
+          { id: 'loading', label: t('common.loading') },
+          { id: 'empty',   label: t('common.empty') },
+          { id: 'error',   label: t('common.error') },
         ],
       }]} />
     </div>

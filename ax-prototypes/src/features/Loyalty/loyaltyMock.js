@@ -1,3 +1,5 @@
+// Bilingual mock values are { fr, en } objects — rendered through `tr()` from ./i18n.
+
 export const LOYALTY_PROGRAM = {
   id: 'prog-001',
   name: 'Fidélité RCSC 2025–2026',
@@ -8,10 +10,10 @@ export const LOYALTY_PROGRAM = {
 };
 
 export const SEGMENTS = [
-  { value: 'seg-saison',     label: 'Supporters Saison 2025-2026' },
-  { value: 'seg-all',        label: 'Tous les contacts' },
-  { value: 'seg-premium',    label: 'Abonnés Premium' },
-  { value: 'seg-newsletter', label: 'Abonnés Newsletter' },
+  { value: 'seg-saison',     label: { fr: 'Supporters Saison 2025-2026', en: '2025-2026 Season supporters' } },
+  { value: 'seg-all',        label: { fr: 'Tous les contacts',           en: 'All contacts' } },
+  { value: 'seg-premium',    label: { fr: 'Abonnés Premium',             en: 'Premium subscribers' } },
+  { value: 'seg-newsletter', label: { fr: 'Abonnés Newsletter',          en: 'Newsletter subscribers' } },
 ];
 
 export const LOYALTY_TIERS = [
@@ -21,11 +23,25 @@ export const LOYALTY_TIERS = [
   { id: 't4', name: 'Legend', min: 3000, max: null,  color: '#C41E3A' },
 ];
 
+// `config` holds what the action configuration modal edits. `pts` stays the
+// value shown in the table for the Fixed mode.
 export const LOYALTY_RULES = [
-  { id: 'r1', action: 'TICKET_PURCHASED',   label: 'Billet acheté',         pts: 10,  active: true,  description: 'Attribué pour chaque billet acheté' },
-  { id: 'r2', action: 'MATCH_ATTENDED',     label: 'Match assisté',          pts: 20,  active: true,  description: 'Attribué pour chaque présence confirmée en match' },
-  { id: 'r3', action: 'EMAIL_CLICK',        label: 'Clic email campagne',    pts: 2,   active: false, description: 'Attribué pour chaque clic dans une campagne email' },
-  { id: 'r4', action: 'SEASON_SUBSCRIPTION',label: 'Abonnement saison',      pts: 200, active: true,  description: 'Attribué pour un abonnement saison actif' },
+  { id: 'r1', action: 'TICKET_PURCHASED', pts: 10, active: true,
+    label: { fr: 'Billet acheté', en: 'Ticket purchased' },
+    description: { fr: 'Attribué pour chaque billet acheté', en: 'Awarded for each ticket purchased' },
+    config: { category: 'ticketing', calc: { mode: 'fixed', pts: 10 } } },
+  { id: 'r2', action: 'MATCH_ATTENDED', pts: 20, active: true,
+    label: { fr: 'Match assisté', en: 'Match attended' },
+    description: { fr: 'Attribué pour chaque présence confirmée en match', en: 'Awarded for each confirmed match attendance' },
+    config: { category: 'attendance', calc: { mode: 'fixed', pts: 20 } } },
+  { id: 'r3', action: 'EMAIL_CLICK', pts: 2, active: false,
+    label: { fr: 'Clic email campagne', en: 'Campaign email click' },
+    description: { fr: 'Attribué pour chaque clic dans une campagne email', en: 'Awarded for each click in an email campaign' },
+    config: { category: 'email', calc: { mode: 'fixed', pts: 2 }, caps: { member: 10, per: 'day' } } },
+  { id: 'r4', action: 'SEASON_SUBSCRIPTION', pts: 200, active: true,
+    label: { fr: 'Abonnement saison', en: 'Season subscription' },
+    description: { fr: 'Attribué pour un abonnement saison actif', en: 'Awarded for an active season subscription' },
+    config: { category: 'subscription', calc: { mode: 'fixed', pts: 200 } } },
 ];
 
 export const SNAPSHOT_STATS = {
@@ -43,7 +59,40 @@ export const TIER_DISTRIBUTION = [
 ];
 
 export const TOP_ACTIONS = [
-  { action: 'Match assisté',      events: 4821, points: 96420 },
-  { action: 'Billet acheté',      events: 3210, points: 32100 },
-  { action: 'Abonnement saison',  events: 203,  points: 40600 },
+  { action: { fr: 'Match assisté',     en: 'Match attended' },      events: 4821, points: 96420 },
+  { action: { fr: 'Billet acheté',     en: 'Ticket purchased' },    events: 3210, points: 32100 },
+  { action: { fr: 'Abonnement saison', en: 'Season subscription' }, events: 203,  points: 40600 },
+];
+
+// ── Rewards (post-MVP exploration — out of the MVP spec scope) ───────────────
+// distribution: 'email' | 'code' | 'manual' · minTier: tier id or null (all members)
+export const REWARDS = [
+  { id: 'rw1', status: 'active', cost: 500, minTier: null, distribution: 'code',
+    name: { fr: '-15 % à la boutique', en: '15% off at the shop' },
+    description: { fr: 'Code de réduction valable sur la boutique en ligne', en: 'Discount code valid on the online shop' },
+    stock: null, perMember: 2, redeemed: 214, codeSource: 'shopify' },
+  { id: 'rw2', status: 'active', cost: 1200, minTier: 't2', distribution: 'email',
+    name: { fr: 'Place offerte — match au choix', en: 'Free seat — match of your choice' },
+    description: { fr: 'Un billet tribune générale pour un match à domicile', en: 'One general stand ticket for a home match' },
+    stock: 150, stockLeft: 38, perMember: 1, redeemed: 112 },
+  { id: 'rw3', status: 'active', cost: 2500, minTier: 't3', distribution: 'manual',
+    name: { fr: 'Maillot dédicacé', en: 'Signed jersey' },
+    description: { fr: "Maillot officiel signé par l'équipe, remis au stade", en: 'Official jersey signed by the team, handed over at the stadium' },
+    stock: 20, stockLeft: 4, perMember: 1, redeemed: 16 },
+  { id: 'rw4', status: 'active', cost: 4000, minTier: 't4', distribution: 'manual',
+    name: { fr: 'Accès bord terrain à l’échauffement', en: 'Pitch-side access at warm-up' },
+    description: { fr: 'Deux personnes, sur un match à domicile choisi par le club', en: 'Two people, on a home match chosen by the club' },
+    stock: 10, stockLeft: 7, perMember: 1, redeemed: 3 },
+  { id: 'rw5', status: 'draft', cost: 300, minTier: null, distribution: 'code',
+    name: { fr: 'Boisson offerte à la buvette', en: 'Free drink at the bar' },
+    description: { fr: 'Code à présenter à la buvette du stade', en: 'Code to show at the stadium bar' },
+    stock: 500, stockLeft: 500, perMember: null, redeemed: 0, codeSource: 'import' },
+];
+
+export const REWARD_STATS = { redeemed: 345, points_spent: 168400, points_awarded: 412500 };
+
+export const PENDING_REQUESTS = [
+  { id: 'pr1', reward: 'rw3', fan: 'Camille Dupont', tier: 't3', date: '2026-10-27' },
+  { id: 'pr2', reward: 'rw4', fan: 'Lucas Martin',   tier: 't4', date: '2026-10-26' },
+  { id: 'pr3', reward: 'rw3', fan: 'Inès Lambert',   tier: 't4', date: '2026-10-24' },
 ];

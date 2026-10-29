@@ -5,6 +5,7 @@ import { Btn } from '../../components/Btn';
 import { Field } from '../../components/Field';
 import { ActionMenu } from '../../components/ActionMenu';
 import { TierBadge } from './TierBadge';
+import { useLang } from './i18n';
 
 let _uid = 100;
 const uid = () => `new-${_uid++}`;
@@ -31,6 +32,7 @@ function detectOverlaps(tiers) {
 }
 
 function ColorPicker({ value, onChange }) {
+  const { t } = useLang();
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
   React.useEffect(() => {
@@ -41,7 +43,7 @@ function ColorPicker({ value, onChange }) {
 
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <button type="button" onClick={() => setOpen(o => !o)} title="Changer la couleur"
+      <button type="button" onClick={() => setOpen(o => !o)} title={t('tiers.changeColor')}
         style={{ width: 28, height: 28, borderRadius: '50%', background: value,
                  border: `2px solid ${DS.bgCard}`, outline: `2px solid ${DS.borderDefault}`,
                  cursor: 'pointer', transition: 'outline-color 0.15s' }}>
@@ -63,6 +65,7 @@ function ColorPicker({ value, onChange }) {
 }
 
 export function TierTable({ tiers, setTiers }) {
+  const { t } = useLang();
   const overlapping = detectOverlaps(tiers);
 
   function addTier() {
@@ -84,7 +87,7 @@ export function TierTable({ tiers, setTiers }) {
       {/* Table header */}
       <div style={{ display: 'grid', gridTemplateColumns: COLS, gap: 12,
                     padding: '0 12px 10px', alignItems: 'center' }}>
-        {['', 'Nom', 'Points min', 'Points max', 'Couleur', ''].map((h, i) => (
+        {['', t('tiers.col.name'), t('tiers.col.min'), t('tiers.col.max'), t('tiers.col.color'), ''].map((h, i) => (
           <span key={i} style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary,
                                   textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</span>
         ))}
@@ -94,10 +97,10 @@ export function TierTable({ tiers, setTiers }) {
         <div style={{ padding: '28px 16px', textAlign: 'center',
                       border: `1.5px dashed ${DS.borderDefault}`, borderRadius: 8, marginBottom: 12 }}>
           <div style={{ ...TY.b2, fontFamily: DS.ff, color: DS.textSecondary }}>
-            Aucun tier défini.
+            {t('tiers.none')}
           </div>
           <div style={{ ...TY.b3, fontFamily: DS.ff, color: DS.textSecondary, marginTop: 4 }}>
-            Suggestion : Bronze (0–499) → Silver (500–1 499) → Gold (1 500–2 999) → Legend (3 000+)
+            {t('tiers.suggestion')}
           </div>
         </div>
       )}
@@ -118,8 +121,8 @@ export function TierTable({ tiers, setTiers }) {
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Field value={tier.name} onChange={e => updateTier(tier.id, 'name', e.target.value)}
-                  placeholder="ex: Bronze"
-                  error={!tier.name.trim() ? 'Requis' : undefined}
+                  placeholder={t('tiers.namePh')}
+                  error={!tier.name.trim() ? t('common.required') : undefined}
                   style={{ flex: 1, minWidth: 0 }} />
                 {tier.name && (
                   <TierBadge name={tier.name} color={tier.color} size="small" />
@@ -130,19 +133,19 @@ export function TierTable({ tiers, setTiers }) {
                 value={tier.min === null || tier.min === undefined ? '' : String(tier.min)}
                 onChange={e => updateTier(tier.id, 'min', e.target.value === '' ? '' : e.target.value)}
                 placeholder="0" type="number"
-                error={isOverlap ? 'Chevauchement' : undefined}
+                error={isOverlap ? t('tiers.overlap') : undefined}
               />
 
               <Field
                 value={tier.max === null ? '' : String(tier.max)}
                 onChange={e => updateTier(tier.id, 'max', e.target.value === '' ? null : e.target.value)}
-                placeholder="∞ (illimité)" type="number"
+                placeholder={t('tiers.maxPh')} type="number"
               />
 
               <ColorPicker value={tier.color} onChange={c => updateTier(tier.id, 'color', c)} />
 
               <ActionMenu items={[
-                { label: 'Supprimer', icon: <Ico.Trash s={16} c={DS.feedbackError} />,
+                { label: t('common.delete'), icon: <Ico.Trash s={16} c={DS.feedbackError} />,
                   onClick: () => deleteTier(tier.id), danger: true },
               ]} />
             </div>
@@ -156,13 +159,13 @@ export function TierTable({ tiers, setTiers }) {
                       border: `1px solid ${DS.feedbackError}` }}>
           <Ico.Warn s={16} c={DS.feedbackError} />
           <span style={{ ...TY.b3, fontFamily: DS.ff, color: DS.feedbackErrorText }}>
-            Les plages de points se chevauchent. Corrigez-les avant d'enregistrer.
+            {t('tiers.overlapMsg')}
           </span>
         </div>
       )}
 
       <Btn type="Secondary" size="Small" iconLeft={<Ico.Plus s={16} />} onClick={addTier}>
-        Ajouter un tier
+        {t('tiers.add')}
       </Btn>
     </div>
   );

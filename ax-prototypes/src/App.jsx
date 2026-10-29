@@ -15,6 +15,7 @@ import ListsV3 from './features/Lists/ListsV3'
 import ArenaForm from './features/Arenaform/Arenaform'
 import LoyaltySettings from './features/Loyalty/LoyaltySettings'
 import LoyaltyDashboard from './features/Loyalty/LoyaltyDashboard'
+import LoyaltyRewards from './features/Loyalty/LoyaltyRewards'
 import AdminHub from './features/SsoAdmin/AdminHub'
 import AdminHubBranding from './features/SsoAdmin/AdminHubBranding'
 import SmsManagement from './features/Sms/SmsManagement'
@@ -47,6 +48,7 @@ function App() {
                     <Route path="/arenaform" element={<ArenaForm />} />
                     <Route path="/loyalty/settings"  element={<LoyaltySettings />} />
                     <Route path="/loyalty/dashboard" element={<LoyaltyDashboard />} />
+                    <Route path="/loyalty/rewards"   element={<LoyaltyRewards />} />
                     <Route path="/sms" element={<SmsManagement />} />
                     <Route path="/admin" element={<AdminHome />} />
                     <Route path="/admin/entity-merge" element={<EntityMerge />} />
