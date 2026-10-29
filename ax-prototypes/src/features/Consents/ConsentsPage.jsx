@@ -1,5 +1,6 @@
 import React from 'react';
 import { DS, TY } from '../../utils/designSystem';
+import { SearchField } from '../../components/Field';
 import Ico from '../../utils/icons';
 import { Tag } from '../../components/Tag';
 import Btn from '../../components/Btn';
@@ -8,7 +9,7 @@ import Field from '../../components/Field';
 
 /* =====================================================================
    Arenametrix — Consent Management Page
-   Tokens: AX Design System (NEW) — Figma NUOoC3GC7mB4U1AydRKIoy
+   Tokens: AX DESIGN SYSTEM — Figma nIMtO7v8dDamI8b2vnMcRc
    Rules: inline style only, DS/TY constants, Ico SVG pattern.
    ===================================================================== */
 
@@ -16,7 +17,7 @@ import Field from '../../components/Field';
 // DATA
 // ─────────────────────────────────────────────────────────────────────
 const CONSENT_COLORS = {
-  'newsletter-public': DS.blue500,
+  'newsletter-public': DS.actionPrimary,
   'newsletter-vip':    DS.purple,
   'activites':         DS.orange,
   'sms':               DS.feedbackError,
@@ -137,22 +138,6 @@ function channelIco(channel) {
 // ─────────────────────────────────────────────────────────────────────
 
 // SearchField
-function SearchField({ value, onChange, placeholder = 'Rechercher…', style: styleProp }) {
-  const [focused, setFocused] = React.useState(false);
-  return (
-    <div style={{ height: 40, padding: '0 12px', borderRadius: 6,
-                  border: `1px solid ${focused ? DS.borderFocus : DS.borderDefault}`,
-                  background: DS.bgSurface,
-                  display: 'flex', alignItems: 'center', gap: 8, ...styleProp }}>
-      <Ico.Search s={16} c={DS.textSecondary} />
-      <input value={value ?? ''} onChange={onChange} placeholder={placeholder}
-             onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-             style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none',
-                      ...TY.b2, fontFamily: DS.ff, color: DS.textDefault }} />
-    </div>
-  );
-}
-
 // Avatar — DS §4.6 colour logic: charCodeAt(0) % 4
 const AVATAR_PALETTE = [
   { bg: DS.blue100,        fg: DS.actionPrimary  },

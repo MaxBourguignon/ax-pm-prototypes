@@ -1,6 +1,10 @@
 /**
  * AX Design System — Select controls
- * Figma node 196:1311 — https://www.figma.com/design/NUOoC3GC7mB4U1AydRKIoy/AX-DESIGN-SYSTEM--NEW-?node-id=196-1311
+ * Figma: Atoms › Checkbox 458:65 · Radio 459:46 · Switch 459:55
+ * https://www.figma.com/design/nIMtO7v8dDamI8b2vnMcRc/AX-DESIGN-SYSTEM?node-id=458-65
+ *
+ * ⚠ Not yet realigned: Figma's Switch is 36×20 and Checkbox adds an
+ *   `Indeterminate` state.
  *
  * Exports:
  *   Checkbox  — 16×16, borderRadius 4

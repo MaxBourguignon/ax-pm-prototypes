@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SMS Management — Feature Spec</title>
+<style>
+  @page { size: A4; margin: 22mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1a1a2e; line-height: 1.55; font-size: 12px; margin: 0;
+  }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.02em; }
+  h2 { font-size: 16px; margin: 26px 0 8px; padding-bottom: 5px; border-bottom: 1px solid #e3e3ee; letter-spacing: -0.01em; }
+  h3 { font-size: 13px; margin: 16px 0 6px; color: #33334d; }
+  .meta { background: #f6f6fb; border: 1px solid #e8e8f2; border-radius: 8px; padding: 12px 16px; margin: 12px 0 4px; font-size: 11.5px; }
+  .meta div { margin: 2px 0; }
+  .meta strong { color: #5b5b80; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 11px; page-break-inside: avoid; }
+  th, td { border: 1px solid #e3e3ee; padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: #f6f6fb; font-weight: 600; color: #33334d; }
+  ol, ul { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+  p { margin: 6px 0; }
+  hr { border: none; border-top: 1px solid #ededf5; margin: 18px 0; }
+  code { background: #f0f0f7; padding: 1px 4px; border-radius: 3px; font-size: 10.5px; }
+  .checklist { list-style: none; padding-left: 4px; }
+  .checklist li::before { content: "\2713  "; color: #2a9d5c; font-weight: 700; }
+</style>
+</head>
+<body>
+  <h1>SMS Management — Feature Spec</h1>
+  <div class="meta">
+    <div><strong>Product area:</strong> CRM Marketing</div>
+    <div><strong>PM:</strong> M. Bourguignon</div>
+    <div><strong>Fidelity:</strong> Near-production</div>
+    <div><strong>Platform:</strong> Arenametrix web app (CRM Marketing module)</div>
+    <div><strong>Date:</strong> 2026-06-16</div>
+  </div>
+
+  <h2>1. Context</h2>
+  <p>SMS Management gives marketing managers a native way to create SMS campaigns and analyze their performance directly inside Arenametrix CRM Marketing. Today this is done in an external tool (Brevo), which keeps SMS disconnected from the contact base, segments, and the rest of the customer view — forcing duplicate work and split reporting. The current setup is being replaced now because Brevo offers no interface flexibility and its unicity-key model (SMS + email) clashes with Arenametrix's email-only keys, breaking contact imports on every campaign. The struggle is per-campaign and high-severity: every send means exporting contacts and fighting import/unicity errors in a tool the team can't adapt.</p>
+
+  <h2>2. Goals</h2>
+  <ol>
+    <li>A marketing manager can build an SMS campaign end-to-end (template, segment selection, config) and reach a send/review step — without leaving Arenametrix.</li>
+    <li>A marketing manager can create and reuse an SMS template.</li>
+    <li>A marketing manager can view per-campaign performance (messages sent, delivery rate, click rate) and read an analysis of results.</li>
+  </ol>
+  <h3>Not in scope</h3>
+  <ul>
+    <li>The back-end sending mechanics / delivery infrastructure (the actual dispatch); the builder ends at a review/send step.</li>
+    <li>Segment/contact creation — the builder consumes existing CRM segments, it does not create or edit them.</li>
+    <li>Cost, opt-out, and revenue-attribution metrics (V1 KPIs are sent / delivery / click only).</li>
+  </ul>
+
+  <h2>3. User stories</h2>
+  <h3>Story 1</h3>
+  <table>
+    <tr><th>As a…</th><td>Marketing manager</td></tr>
+    <tr><th>I want to…</th><td>Build, configure, and reach send for an SMS campaign from Arenametrix</td></tr>
+    <tr><th>So that…</th><td>I stop exporting contacts to Brevo</td></tr>
+    <tr><th>Acceptance criteria</th><td>Can create/select a template and personalize content + variables; can set sending number, send date, and target segment (existing CRM segment); can review and trigger send (dispatch mechanics out of scope)</td></tr>
+    <tr><th>Empty state</th><td>"No SMS campaigns yet. Create your first campaign."</td></tr>
+    <tr><th>Error state</th><td>"Couldn't load your campaigns. Retry."</td></tr>
+    <tr><th>Loading state</th><td>Skeleton matching list + KPI strip</td></tr>
+  </table>
+  <h3>Story 2</h3>
+  <table>
+    <tr><th>As a…</th><td>Marketing manager</td></tr>
+    <tr><th>I want to…</th><td>View per-campaign KPI cards and charts</td></tr>
+    <tr><th>So that…</th><td>I can judge performance and improve the next send</td></tr>
+    <tr><th>Acceptance criteria</th><td>Headline KPI strip (messages sent, delivery rate %, click rate %); dataviz charts breaking down delivery and clicks; filtering/changing view does not reload the page</td></tr>
+    <tr><th>Empty state</th><td>"No data yet — this campaign hasn't been sent." / "No campaigns sent in this period."</td></tr>
+    <tr><th>Error state</th><td>"Couldn't load performance data. Retry."</td></tr>
+    <tr><th>Loading state</th><td>Skeleton KPI cards + chart placeholders</td></tr>
+  </table>
+
+  <h2>4. Screens</h2>
+  <table>
+    <tr><th>Screen</th><th>Linked stories</th><th>Notes</th></tr>
+    <tr><td>Campaigns list</td><td>1</td><td>Default tab. Search + status filter + tag filter (filter in place, no reload). Rows: name, status dot (Draft/Sent), last-edited date, #ID, edit, ⋮ menu (Duplicate / Rename / Delete). Click a row → opens campaign in builder (draft) or report (sent). "+ Create campaign" launches the full-page builder.</td></tr>
+    <tr><td>Campaign builder</td><td>1</td><td>Full-page overlay flow launched by CTA. Two-pane: editor (60%) + live phone preview (40%). Sections as a checklist with completion ticks: Message content, Sender, Recipients (existing segment), Config (sending number, send date). Live character/segment counter (xxx/160, n SMS) with special-char/emoji warning, no hard block. Variables highlighted in editor, sample values in preview. "Send test" + "Send" — Send enabled only when required sections complete. Auto-saves as Draft on close.</td></tr>
+    <tr><td>Statistics</td><td>2</td><td>Tab view. Date-range picker scopes the whole view (updates in place). KPI strip: Messages sent (count), Delivery rate (%), Click rate (%). Dataviz: delivery & clicks over time. Per-campaign table (ID / Name / Sent / Delivered % / Clicked % / Date / report) with CSV export. Per-row "report" opens a slide-in side panel over the table; X / click-outside to close.</td></tr>
+  </table>
+
+  <h3>Mock data</h3>
+  <table>
+    <tr><th>Entity</th><th>Key fields</th><th>Volume</th><th>Notes</th></tr>
+    <tr><td>SMS Campaign</td><td>id (#), name, status (Draft/Sent), lastEdited, sendDate, senderName, segmentId, messageBody, charCount, smsSegments, recipients, messagesSent, deliveryRate %, clickRate %</td><td>5 (4 Sent · 1 Draft)</td><td>One very long name (truncation); one Sent campaign with poor delivery (~85%) and near-zero click; Draft has no performance values</td></tr>
+    <tr><td>Segment</td><td>id, name, contactCount</td><td>4</td><td>One large (~92k) and one tiny (~40)</td></tr>
+    <tr><td>Sender number</td><td>id, label (e.g. "VElectro"), number</td><td>3</td><td>One alphanumeric sender ID vs. numeric</td></tr>
+    <tr><td>Personalization variable</td><td>token (e.g. {firstname}), sampleValue</td><td>~4</td><td>One long sample value pushing message past 160 chars</td></tr>
+    <tr><td>Performance time-series</td><td>date, deliveredPct, clickedPct</td><td>per sent campaign / aggregated</td><td>One dip day for a visible downward trend</td></tr>
+  </table>
+
+  <h2>5. Constraints</h2>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Stack / framework</td><td>Arenametrix design system</td></tr>
+    <tr><td>Accessibility</td><td>WCAG AA</td></tr>
+    <tr><td>Data & GDPR</td><td>None specified</td></tr>
+    <tr><td>Other</td><td>Good and scalable performance</td></tr>
+  </table>
+  <h3>Open questions</h3>
+  <table>
+    <tr><th>Question</th><th>Owner</th><th>Status</th></tr>
+    <tr><td>Kill criteria to watch post-launch: &lt;~30% of active marketing managers send ≥1 SMS from Arenametrix in the first quarter</td><td>M. Bourguignon</td><td>Monitor</td></tr>
+  </table>
+
+  <h2>6. Pre-send checklist</h2>
+  <ul class="checklist">
+    <li>Context is one clear paragraph — who, what, why</li>
+    <li>At least 1 goal uses outcome language</li>
+    <li>At least 1 non-goal is stated explicitly</li>
+    <li>Every story has acceptance criteria</li>
+    <li>All 3 edge states are specified for every story</li>
+    <li>Every screen is listed with a description</li>
+    <li>At least 1 mock data entity is defined</li>
+    <li>All open questions have an owner</li>
+  </ul>
+</body>
+</html>

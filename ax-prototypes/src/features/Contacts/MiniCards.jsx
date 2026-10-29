@@ -86,8 +86,8 @@ function MiniCard({ active, onClick, children, gridColumn }) {
             style={{
                 gridColumn,
                 background: DS.neutral0,
-                border: `1px solid ${active ? DS.blue500 : hov ? DS.neutral500 : DS.neutral200}`,
-                borderBottom: active ? `2px solid ${DS.blue500}` : `1px solid ${hov ? DS.neutral500 : DS.neutral200}`,
+                border: `1px solid ${active ? DS.actionPrimary : hov ? DS.neutral500 : DS.neutral200}`,
+                borderBottom: active ? `2px solid ${DS.actionPrimary}` : `1px solid ${hov ? DS.neutral500 : DS.neutral200}`,
                 borderRadius: 8,
                 padding: "14px 16px 12px",
                 cursor: "pointer",
@@ -105,7 +105,7 @@ function CardLabel({ children, active }) {
         <span style={{
             fontFamily: DS.ff, fontSize: 10, fontWeight: 700,
             letterSpacing: ".08em", textTransform: "uppercase",
-            color: active ? DS.blue500 : DS.neutral500,
+            color: active ? DS.actionPrimary : DS.neutral500,
             transition: "color .15s",
         }}>
             {children}

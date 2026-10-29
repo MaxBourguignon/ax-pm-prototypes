@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Insight Cards Lot 1</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">@page { size: A4; margin: 18mm 16mm; }
+body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1f2933; max-width: none; margin: 0; padding: 0; }
+h1 { font-size: 20pt; color: #2b4c7e; margin: 0 0 8px; }
+h2 { font-size: 13.5pt; color: #2b4c7e; border-bottom: 1px solid #d5dde8; padding-bottom: 3px; margin-top: 20px; page-break-after: avoid; }
+blockquote { margin: 6px 0; padding: 6px 10px; background: #f3f6fa; border-left: 3px solid #5a8fc4; color: #334; }
+table { border-collapse: collapse; width: 100%; font-size: 9pt; margin: 8px 0; }
+th, td { border: 1px solid #d5dde8; padding: 4px 6px; vertical-align: top; text-align: left; }
+th { background: #eef3f8; }
+pre { background: #f6f8fa; padding: 8px; font-size: 8pt; line-height: 1.3; overflow: hidden; page-break-inside: avoid; }
+code { font-size: 9pt; }
+hr { border: none; border-top: 1px solid #d5dde8; }
+</style>
+</head>
+<body>
+<h1 id="insight-cards-lot-1-insights-page-and-card-builder-1a-1b">Insight
+Cards: Lot 1: Insights page and card builder (1a + 1b)</h1>
+<blockquote>
+<p><strong>Product area:</strong> Data analysis module (Business
+Analytics), under ARENAPulse · <strong>PM:</strong> Joost Mouw ·
+<strong>Fidelity:</strong> Clickable <strong>Date:</strong> 2026-10-09 ·
+<strong>Vision:</strong>
+<code>specs/insight-cards/vision-spec.pdf</code></p>
+</blockquote>
+<blockquote>
+<p>⚠ Agent notes: (1) the measures “count tickets” and “sum of revenue”
+and the per-day series depend on B38 (can the segmentation engine do
+them); (2) the comparison depends on B6 (history); (3) “Insights” as a
+top-menu item needs Maxence’s agreement (IC5); in the prototype it is a
+sidebar entry; (4) the AI behaviour in the prototype is scripted for 7
+prompts, not a live model.</p>
+</blockquote>
+<h2 id="lot-scope">1. Lot scope</h2>
+<p><strong>This lot unlocks:</strong> 02 Build my own number (by hand in
+1a, in my own words in 1b), 01 See where I stand, 03 Compare with
+before, 04 Act on a lagging number (1b), 05 Keep my Insights.</p>
+<p>Specced as one round covering Lot 1a and Lot 1b; each story is
+tagged. The development order stays 1a, then 1b; both are in the Q1 2027
+release.</p>
+<ul>
+<li><strong>1a:</strong> “Insights” in the AX top menu; tabs per theme
+(add, rename, reorder); card grid; page bar with Period, Comparison and
+“Make new card”; card builder as a side panel, by hand (source,
+conditions, measure, form, comparison, live preview, save to tab); card
+forms number, ranked breakdown, per day; (i) definition on every card;
+card menu (edit, duplicate, move to tab, delete).</li>
+<li><strong>1b:</strong> text entry where the AI fills the builder, with
+flagged assumptions and refusals; “Open as segment”.</li>
+<li><strong>Not in this lot:</strong> cards on Contacts &gt; Overview
+and Sales &gt; Salesboard, and the target card with a progress bar (Lot
+2).</li>
+</ul>
+<p><strong>Builds on prior lots:</strong> first lot, vision only.</p>
+<h2 id="goals-guidelines-feature-wide-for-context">2. Goals &amp;
+guidelines (feature-wide, for context)</h2>
+<ol type="1">
+<li>A client user builds a correct card without CS, by hand in the
+builder or from plain text with the AI filling in the builder.</li>
+<li>Every Fanalists Insight job cluster can be rebuilt, or the builder
+says clearly it cannot.</li>
+<li>Cards rerun on open without AI cost.</li>
+<li>From a card that counts people, the user opens that group as a
+segment in one click.</li>
+</ol>
+<p><strong>Not in scope:</strong> interpretation and advice (ARENAPulse,
+level 2); custom dashboards and automatic reports (level 3); a
+scheduled, shareable report (D17); benchmarks across clients (C39); data
+Arenametrix does not hold.</p>
+<p><strong>Guidelines:</strong> one builder, two entries; never invent a
+number, refuse when the data is not there; every card shows how its
+number is defined; colour only means something with a target or
+comparison; the client chooses which cards show where.</p>
+<h2 id="user-stories-this-lot">3. User stories (this lot)</h2>
+<p>Role for all stories: a client user, a marketing or ticketing manager
+at a club or venue.</p>
+<p><strong>Story 1 [1a + 1b]: build a card</strong></p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 80%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>As a…</td>
+<td>client user</td>
+</tr>
+<tr>
+<td>I want to…</td>
+<td>describe a number in my own words, or build it by hand, and get a
+card I can check and adjust</td>
+</tr>
+<tr>
+<td>So that…</td>
+<td>I don’t depend on CS (job 02; KPIs self-building, correct
+numbers)</td>
+</tr>
+<tr>
+<td>Reached via</td>
+<td>Insights &gt; “Make new card” &gt; side panel</td>
+</tr>
+<tr>
+<td>Acceptance criteria</td>
+<td>[1b] a text box on top; on “Build” the AI fills source, conditions,
+measure, form and comparison in the builder; [1b] when a reading is
+ambiguous, the AI picks the most likely one and marks it as a flagged
+chip “assumed, check this”; it asks back only when it cannot pick at
+all; [1a] without the text box, the user builds the same card by hand,
+step by step; every condition is an editable chip and the preview
+updates on every change; [1b] when the data is not there, the AI says
+what is missing and names the nearest card it can build, and never
+invents a number; save to a chosen tab, and the card appears there at
+once</td>
+</tr>
+<tr>
+<td>Happy path</td>
+<td>Make new card → type “season ticket holders who did not renew yet” →
+the builder fills, preview shows 1,284 → confirm the flagged chip → save
+to tab “Renewals”</td>
+</tr>
+<tr>
+<td>Empty / Error / Loading</td>
+<td>Preview “Add a source to see your number” / “Couldn’t build this
+card. Try other words or build it by hand.” / builder skeleton and
+“Building your card…”</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Story 2 [1a]: see my cards</strong></p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 80%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>As a…</td>
+<td>client user</td>
+</tr>
+<tr>
+<td>I want to…</td>
+<td>open Insights and see my cards for the period I pick, against an
+earlier period</td>
+</tr>
+<tr>
+<td>So that…</td>
+<td>I know at a glance whether we’re on track (jobs 01, 03, 05; KPI
+weekly card use)</td>
+</tr>
+<tr>
+<td>Reached via</td>
+<td>Top menu &gt; Insights</td>
+</tr>
+<tr>
+<td>Acceptance criteria</td>
+<td>Period and Comparison at page level drive every card; each card
+shows title, number or chart and % change vs. the comparison, with
+colour only when there is a comparison; the (i) shows the definition in
+plain words (source, conditions, measure, created by and when); tabs can
+be added, renamed and reordered; the card menu offers edit, duplicate,
+move to tab and delete</td>
+</tr>
+<tr>
+<td>Happy path</td>
+<td>Insights → tab “Season tickets” → Period “This season”, Comparison
+“Last season” → read the cards → open (i) on one card</td>
+</tr>
+<tr>
+<td>Empty / Error / Loading</td>
+<td>“No cards yet. Make your first card.” with three example cards / per
+card “Couldn’t load this number. Retry.” / card skeletons in the
+grid</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Story 3 [1b]: open as segment</strong></p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 80%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>As a…</td>
+<td>client user</td>
+</tr>
+<tr>
+<td>I want to…</td>
+<td>open the people behind a card as a segment</td>
+</tr>
+<tr>
+<td>So that…</td>
+<td>I can act on a number that lags (job 04, validate first, C14; KPI
+card to action)</td>
+</tr>
+<tr>
+<td>Reached via</td>
+<td>A card that counts people &gt; “Open as segment”</td>
+</tr>
+<tr>
+<td>Acceptance criteria</td>
+<td>Only on cards that count people; opens the contacts list with the
+same filter tree and a banner “From card: [title]”; the count matches
+the card; from there the existing flow: save as list, campaign</td>
+</tr>
+<tr>
+<td>Happy path</td>
+<td>Card “Not renewed yet: 1,284” → Open as segment → contacts list,
+1,284 → save as list → campaign</td>
+</tr>
+<tr>
+<td>Empty / Error / Loading</td>
+<td>n/a / “Couldn’t open this segment. Retry.” / the contacts list’s own
+loading state</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pages-this-lot">4. Pages (this lot)</h2>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 64%" />
+</colgroup>
+<thead>
+<tr>
+<th>Page</th>
+<th>New or extends</th>
+<th>Layout</th>
+<th>Components &amp; behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Insights</td>
+<td>New</td>
+<td>Grid page</td>
+<td>nav: “Insights” in the top menu (prototype: sidebar entry); header:
+title + primary “Make new card”; tabs: themed, “+” adds one, rename and
+reorder via the tab menu; period-bar: Period + Comparison drive every
+card; grid: 3 columns, mixed heights; card: title, (i) definition
+popover, ⋮ menu (edit, duplicate, move to tab, delete with
+confirmation), body by form (number with % change; ranked breakdown with
+neutral bars; per day with bars and today’s value), “Data as of [time]”;
+open-as-segment [1b]: only on people-count cards; states: empty tab,
+per-card error with Retry, skeletons</td>
+</tr>
+<tr>
+<td>Card builder</td>
+<td>New</td>
+<td>Side panel (about 440px) over Insights</td>
+<td>text-entry [1b]: “Describe your number” + “Build”, fills every step;
+assumptions as flagged chips; refusal banner [1b]; source [1a];
+conditions: compact chips, one per line; clicking a chip opens the
+existing Contacts filter row; “+ Add condition” opens the existing
+object picker (AddFilterModal); measure: count people, count tickets,
+sum of revenue; form: number, ranked breakdown, per day; comparison:
+page comparison or none; title; live preview; footer: tab picker,
+Cancel, Save; save closes the panel and highlights the new card; edit
+reopens the same panel</td>
+</tr>
+<tr>
+<td>Contacts list</td>
+<td>Extends Contacts V3 [1b]</td>
+<td>Existing list page</td>
+<td>entry from “Open as segment”: filters pre-filled with the card’s
+tree, banner “From card: [title]”, count matches the card; save as list
+and campaign as today</td>
+</tr>
+</tbody>
+</table>
+<h2 id="system-design-decisions-this-lot">5. System-design decisions
+(this lot)</h2>
+<ul>
+<li>Cards and tabs are per client account: every user of the client sees
+the same tabs and can edit them; the (i) shows “Created by [name],
+[date]”. Personal boards are a later lot.</li>
+<li>Building needs the same rights as the segmentation engine; a card on
+data a user cannot see shows “No access to this data”.</li>
+<li>The panel closes via ✕, Cancel or click outside; with unsaved
+changes, a “Discard changes?” confirmation.</li>
+<li>[1b] “Build” again after hand edits asks “Replace your changes?”;
+the new text overwrites the builder.</li>
+<li>The preview updates immediately on every change.</li>
+<li>Max 6 conditions in the panel; beyond that: “Too many conditions for
+a card. Build a segment in Contacts first.” Nested blocks stay out of
+the panel.</li>
+<li>Period and Comparison update every card immediately, without a
+reload; the choice is remembered per tab.</li>
+<li>No history for the comparison: the card shows the number without %
+and “No comparison data”.</li>
+<li>Ranked breakdown: top 5 + “Other”. Per day: up to 31 days per day,
+beyond that per week automatically.</li>
+<li>Caps: max 10 tabs, max 12 cards per tab; at the cap “Make new card”
+is disabled with a tooltip.</li>
+<li>Delete card: confirmation modal, disappears at once, toast “Card
+deleted”. Delete a tab with cards: the modal offers “Move cards to
+[tab]” or “Delete them too”.</li>
+<li>Cards rerun on page open, without AI cost; each card shows “Data as
+of [time]” from the last data sync.</li>
+</ul>
+<h2 id="mock-data-this-lot">6. Mock data (this lot)</h2>
+<p>All data belongs to a fictional French club, <strong>FC Demo</strong>
+(season tickets, matches, fans in Paris, Lyon, Lille and elsewhere), so
+it resembles no real client.</p>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 34%" />
+<col style="width: 13%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Key fields</th>
+<th>Volume</th>
+<th>Edge cases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Account and users</td>
+<td>client name; users: name, role</td>
+<td>1 account, 3 users</td>
+<td>Needed for “Created by”</td>
+</tr>
+<tr>
+<td>Tabs</td>
+<td>name, order, period and comparison per tab</td>
+<td>4</td>
+<td>One empty tab</td>
+</tr>
+<tr>
+<td>Cards</td>
+<td>title, form, source (DATA_OBJECTS id), conditions, measure,
+comparison, value, previous value, created by and at, counts people
+yes/no</td>
+<td>12 (one tab at the cap)</td>
+<td>Very long title; value 0; -38% trend; no comparison data; no access;
+load error; 1,234,567; revenue in €</td>
+</tr>
+<tr>
+<td>Series</td>
+<td>date, value, value same period last year</td>
+<td>31 days and 12 weeks</td>
+<td>A zero day (no match); a peak on the on-sale day</td>
+</tr>
+<tr>
+<td>Breakdowns</td>
+<td>label, value</td>
+<td>3 (cities, ticket categories, channels), top 5 + Other</td>
+<td>One label at 70%; one long label</td>
+</tr>
+<tr>
+<td>AI prompts (scripted)</td>
+<td>text, expected builder fill, flagged assumptions</td>
+<td>7</td>
+<td>3 clean; 2 with a flagged assumption; 1 refusal (data not held); 1
+that asks back; taken from the Fanalists Insights list (IC1), in
+English</td>
+</tr>
+<tr>
+<td>Segment hand-off</td>
+<td>card filter tree mapped to Contacts V3 filters, count</td>
+<td>1</td>
+<td>The card says 1,284 while contacts.json has 17 rows: the header
+shows the card’s count, the rows are a sample</td>
+</tr>
+</tbody>
+</table>
+<h2 id="constraints">7. Constraints</h2>
+<table>
+<thead>
+<tr>
+<th>Constraint</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stack</td>
+<td>Arenametrix design system</td>
+</tr>
+<tr>
+<td>Accessibility</td>
+<td>WCAG AA</td>
+</tr>
+<tr>
+<td>Performance</td>
+<td>Good and scalable performance</td>
+</tr>
+<tr>
+<td>Other</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<h2 id="validate-before-build">8. Validate before build</h2>
+<ul>
+<li>Job 04 “Act on a lagging number” is inferred: test “Open as segment”
+in client conversations first (C14).</li>
+<li>B38: whether the segmentation engine can count tickets, sum revenue
+and return a series per day. If not, Lot 1a ships with “count people”
+only.</li>
+<li>B6: whether history exists for the comparison.</li>
+<li>IC6: whether an Insights page without cards on Overview and
+Salesboard lifts the “Looker / Insights” migration blocker.</li>
+</ul>
+</body>
+</html>

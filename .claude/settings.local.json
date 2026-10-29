@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx eslint *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(sed -n '1,30p' components/Card.jsx)",
+      "Bash(sed -n '17,55p' components/Kpi.jsx)",
+      "Bash(npm run *)",
+      "Bash(sed -i '' \"s/const SP = { page: 24,/const SP = { page: 32,/\" features/Performances/PerformanceV3.jsx)",
+      "Bash(sed -i '' \"s/const SP = { page: 24,/const SP = { page: 32,/\" features/Contacts/Acquisition.jsx)",
+      "Bash(sed -i '' \"s/const PAGE_X = 24;/const PAGE_X = 32;/\" features/Sms/SmsManagement.jsx)",
+      "Bash(sed -i '' \"s/padding: '16px 24px 20px'/padding: '16px 32px 20px'/\" components/PageHeader.jsx)",
+      "Bash(sed -i '' \"s/margin: \\\\\"8px 24px 0\\\\\"/margin: \\\\\"8px 32px 0\\\\\"/;s/margin: \\\\\"16px 24px 0\\\\\"/margin: \\\\\"16px 32px 0\\\\\"/;s/margin: \\\\\"10px 24px 0\\\\\"/margin: \\\\\"10px 32px 0\\\\\"/;s/margin: \\\\\"12px 24px 0\\\\\"/margin: \\\\\"12px 32px 0\\\\\"/;s/marginInline: 24/marginInline: 32/g\" features/Contacts/Contacts.jsx)",
+      "mcp__claude_ai_Figma__get_metadata",
+      "mcp__claude_ai_Figma__get_design_context",
+      "Bash(grep -nA12 'export function Avatar' src/components/Tag.jsx)",
+      "Bash(grep -rhA5 '<PageHeader' src/features)",
+      "Bash(curl -sL -o s1.svg \"https://www.figma.com/api/mcp/asset/3f933bb6-ad48-4dcd-bbbe-2f25ce19203f.svg\")",
+      "Bash(curl -sL -o s2.svg \"https://www.figma.com/api/mcp/asset/6c246294-fe98-4b83-85bd-122da0c8756a.svg\")",
+      "Bash(curl -sL -o sortcomposite.svg \"https://www.figma.com/api/mcp/asset/d96241c7-bda8-4778-80f6-d2e754cfca69.svg\")",
+      "mcp__claude_ai_Figma__download_assets",
+      "Bash(curl -sL -o sv.svg \"https://www.figma.com/api/mcp/asset/b9a71e2d-5bfe-425a-9e8d-f0c954b9cfde.svg\")",
+      "Bash(python3 -c ' *)",
+      "Bash(xargs -I{} echo \"new-file issues: {}\")"
+    ]
+  }
+}

@@ -11,10 +11,15 @@
  *   open      boolean
  *   onClose   () => void              close via X button or scrim click
  *   title     string                  shown in the gradient header
+ *   subtitle  string                  optional line under the title (white)
  *   children  body content (scrolls)
  *   footer    node | null             rendered in a bordered footer band
  *   variant   "panel" | "center"      default "panel"
- *   width     number                  override (panel default 440, center default 665)
+ *   size      "sm" | "md" | "lg"      centre modals only, default "md"
+ *   width     number                  explicit override, wins over `size`
+ *   headerContent node | null          rendered inside the gradient header, below the title row (e.g. tabs)
+ *   headerActions node | null          rendered in the title row, just before the close button (e.g. icon buttons)
+ *   headerLeading node | null          rendered before the title (e.g. a back chevron + icon tile)
  *
  * Usage:
  *   <Modal open={open} onClose={close} title="Créer une liste" footer={<Btn>…</Btn>}>
@@ -31,43 +36,108 @@ const KEYFRAMES = `
 @keyframes axModalPop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 `;
 
-function HeaderModal({ title, onClose }) {
+/* The official modal header (Modals / HeaderModal): Gradient/Brand band, bold
+   white title, optional white subtitle under it, and an unframed close cross
+   (background on hover only). Exported so popover panels that act as small dialogs
+   (column configuration, view picker) wear the same header. */
+export function ModalHeader({ title, subtitle, onClose, headerContent, headerActions, headerLeading, compact = false }) {
+  // `compact` — the same header scaled for small popover panels: tighter
+  // padding, 16px title, 12px subtitle, 28px close.
   const [hov, setHov] = React.useState(false);
   return (
     <div style={{
       flexShrink: 0,
-      background: `linear-gradient(90deg, ${DS.indigoGrad} 0%, ${DS.greenBrand} 100%)`,
-      padding: 20,
+      // DS paint style `Gradient/Brand` (blue/550 → blue/300), verified on the
+      // modal header at 1477:3168. Was the legacy gradientBlueV (blue→teal).
+      background: DS.gradientBrand,
+      padding: headerContent ? '20px 20px 0' : compact ? '12px 14px' : 20,
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 12,
+      flexDirection: 'column',
+      gap: 14,
     }}>
-      <span style={{ ...TY.h3, fontWeight: 700, color: DS.textInverse, fontFamily: DS.ff, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {title}
-      </span>
-      <button
-        type="button"
-        aria-label="Fermer"
-        onClick={onClose}
-        onMouseEnter={() => setHov(true)}
-        onMouseLeave={() => setHov(false)}
-        style={{
-          width: 28, height: 28, flexShrink: 0, borderRadius: 6, border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: hov ? 'rgba(255,255,255,0.18)' : 'transparent', transition: 'background .15s',
-        }}
-      >
-        <Ico.Cross s={20} c={DS.textInverse} />
-      </button>
+      <div style={{ display: 'flex', alignItems: subtitle ? 'flex-start' : 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+        {headerLeading}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+          <span style={{ ...(compact ? TY.bodyMdBold : TY.h3), ...(compact ? { fontSize: 16, lineHeight: '22px' } : {}), fontWeight: 700, color: DS.textInverse, fontFamily: DS.ff, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {title}
+          </span>
+          {subtitle && (
+            <span style={{ ...(compact ? TY.labelMd : TY.bodySm), fontWeight: 400, color: 'rgba(255,255,255,0.92)', fontFamily: DS.ff }}>{subtitle}</span>
+          )}
+        </div>
+        </div>
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+          {headerActions}
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            onMouseEnter={() => setHov(true)}
+            onMouseLeave={() => setHov(false)}
+            style={{
+              width: compact ? 28 : 36, height: compact ? 28 : 36, flexShrink: 0, borderRadius: compact ? 6 : DS.radiusLg, cursor: 'pointer',
+              boxSizing: 'border-box', border: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              // No frame at rest — the cross alone; a white wash on hover only.
+              background: hov ? 'rgba(255,255,255,0.2)' : 'transparent', transition: 'background .15s',
+            }}
+          >
+            <Ico.Cross s={compact ? 16 : 20} c={DS.textInverse} />
+          </button>
+        </div>
+      </div>
+      {headerContent}
     </div>
   );
 }
 
-export function Modal({ open, onClose, title, children, footer, variant = 'panel', width }) {
+/* Centre-modal width ladder. The app had grown twelve different widths by hand
+   (420 · 460 · 520 · 540 · 560 · 620 · 665 · 780 · 1280), so two dialogs doing
+   the same job rarely measured the same. Three steps instead, each a notch
+   wider than what it replaces:
+     sm  confirmations and single-field dialogs
+     md  forms and action modals — the default
+     lg  content-heavy: pickers, comparisons, anything two-column
+   The DS documents a 480 base and a 560 widest composition (1223:3646); `lg` has
+   no DS precedent and is ours. `width` still wins, for the rare outlier. */
+const CENTER_W = { sm: 480, md: 600, lg: 720 };
+
+/* Open modals, bottom to top. A dialog opened over a drawer (e.g. "Discard
+   changes?") is the top one: only it reacts to Escape, and it lays a lighter
+   scrim so the screen doesn't darken twice. */
+const STACK = [];
+
+export function Modal({ open, onClose, title, subtitle, children, footer, variant = 'panel', size = 'md', width, headerContent, headerActions, headerLeading }) {
+  // Click-out: only a press that STARTS and ENDS on the scrim closes. A text
+  // selection or a drag that begins inside the modal and is released over the
+  // scrim no longer dismisses it (and loses what was typed). Escape closes the
+  // top-most modal only.
+  const downOnScrim = React.useRef(false);
+  const [layer] = React.useState(() => ({}));
+  const [depth, setDepth] = React.useState(0);
+  const closeRef = React.useRef(onClose);
+  React.useEffect(() => { closeRef.current = onClose; });
+  React.useEffect(() => {
+    if (!open) return undefined;
+    STACK.push(layer);
+    setDepth(STACK.length - 1);
+    const k = (e) => {
+      if (e.key !== 'Escape' || STACK[STACK.length - 1] !== layer) return;
+      e.stopPropagation();
+      closeRef.current?.();
+    };
+    document.addEventListener('keydown', k);
+    return () => {
+      document.removeEventListener('keydown', k);
+      const i = STACK.indexOf(layer);
+      if (i >= 0) STACK.splice(i, 1);
+    };
+  }, [open, layer]);
+
   if (!open) return null;
   const isCenter = variant === 'center';
-  const w = width || (isCenter ? 665 : 440);
+  const w = width || (isCenter ? (CENTER_W[size] ?? CENTER_W.md) : 440);
 
   const surface = isCenter
     ? {
@@ -83,10 +153,14 @@ export function Modal({ open, onClose, title, children, footer, variant = 'panel
       };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: isCenter ? 'flex' : 'block', alignItems: 'center', justifyContent: 'center' }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(31,41,55,0.45)', animation: 'axModalFade .15s ease' }} />
+    <div style={{ position: 'fixed', inset: 0, zIndex: 60 + depth, display: isCenter ? 'flex' : 'block', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        onMouseDown={(e) => { downOnScrim.current = e.target === e.currentTarget; }}
+        onClick={(e) => { if (downOnScrim.current && e.target === e.currentTarget) onClose?.(); downOnScrim.current = false; }}
+        style={{ position: 'absolute', inset: 0, background: depth > 0 ? 'rgba(31,41,55,0.2)' : 'rgba(31,41,55,0.45)', animation: 'axModalFade .15s ease' }}
+      />
       <div style={surface}>
-        <HeaderModal title={title} onClose={onClose} />
+        <ModalHeader title={title} subtitle={subtitle} onClose={onClose} headerContent={headerContent} headerActions={headerActions} headerLeading={headerLeading} />
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>{children}</div>
         {footer && (
           <div style={{ flexShrink: 0, borderTop: `1px solid ${DS.borderDefault}`, padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 8 }}>

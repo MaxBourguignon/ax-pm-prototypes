@@ -82,11 +82,9 @@ function TabBar({ tabs, active, onChange, extra }) {
     <div style={{ background:DS.bgCard, borderBottom:`1px solid ${DS.borderDefault}`, padding:"0 24px", display:"flex", alignItems:"center" }}>
       {tabs.map(t => {
         const isActive = t.id === active;
-        const IcoC = t.icon;
         return (
           <button key={t.id} onClick={() => onChange(t.id)}
-            style={{ height:48, padding:"0 16px", border:"none", borderBottom: isActive ? `4px solid ${DS.navTabBarActive}` : "4px solid transparent", background:"transparent", cursor:"pointer", display:"flex", alignItems:"center", gap:8, ...TY.b2, fontFamily:DS.ff, color: isActive ? DS.navTabTextActive : DS.navText, fontWeight: isActive ? 600 : 400, transition:"color .15s" }}>
-            {IcoC && <IcoC s={14} c={isActive ? DS.navTabTextActive : DS.textSecondary}/>}
+            style={{ height:48, padding:"0 16px", border:"none", borderBottom: isActive ? `4px solid ${DS.navTabBarActive}` : "4px solid transparent", background:"transparent", cursor:"pointer", display:"flex", alignItems:"center", ...TY.b2, fontFamily:DS.ff, color: isActive ? DS.navTabTextActive : DS.navText, fontWeight: isActive ? 600 : 400, transition:"color .15s" }}>
             {t.label}
           </button>
         );
@@ -146,12 +144,12 @@ function FormsOverview({ onOpen, onCreate }) {
   const newResp = Math.round(totalResp * 0.12);
 
   return (
-    <div style={{ background:DS.bgPage, minHeight:"100vh" }}>
+    <div style={{ minHeight:"100vh" }}>
       <PageHeader title="ArenaForm" description="Build and manage your data-collection forms" icon={<Ico.Form s={20} c={DS.actionPrimary}/>}
         actions={<><Btn type="Primary" iconLeft={<Ico.Plus s={16} c={DS.textInverse}/>} onClick={onCreate}>Create new form</Btn></>}/>
 
       {/* KPI strip — 4 cards */}
-      <div style={{ padding:"24px 24px 0", display:"flex", gap:16 }}>
+      <div style={{ padding:"24px 32px 0", display:"flex", gap:16 }}>
         <CardStats title="Total responses" value="2 527" subvalue="out of 5 012 sent" icon={Ico.Responses} trend="up" trendVal="+324 vs last month"/>
         <CardStats title="Avg. completion" value="40%" subvalue="active forms only" icon={Ico.Donut}/>
         <CardStats title="Active forms" value={active.length} subvalue={`${FORMS.length-active.length} inactive`} icon={Ico.Check} iconColor={DS.feedbackSuccess}/>
@@ -159,7 +157,7 @@ function FormsOverview({ onOpen, onCreate }) {
       </div>
 
       {/* Toolbar — flat on bgPage, no card wrapper */}
-      <div style={{ padding:"16px 24px 12px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+      <div style={{ padding:"16px 32px 12px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
         {/* Status filter — segmented control */}
         <div style={{ display:"flex", gap:2, background:DS.bgSurface, borderRadius:6, padding:2, border:`1px solid ${DS.borderDefault}` }}>
           {["all","active","inactive"].map(s => (
@@ -318,11 +316,11 @@ function FormEditor({ form, isNew, onBack }) {
   const [step, setStep] = useState(isNew ? 0 : 3);
 
   return (
-    <div style={{ background:DS.bgPage, minHeight:"100vh", display:"flex", flexDirection:"column" }}>
+    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column" }}>
       {/* Breadcrumb */}
       <div style={{ background:DS.bgCard, padding:"8px 24px", borderBottom:`1px solid ${DS.borderDefault}`, display:"flex", alignItems:"center", gap:8 }}>
         <button onClick={onBack} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", color:DS.actionPrimary, fontFamily:DS.ff, ...TY.b3 }}>
-          <Ico.ChevLeft s={14} c={DS.actionPrimary}/>Back to forms
+          <Ico.ArrowLeftSmall s={14} c={DS.actionPrimary}/>Back to forms
         </button>
         <span style={{ ...TY.b3, color:DS.borderDefault }}>/</span>
         <span style={{ ...TY.b3, color:DS.textSecondary, fontFamily:DS.ff }}>{form ? form.name : "New form"}</span>
@@ -334,7 +332,7 @@ function FormEditor({ form, isNew, onBack }) {
         actions={<><Btn type="Secondary" onClick={()=>{}}>Save draft</Btn><Btn type="Primary" onClick={()=>{}}>Publish</Btn></>}
       />
       <TabBar tabs={EDITOR_TABS} active={tab} onChange={t => { if (!isNew || EDITOR_TABS.findIndex(x=>x.id===t) <= step) setTab(t); }}
-        extra={isNew && step < 3 ? <Btn type="Primary" size="Small" iconLeft={<Ico.ChevRight s={14} c={DS.textInverse}/>} onClick={()=>{ const n=step+1; setStep(n); setTab(EDITOR_TABS[n].id); }}>Next step</Btn> : null}/>
+        extra={isNew && step < 3 ? <Btn type="Primary" size="Small" iconLeft={<Ico.ArrowRightSmall s={14} c={DS.textInverse}/>} onClick={()=>{ const n=step+1; setStep(n); setTab(EDITOR_TABS[n].id); }}>Next step</Btn> : null}/>
       <div style={{ flex:1, overflow:"auto" }}>
         {tab === "builder"  && <BuilderTab form={form}/>}
         {tab === "workflow" && <WorkflowTab/>}
@@ -386,7 +384,7 @@ function BuilderTab({ form }) {
       </div>
 
       {/* Canvas */}
-      <div style={{ flex:1, background:DS.bgPage, overflow:"auto", padding:24, display:"flex", flexDirection:"column", alignItems:"center", gap:16 }}>
+      <div style={{ flex:1, background:DS.surfaceAppBackground, overflow:"auto", padding:"24px 32px", display:"flex", flexDirection:"column", alignItems:"center", gap:16 }}>
         {unmapped > 0 && showWarn && (
           <div style={{ background:DS.feedbackWarningBg, border:`1px solid ${DS.feedbackWarning}`, borderRadius:10, padding:"10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", maxWidth:540 }}>
             <Ico.Warn s={16} c={DS.feedbackWarning}/>
@@ -487,7 +485,7 @@ function WorkflowTab() {
     action:   {bg:DS.feedbackSuccessBg,border:DS.feedbackSuccess},
   };
   return (
-    <div style={{ background:DS.bgPage, padding:24, height:"calc(100vh - 185px)", overflow:"auto" }}>
+    <div style={{ padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto" }}>
       <div style={{ background:DS.bgCard, border:`1px solid ${DS.borderDefault}`, borderRadius:10, overflow:"hidden" }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${DS.borderDefault}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div>
@@ -542,7 +540,7 @@ function ConnectTab({ form }) {
   function copy(text, key) { navigator.clipboard.writeText(text).catch(()=>{}); setCopied(key); setTimeout(()=>setCopied(null),2000); }
 
   return (
-    <div style={{ background:DS.bgPage, padding:24, height:"calc(100vh - 185px)", overflow:"auto", display:"flex", gap:16 }}>
+    <div style={{ padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto", display:"flex", gap:16 }}>
       <div style={{ flex:1, display:"flex", flexDirection:"column", gap:16 }}>
         <div style={{ background:DS.bgCard, border:`1px solid ${DS.borderDefault}`, borderRadius:10, overflow:"hidden" }}>
           <div style={{ padding:"12px 16px", borderBottom:`1px solid ${DS.borderDefault}` }}>
@@ -613,7 +611,7 @@ function ResultsTab({ form }) {
   const isEmpty = !form || form.contacts === 0;
 
   if (isEmpty) return (
-    <div style={{ background:DS.bgPage, height:"calc(100vh - 185px)", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:12 }}>
+    <div style={{ height:"calc(100vh - 185px)", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:12 }}>
       <Ico.Chart s={40} c={DS.neutral500}/>
       <div style={{ ...TY.h5, color:DS.textDefault, fontFamily:DS.ff }}>No responses yet</div>
       <div style={{ ...TY.b2, color:DS.textSecondary, fontFamily:DS.ff }}>Share your form to start collecting data.</div>
@@ -646,7 +644,7 @@ function ResultsTab({ form }) {
   const maxW = Math.max(...weeklyData.map(d=>d.value));
 
   return (
-    <div style={{ background:DS.bgPage, padding:24, height:"calc(100vh - 185px)", overflow:"auto", display:"flex", flexDirection:"column", gap:16 }}>
+    <div style={{ padding:"24px 32px", height:"calc(100vh - 185px)", overflow:"auto", display:"flex", flexDirection:"column", gap:16 }}>
       {/* KPI strip — corrected CardStats from Figma */}
       <div style={{ display:"flex", gap:16 }}>
         <CardStats title="Total responses" value={form.contacts.toLocaleString()} subvalue={`out of ${form.sent.toLocaleString()} sent`} icon={Ico.Responses}/>
