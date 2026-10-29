@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module Loyalty MVP — Feature Spec</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #1a1a2e;
+    background: #fff;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 48px 40px 80px;
+  }
+
+  @media print {
+    body { padding: 0; max-width: 100%; }
+    @page { size: A4; margin: 20mm 18mm 20mm 18mm; }
+    .no-print { display: none; }
+    h2 { page-break-before: auto; }
+    table { page-break-inside: avoid; }
+    .story-block { page-break-inside: avoid; }
+  }
+
+  h1 {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+
+  .meta {
+    background: #f8fafc;
+    border-left: 3px solid #6366f1;
+    padding: 12px 16px;
+    margin: 16px 0 24px;
+    font-size: 10pt;
+    border-radius: 0 4px 4px 0;
+  }
+  .meta p { margin: 2px 0; color: #475569; }
+  .meta strong { color: #1e293b; }
+
+  .agent-note {
+    background: #fffbeb;
+    border-left: 3px solid #f59e0b;
+    padding: 10px 14px;
+    margin: 16px 0;
+    font-size: 10pt;
+    color: #92400e;
+    border-radius: 0 4px 4px 0;
+  }
+
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
+
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 32px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    color: #334155;
+    margin: 20px 0 8px;
+  }
+
+  p { margin: 8px 0; }
+
+  ul, ol {
+    margin: 8px 0 8px 20px;
+  }
+  li { margin: 4px 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 10pt;
+  }
+  th {
+    background: #f1f5f9;
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+  }
+  td {
+    padding: 7px 12px;
+    border: 1px solid #e2e8f0;
+    vertical-align: top;
+    color: #374151;
+  }
+  tr:nth-child(even) td { background: #f8fafc; }
+
+  .story-block {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 16px;
+    margin: 16px 0;
+  }
+  .story-block h3 {
+    margin-top: 0;
+    color: #6366f1;
+    font-size: 11pt;
+  }
+
+  .checklist {
+    list-style: none;
+    margin-left: 0;
+  }
+  .checklist li {
+    padding: 4px 0 4px 24px;
+    position: relative;
+  }
+  .checklist li::before {
+    content: '☐';
+    position: absolute;
+    left: 0;
+    color: #94a3b8;
+  }
+  .checklist li.checked::before {
+    content: '☑';
+    color: #22c55e;
+  }
+  .checklist li.partial::before {
+    content: '◐';
+    color: #f59e0b;
+  }
+
+  .tier-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 9pt;
+    font-weight: 600;
+    color: #fff;
+  }
+  .badge-bronze { background: #CD7F32; }
+  .badge-silver { background: #A8A9AD; }
+  .badge-gold { background: #FFD700; color: #1a1a2e; }
+  .badge-legend { background: #C41E3A; }
+
+  footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 9pt;
+    color: #94a3b8;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Module Loyalty MVP — Feature Spec</h1>
+
+<div class="meta">
+  <p><strong>Product area:</strong> CRM / Fan Engagement</p>
+  <p><strong>PM:</strong> Anne-Sophie Demars</p>
+  <p><strong>Fidelity:</strong> Clickable <em>(inferred — not specified in brief)</em></p>
+  <p><strong>Platform:</strong> Arenametrix web app (Vite + React)</p>
+  <p><strong>Date:</strong> 2026-06-30</p>
+</div>
+
+<div class="agent-note">
+  ⚠ <strong>Agent notes:</strong> Fidelity inferred as Clickable. Platform inferred as Arenametrix web. Acceptance criteria inferred for stories where none were explicit in the brief. POC RCSC Charleroi (hardcoded, no UI) is excluded from this prototype. Tickets 7 (expiration) and 8 (manual adjustment) are marked Nice-to-have in the brief — both are included in the spec but flagged as lower-priority screens.
+</div>
+
+<hr>
+
+<h2>1. Context</h2>
+<p>Arenametrix is building a vertical loyalty module for sports and entertainment clubs, powered exclusively by internal Walnut data (Tickets, Purchases, Representations, Link_stats, Campaigns, Targets). The module scores fan engagement by frequency and duration of interactions, expresses that score as a point balance and a tier, and makes both visible and operable inside the CRM. The MVP proves value without external integrations; a future MVP2 will add point redemption, fan-facing portal, app/POS ingestion, and business-impact KPIs.</p>
+
+<hr>
+
+<h2>2. Goals</h2>
+<ol>
+  <li>Measure and value fan engagement via a configurable point-scoring engine driven entirely by Walnut data.</li>
+  <li>Expose loyalty status (balance, tier, history) directly in the contact card so CRM operators can act on it daily.</li>
+  <li>Give Marketing Managers a self-serve configuration interface for programme setup, tier definition, and point-earning rules.</li>
+  <li>Provide a read-only dashboard with key adoption and engagement KPIs for directors and programme owners.</li>
+  <li>Ensure full traceability of all point movements (batch ingestion, manual adjustments) with admin logs.</li>
+</ol>
+
+<h3>Not in scope</h3>
+<ul>
+  <li>Point consumption and rewards (loyalty_rewards, redeem_reward(), grants, fulfilment, stock management)</li>
+  <li>Business impact KPIs (before/after activation comparisons)</li>
+  <li>Automatic tier benefits synced to ticketing or e-commerce systems</li>
+  <li>Fan-facing portal and SSO integration (deferred to 2026 upsell)</li>
+  <li>Advanced point expiration engine (per-action expiry, rolling windows)</li>
+  <li>Anti-fraud and duplicate-detection logic</li>
+  <li>CSV export from the dashboard</li>
+</ul>
+
+<hr>
+
+<h2>3. User stories</h2>
+
+<div class="story-block">
+  <h3>Story 1 — Activate loyalty programme</h3>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>As a…</td><td>Marketing Manager (Programme Admin)</td></tr>
+    <tr><td>I want to…</td><td>Create and activate a loyalty programme with a name, start date, eligible segment, and optional expiration</td></tr>
+    <tr><td>So that…</td><td>Fan point collection begins automatically for the chosen segment</td></tr>
+    <tr><td>Acceptance criteria</td><td>Programme requires name, start_date, and eligible_segment; status toggles active/inactive; start_date is locked after activation; eligible segment chosen from existing Arenametrix Targets</td></tr>
+    <tr><td>Empty state</td><td>No programme exists — full-page empty state with "Create your first loyalty programme" CTA</td></tr>
+    <tr><td>Error state</td><td>Missing required field — inline validation; attempt to edit start_date post-activation — locked field with tooltip</td></tr>
+    <tr><td>Loading state</td><td>Spinner on "Activate" button; page skeleton on initial load</td></tr>
+  </table>
+</div>
+
+<div class="story-block">
+  <h3>Story 2 — Configure loyalty tiers</h3>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>As a…</td><td>Marketing Manager</td></tr>
+    <tr><td>I want to…</td><td>Define tiers with name and point thresholds (min/max points), without overlap between tiers</td></tr>
+    <tr><td>So that…</td><td>Fans are automatically segmented by loyalty status as their balance grows</td></tr>
+    <tr><td>Acceptance criteria</td><td>At least 1 tier required before activation; point ranges must not overlap; tier name required; optional badge colour; max_points of highest tier can be null (unlimited)</td></tr>
+    <tr><td>Empty state</td><td>No tiers defined — "Add your first tier" prompt with example: Bronze / Silver / Gold / Legend</td></tr>
+    <tr><td>Error state</td><td>Overlapping ranges — inline "This range overlaps with [Tier name]"; duplicate name — "A tier with this name already exists"</td></tr>
+    <tr><td>Loading state</td><td>Inline save indicator on each tier row</td></tr>
+  </table>
+</div>
+
+<div class="story-block">
+  <h3>Story 3 — Manage point-earning rules</h3>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>As a…</td><td>Marketing Manager</td></tr>
+    <tr><td>I want to…</td><td>Configure point-earning rules on a fixed set of action types and toggle rules on/off individually</td></tr>
+    <tr><td>So that…</td><td>Fan actions tracked in Walnut are automatically translated into loyalty points</td></tr>
+    <tr><td>Acceptance criteria</td><td>Fixed action types: TICKET_PURCHASED, MATCH_ATTENDED, EMAIL_CLICK, SEASON_SUBSCRIPTION; each has points_delta (positive integer), description_internal, is_active toggle; one rule per action_type</td></tr>
+    <tr><td>Empty state</td><td>All 4 rules shown inactive with placeholder deltas — "Enable at least one rule to start scoring fans"</td></tr>
+    <tr><td>Error state</td><td>points_delta ≤ 0 or non-integer — inline "Must be a positive whole number"</td></tr>
+    <tr><td>Loading state</td><td>"Saving…" replaces "Save all rules" during save</td></tr>
+  </table>
+</div>
+
+<div class="story-block">
+  <h3>Story 4 — View fan loyalty in contact card</h3>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>As a…</td><td>CRM Operator / Fan Relations Agent</td></tr>
+    <tr><td>I want to…</td><td>See a fan's point balance, current tier, and last 10 transaction entries in their contact card</td></tr>
+    <tr><td>So that…</td><td>I can personalise interactions, create loyalty-based filters, and trigger targeted Brevo campaigns</td></tr>
+    <tr><td>Acceptance criteria</td><td>Balance + tier badge + progress to next tier; last 10 ledger entries (action type, ± points, date, reason for manual); "Modify points" button; Loyalty tier + balance filters in Contacts V2 filter panel</td></tr>
+    <tr><td>Empty state</td><td>Fan has no loyalty data — "This contact is not enrolled in any loyalty programme"</td></tr>
+    <tr><td>Error state</td><td>Snapshot API error — "Loyalty data temporarily unavailable" with Retry button</td></tr>
+    <tr><td>Loading state</td><td>Skeleton loader for balance card and history list</td></tr>
+  </table>
+</div>
+
+<div class="story-block">
+  <h3>Story 5 — Manually adjust fan points</h3>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>As a…</td><td>CRM Operator</td></tr>
+    <tr><td>I want to…</td><td>Add or deduct points from a fan's balance with a mandatory reason</td></tr>
+    <tr><td>So that…</td><td>I can handle commercial gestures and disputes while maintaining a full audit trail</td></tr>
+    <tr><td>Acceptance criteria</td><td>Adjustment modal from Loyalty tab; adjustment_type (Add/Deduct), amount (positive integer), reason (textarea, min 10 chars); new balance previewed; deduction to below 0 shows warning; ledger entry created on confirmation</td></tr>
+    <tr><td>Empty state</td><td>N/A — triggered from loaded contact card</td></tr>
+    <tr><td>Error state</td><td>Empty reason — "A reason is required (min 10 characters)"; amount = 0 — "Amount must be greater than 0"; submit failure — "Adjustment failed. Please try again."</td></tr>
+    <tr><td>Loading state</td><td>Confirm button shows spinner; disabled during submission</td></tr>
+  </table>
+</div>
+
+<div class="story-block">
+  <h3>Story 6 — View loyalty reporting dashboard</h3>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>As a…</td><td>Director / Marketing Manager</td></tr>
+    <tr><td>I want to…</td><td>View a read-only dashboard showing adoption KPIs, tier distribution, and top earning actions</td></tr>
+    <tr><td>So that…</td><td>I can track programme dynamics and report on adoption to stakeholders</td></tr>
+    <tr><td>Acceptance criteria</td><td>KPI cards: fans enrolled, % of eligible segment, total points awarded in period, manual adjustments count; tier distribution chart; top 3 actions by points awarded; period selector (30d / 90d / 12m); fully read-only — no export</td></tr>
+    <tr><td>Empty state</td><td>Programme not activated — "Activate a programme to start seeing data" with link to Settings</td></tr>
+    <tr><td>Error state</td><td>Aggregation API unavailable — per-widget "Data unavailable" with last-refresh timestamp</td></tr>
+    <tr><td>Loading state</td><td>KPI card skeletons + chart placeholder + skeleton table rows</td></tr>
+  </table>
+</div>
+
+<hr>
+
+<h2>4. Screens</h2>
+
+<table>
+  <tr><th>Screen</th><th>Linked stories</th><th>Notes</th></tr>
+  <tr><td>Programme Settings</td><td>Story 1</td><td>Activate/deactivate; name, start_date, eligible segment, expiration_months. start_date locked post-activation.</td></tr>
+  <tr><td>Tier Configuration</td><td>Story 2</td><td>Inline-editable tier table; overlap validation; "Add tier" button.</td></tr>
+  <tr><td>Point Rules Management</td><td>Story 3</td><td>Fixed 4-action table with points_delta inputs and active toggles.</td></tr>
+  <tr><td>Contact Card — Loyalty Tab</td><td>Stories 4, 5</td><td>Balance card + tier badge + progress bar + history + adjustment modal. Loyalty filters in Contacts V2.</td></tr>
+  <tr><td>Reporting Dashboard</td><td>Story 6</td><td>KPI cards + tier distribution chart + top actions. Period selector. Read-only.</td></tr>
+</table>
+
+<h3>Mock data</h3>
+
+<table>
+  <tr><th>Entity</th><th>Key fields</th><th>Volume</th><th>Notes</th></tr>
+  <tr><td>loyalty_program</td><td>id, name, status, eligible_segment_id, start_date, expiration_months</td><td>1</td><td>Status active; RCSC Charleroi season segment</td></tr>
+  <tr><td>loyalty_tiers</td><td>id, tier_name, min_points, max_points, color</td><td>4</td><td>
+    <span class="tier-badge badge-bronze">Bronze</span> 0–499 &nbsp;
+    <span class="tier-badge badge-silver">Silver</span> 500–1 499 &nbsp;
+    <span class="tier-badge badge-gold">Gold</span> 1 500–2 999 &nbsp;
+    <span class="tier-badge badge-legend">Legend</span> 3 000+
+  </td></tr>
+  <tr><td>loyalty_point_rules</td><td>action_type, points_delta, is_active</td><td>4</td><td>TICKET_PURCHASED ×10, MATCH_ATTENDED ×20, EMAIL_CLICK ×2, SEASON_SUBSCRIPTION ×200</td></tr>
+  <tr><td>loyalty_fan_snapshot</td><td>customer_id, email, balance, tier_name, points_to_next_tier</td><td>5</td><td>One fan at tier boundary (500 pts exactly); one at 0 pts; one Legend-tier fan</td></tr>
+  <tr><td>loyalty_ledger</td><td>id, customer_id, action_type, points_delta, balance_after, reason, admin_user_id, created_at</td><td>15</td><td>≥2 manual adjustments with reason; dates Sept 2025 – Jun 2026</td></tr>
+</table>
+
+<hr>
+
+<h2>5. Constraints</h2>
+
+<table>
+  <tr><th>Constraint</th><th>Value</th></tr>
+  <tr><td>Stack / framework</td><td>Vite + React 19 — integrated into ax-prototypes as src/features/Loyalty/. DS/TY/Ico imported from utils/.</td></tr>
+  <tr><td>Accessibility</td><td>Keyboard-navigable modals (focus trap, Escape to close); aria-label on icon-only buttons; sufficient colour contrast on tier badges</td></tr>
+  <tr><td>Data &amp; GDPR</td><td>Walnut only (Fullcustats, Tickets, Purchases, Representations, Links/Link_stats, Campaigns, Targets). Identity: customer_id = Fullcustats.id. All manual adjustments logged with admin_user_id.</td></tr>
+  <tr><td>Performance</td><td>Snapshot read target &lt;200 ms. Batch ingestion jobs must be idempotent.</td></tr>
+  <tr><td>Other</td><td>Prototype uses static mock data — no live API calls. All 3 edge states must be togglable via developer controls in prototype mode.</td></tr>
+</table>
+
+<h3>Open questions</h3>
+
+<table>
+  <tr><th>Question</th><th>Owner</th><th>Status</th></tr>
+  <tr><td>Is Story 5 (manual adjustment) confirmed MVP priority? Brief marks it Nice-to-have but CRM scope implies it.</td><td>Anne-Sophie Demars</td><td>Open</td></tr>
+  <tr><td>Is point expiration (Ticket 7) in scope for this prototype or deferred?</td><td>Anne-Sophie Demars</td><td>Open</td></tr>
+  <tr><td>Which Brevo attributes map to tier and balance? No schema provided.</td><td>Anne-Sophie Demars</td><td>Open</td></tr>
+  <tr><td>Dashboard: is "current season" a valid period option alongside 30/90/365 days?</td><td>Anne-Sophie Demars</td><td>Open</td></tr>
+  <tr><td>Loyalty Tab: new tab in contact detail page, or a drawer/panel?</td><td>Anne-Sophie Demars</td><td>Open</td></tr>
+</table>
+
+<hr>
+
+<h2>6. Pre-send checklist</h2>
+
+<ul class="checklist">
+  <li class="checked">Context is one clear paragraph — who, what, why</li>
+  <li class="checked">At least 1 goal uses outcome language</li>
+  <li class="checked">At least 1 non-goal is stated explicitly</li>
+  <li class="checked">Every story has acceptance criteria (inferred where absent from brief)</li>
+  <li class="checked">All 3 edge states are specified for every story</li>
+  <li class="checked">Every screen is listed with a description</li>
+  <li class="checked">At least 1 mock data entity is defined (5 entities)</li>
+  <li class="partial">All open questions have an owner — 5 open questions identified, owner assigned to PM, awaiting answers</li>
+</ul>
+
+<footer>
+  Module Loyalty MVP — Feature Spec v0.1 · Generated 2026-06-30 · Arenametrix
+</footer>
+
+</body>
+</html>

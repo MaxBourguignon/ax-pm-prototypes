@@ -115,6 +115,9 @@ const IcoSupport = ({ s = 20, c }) => (
 // Insights — bar-chart mark from the shared icon catalog.
 const IcoInsights = ({ s = 20, c }) => <Ico.Chart s={s} c={c} />;
 
+// Loyalty — star mark from the shared icon catalog.
+const IcoLoyalty = ({ s = 20, c }) => <Ico.Star s={s} c={c} />;
+
 // ── Data ──────────────────────────────────────────────────────────────────────
 
 const NAV_TABS_L1 = [
@@ -170,6 +173,16 @@ const NAV_TABS_L1 = [
     subitems: [
       { id: "insights", label: "My cards", link: "/insights" },
       { id: "insights-all", label: "All batches (mockup)", link: "/insights/all-batches" },
+    ],
+  },
+  {
+    id: "loyalty",
+    label: "Loyalty",
+    Icon: IcoLoyalty,
+    subitems: [
+      { id: "loyalty-dashboard", label: "Dashboard",   link: "/loyalty/dashboard" },
+      { id: "loyalty-settings",  label: "Settings",    link: "/loyalty/settings"  },
+      { id: "loyalty-rewards",   label: "Rewards",     link: "/loyalty/rewards"   },
     ],
   },
 ];
